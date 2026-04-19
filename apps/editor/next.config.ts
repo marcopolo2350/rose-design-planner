@@ -1,6 +1,14 @@
 import type { NextConfig } from 'next'
 
+const isGitHubPages = process.env.GITHUB_PAGES === 'true'
+const repoName = process.env.GITHUB_REPOSITORY?.split('/')[1] ?? 'atelier-rose'
+const basePath = isGitHubPages ? `/${repoName}` : ''
+
 const nextConfig: NextConfig = {
+  output: 'export',
+  trailingSlash: true,
+  basePath,
+  assetPrefix: basePath || undefined,
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -19,7 +27,9 @@ const nextConfig: NextConfig = {
     },
   },
   images: {
-    unoptimized: process.env.NEXT_PUBLIC_ASSETS_CDN_URL?.startsWith('http://localhost') ?? false,
+    unoptimized:
+      isGitHubPages ||
+      (process.env.NEXT_PUBLIC_ASSETS_CDN_URL?.startsWith('http://localhost') ?? false),
     remotePatterns: [
       {
         protocol: 'https',
