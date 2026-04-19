@@ -1,17 +1,17 @@
-# Pascal Editor — Setup
+# Rose Design Planner - Setup
 
 ## Prerequisites
 
-- [Bun](https://bun.sh/) 1.3+ (or Node.js 18+)
+- [Node.js](https://nodejs.org/) 20+ and npm
 
 ## Quick Start
 
 ```bash
-bun install
-bun dev
+npm install
+npm run dev
 ```
 
-The editor will be running at **http://localhost:3000**.
+The planner will be running at **http://localhost:3000**.
 
 ## Environment Variables (optional)
 
@@ -26,7 +26,7 @@ cp .env.example .env
 | `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | No | Enables address search in the editor |
 | `PORT` | No | Dev server port (default: 3000) |
 
-The editor works fully without any environment variables.
+The planner works fully without any environment variables.
 
 ## Monorepo Structure
 
@@ -44,11 +44,11 @@ The editor works fully without any environment variables.
 
 | Command | Description |
 |---------|-------------|
-| `bun dev` | Start the development server |
-| `bun build` | Build all packages |
-| `bun check` | Lint and format check (Biome) |
-| `bun check:fix` | Auto-fix lint and format issues |
-| `bun check-types` | TypeScript type checking |
+| `npm run dev` | Start the development server |
+| `npm run build` | Build all packages |
+| `npm run check` | Lint and format check (Biome) |
+| `npm run check:fix` | Auto-fix lint and format issues |
+| `npm run check-types` | TypeScript type checking |
 
 ## Contributing
 

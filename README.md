@@ -1,6 +1,6 @@
-# Atelier Rose
+# Rose Design Planner
 
-A 3D interior design editor built on the Pascal engine stack, ready to evolve into a Rose-shaped planning and presentation tool.
+A 3D planning workspace for Rose's design projects, built from the Pascal editor stack and adapted for layout work, furnishing, and presentation-ready reviews.
 
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![npm @pascal-app/core](https://img.shields.io/npm/v/@pascal-app/core?label=%40pascal-app%2Fcore)](https://www.npmjs.com/package/@pascal-app/core)

@@ -5,49 +5,50 @@ import { Disc3, Settings2, SkipBack, SkipForward, Volume2, VolumeX } from 'lucid
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Slider } from '../components/ui/slider'
+import { assetPath } from '../lib/asset-path'
 import { cn } from '../lib/utils'
 import useAudio from '../store/use-audio'
 
 const PLAYLIST = [
   {
     title: 'Ballroom in Miniature',
-    file: '/audios/radios/classic/Ballroom in Miniature.mp3',
+    file: assetPath('/audios/radios/classic/Ballroom in Miniature.mp3'),
   },
   {
     title: 'Blueprints in Springtime',
-    file: '/audios/radios/classic/Blueprints in Springtime.mp3',
+    file: assetPath('/audios/radios/classic/Blueprints in Springtime.mp3'),
   },
   {
     title: 'Clockwork Tea Party',
-    file: '/audios/radios/classic/Clockwork Tea Party.mp3',
+    file: assetPath('/audios/radios/classic/Clockwork Tea Party.mp3'),
   },
   {
     title: 'Clockwork Tea Party (Alternate)',
-    file: '/audios/radios/classic/Clockwork Tea Party (Alternate).mp3',
+    file: assetPath('/audios/radios/classic/Clockwork Tea Party (Alternate).mp3'),
   },
   {
     title: 'Clockwork Teacups',
-    file: '/audios/radios/classic/Clockwork Teacups.mp3',
+    file: assetPath('/audios/radios/classic/Clockwork Teacups.mp3'),
   },
   {
     title: 'Evening in the Parlor',
-    file: '/audios/radios/classic/Evening in the Parlor.mp3',
+    file: assetPath('/audios/radios/classic/Evening in the Parlor.mp3'),
   },
   {
     title: 'Glass Atrium',
-    file: '/audios/radios/classic/Glass Atrium.mp3',
+    file: assetPath('/audios/radios/classic/Glass Atrium.mp3'),
   },
   {
     title: 'Moonlight On The Drafting Table',
-    file: '/audios/radios/classic/Moonlight On The Drafting Table.mp3',
+    file: assetPath('/audios/radios/classic/Moonlight On The Drafting Table.mp3'),
   },
   {
     title: 'Sunlit Garden Reverie',
-    file: '/audios/radios/classic/Sunlit Garden Reverie.mp3',
+    file: assetPath('/audios/radios/classic/Sunlit Garden Reverie.mp3'),
   },
   {
     title: 'Sunlit Waltz in Pastel Hues',
-    file: '/audios/radios/classic/Sunlit Waltz in Pastel Hues.mp3',
+    file: assetPath('/audios/radios/classic/Sunlit Waltz in Pastel Hues.mp3'),
   },
 ]
 
@@ -177,7 +178,7 @@ export function PascalRadio() {
       <div className="flex items-center justify-between gap-2 px-3 py-2 font-medium text-sm">
         <div className="flex items-center gap-2">
           <Disc3 className={cn('h-4 w-4 shrink-0', isRadioPlaying && 'animate-spin')} />
-          <span className="hidden whitespace-nowrap sm:inline">Radio Pascal</span>
+          <span className="hidden whitespace-nowrap sm:inline">Rose Radio</span>
         </div>
         <div className="flex items-center gap-2">
           <div

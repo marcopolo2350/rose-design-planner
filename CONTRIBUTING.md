@@ -1,4 +1,4 @@
-# Contributing to Pascal Editor
+# Contributing to Rose Design Planner
 
 Thanks for your interest in contributing! We welcome all kinds of contributions — bug fixes, new features, documentation, and ideas.
 
@@ -11,13 +11,13 @@ Thanks for your interest in contributing! We welcome all kinds of contributions 
 ### Setup
 
 ```bash
-git clone https://github.com/pascalorg/editor.git
-cd editor
-bun install
-bun dev
+git clone https://github.com/marcopolo2350/rose-design-planner.git
+cd rose-design-planner
+npm install
+npm run dev
 ```
 
-The editor will be running at **http://localhost:3000**. That's it!
+The planner will be running at **http://localhost:3000**. That's it!
 
 ### Optional
 
@@ -30,8 +30,8 @@ Copy `.env.example` to `.env` and add a Google Maps API key if you want address 
 We use [Biome](https://biomejs.dev/) for linting and formatting. Before submitting a PR:
 
 ```bash
-bun check        # Check for issues
-bun check:fix    # Auto-fix issues
+npm run check        # Check for issues
+npm run check:fix    # Auto-fix issues
 ```
 
 ### Project structure

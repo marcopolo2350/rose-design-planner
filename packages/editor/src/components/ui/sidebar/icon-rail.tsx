@@ -1,6 +1,7 @@
 'use client'
 
 import type { ComponentType, ReactNode } from 'react'
+import { assetPath } from '../../../lib/asset-path'
 import {
   Tooltip,
   TooltipContent,
@@ -22,13 +23,13 @@ interface IconRailProps {
 
 const sitePanel: { id: PanelId; iconSrc: string; label: string } = {
   id: 'site',
-  iconSrc: '/icons/level.png',
+  iconSrc: assetPath('/icons/level.png'),
   label: 'Site',
 }
 
 const settingsPanel: { id: PanelId; iconSrc: string; label: string } = {
   id: 'settings',
-  iconSrc: '/icons/settings.png',
+  iconSrc: assetPath('/icons/settings.png'),
   label: 'Settings',
 }
 

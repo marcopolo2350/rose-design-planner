@@ -1,4 +1,5 @@
 import { Howl } from 'howler'
+import { assetPath } from './asset-path'
 import useAudio from '../store/use-audio'
 
 // Per-sound variation config. Playback rate also shifts pitch (one semitone ≈ 1.0595×),
@@ -24,50 +25,50 @@ const DEFAULT_MIN_INTERVAL_MS = 30
 // SFX sound definitions
 export const SFX: Record<string, SFXConfig> = {
   gridSnap: {
-    src: '/audios/sfx/grid_snap.mp3',
+    src: assetPath('/audios/sfx/grid_snap.mp3'),
     rateRange: [0.94, 1.06],
     volumeRange: [0.92, 1.0],
     panJitter: 0.15,
   },
   itemDelete: {
-    src: '/audios/sfx/item_delete.mp3',
+    src: assetPath('/audios/sfx/item_delete.mp3'),
     rateRange: [0.9, 1.1],
     volumeRange: [0.9, 1.0],
     panJitter: 0.15,
   },
   itemPick: {
-    src: '/audios/sfx/item_pick.mp3',
+    src: assetPath('/audios/sfx/item_pick.mp3'),
     rateRange: [0.92, 1.08],
     volumeRange: [0.92, 1.0],
     panJitter: 0.15,
   },
   itemPlace: {
-    src: '/audios/sfx/item_place.mp3',
+    src: assetPath('/audios/sfx/item_place.mp3'),
     rateRange: [0.98, 1.06],
     volumeRange: [0.9, 1.0],
     panJitter: 0.15,
   },
   itemRotate: {
-    src: '/audios/sfx/item_rotate.mp3',
+    src: assetPath('/audios/sfx/item_rotate.mp3'),
     rateRange: [0.94, 1.06],
     volumeRange: [0.92, 1.0],
     panJitter: 0.15,
   },
   structureBuild: {
-    src: '/audios/sfx/structure_build.mp3',
+    src: assetPath('/audios/sfx/structure_build.mp3'),
     rateRange: [0.95, 1.05],
     volumeRange: [0.88, 1.0],
     panJitter: 0.15,
   },
   structureDelete: {
-    src: '/audios/sfx/structure_delete.mp3',
+    src: assetPath('/audios/sfx/structure_delete.mp3'),
     rateRange: [0.9, 1.1],
     volumeRange: [0.9, 1.0],
     panJitter: 0.15,
   },
   snapshotCapture: {
     // Shutter should sound consistent, no variation.
-    src: '/audios/sfx/snapshot_capture.mp3',
+    src: assetPath('/audios/sfx/snapshot_capture.mp3'),
   },
 } as const
 

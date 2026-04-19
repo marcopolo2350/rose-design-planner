@@ -15,6 +15,7 @@ import { ArrowLeft, Camera, ChevronRight, Diamond, Layers, Moon, Sun } from 'luc
 import { motion } from 'motion/react'
 import Link from 'next/link'
 import { useShallow } from 'zustand/react/shallow'
+import { assetPath } from '../lib/asset-path'
 import { cn } from '../lib/utils'
 import { ActionButton } from './ui/action-menu/action-button'
 import { TooltipProvider } from './ui/primitives/tooltip'
@@ -42,19 +43,19 @@ const levelModeBadgeLabels: Record<'manual' | 'stacked' | 'exploded' | 'solo', s
 const wallModeConfig = {
   up: {
     icon: (props: any) => (
-      <img alt="Full Height" height={28} src="/icons/room.png" width={28} {...props} />
+      <img alt="Full Height" height={28} src={assetPath('/icons/room.png')} width={28} {...props} />
     ),
     label: 'Full Height',
   },
   cutaway: {
     icon: (props: any) => (
-      <img alt="Cutaway" height={28} src="/icons/wallcut.png" width={28} {...props} />
+      <img alt="Cutaway" height={28} src={assetPath('/icons/wallcut.png')} width={28} {...props} />
     ),
     label: 'Cutaway',
   },
   down: {
     icon: (props: any) => (
-      <img alt="Low" height={28} src="/icons/walllow.png" width={28} {...props} />
+      <img alt="Low" height={28} src={assetPath('/icons/walllow.png')} width={28} {...props} />
     ),
     label: 'Low',
   },
@@ -344,7 +345,7 @@ export const ViewerOverlay = ({
                 <img
                   alt="Scans"
                   className="h-[28px] w-[28px] object-contain"
-                  src="/icons/mesh.png"
+                  src={assetPath('/icons/mesh.png')}
                 />
               </ActionButton>
             )}
@@ -365,7 +366,7 @@ export const ViewerOverlay = ({
                 <img
                   alt="Guides"
                   className="h-[28px] w-[28px] object-contain"
-                  src="/icons/floorplan.png"
+                  src={assetPath('/icons/floorplan.png')}
                 />
               </ActionButton>
             )}
@@ -465,7 +466,7 @@ export const ViewerOverlay = ({
               <img
                 alt="Orbit Left"
                 className="h-[28px] w-[28px] -scale-x-100 object-contain opacity-70 transition-opacity group-hover:opacity-100"
-                src="/icons/rotate.png"
+                src={assetPath('/icons/rotate.png')}
               />
             </ActionButton>
 
@@ -480,7 +481,7 @@ export const ViewerOverlay = ({
               <img
                 alt="Orbit Right"
                 className="h-[28px] w-[28px] object-contain opacity-70 transition-opacity group-hover:opacity-100"
-                src="/icons/rotate.png"
+                src={assetPath('/icons/rotate.png')}
               />
             </ActionButton>
 
@@ -495,7 +496,7 @@ export const ViewerOverlay = ({
               <img
                 alt="Top View"
                 className="h-[28px] w-[28px] object-contain opacity-70 transition-opacity group-hover:opacity-100"
-                src="/icons/topview.png"
+                src={assetPath('/icons/topview.png')}
               />
             </ActionButton>
           </div>

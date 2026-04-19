@@ -4,6 +4,7 @@ import { Icon as IconifyIcon } from '@iconify/react'
 import { useViewer } from '@pascal-app/viewer'
 import { Check, ChevronsLeft, ChevronsRight, Columns2, Eye, Footprints, Moon, Sun } from 'lucide-react'
 import { useCallback } from 'react'
+import { assetPath } from '../../lib/asset-path'
 import { cn } from '../../lib/utils'
 import useEditor from '../../store/use-editor'
 import type { GridSnapStep, ViewMode } from '../../store/use-editor'
@@ -32,12 +33,12 @@ const VIEW_MODES: { id: ViewMode; label: string; icon: React.ReactNode }[] = [
   {
     id: '3d',
     label: '3D',
-    icon: <img alt="" className="h-3.5 w-3.5 object-contain" src="/icons/building.png" />,
+    icon: <img alt="" className="h-3.5 w-3.5 object-contain" src={assetPath('/icons/building.png')} />,
   },
   {
     id: '2d',
     label: '2D',
-    icon: <img alt="" className="h-3.5 w-3.5 object-contain" src="/icons/blueprint.png" />,
+    icon: <img alt="" className="h-3.5 w-3.5 object-contain" src={assetPath('/icons/blueprint.png')} />,
   },
   {
     id: 'split',
@@ -275,9 +276,9 @@ function GridSnapToggle() {
 
 const wallModeOrder = ['cutaway', 'up', 'down'] as const
 const wallModeConfig: Record<string, { icon: string; label: string }> = {
-  up: { icon: '/icons/room.png', label: 'Full height' },
-  cutaway: { icon: '/icons/wallcut.png', label: 'Cutaway' },
-  down: { icon: '/icons/walllow.png', label: 'Low' },
+  up: { icon: assetPath('/icons/room.png'), label: 'Full height' },
+  cutaway: { icon: assetPath('/icons/wallcut.png'), label: 'Cutaway' },
+  down: { icon: assetPath('/icons/walllow.png'), label: 'Low' },
 }
 
 function WallModeToggle() {

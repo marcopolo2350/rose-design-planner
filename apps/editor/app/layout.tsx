@@ -22,8 +22,8 @@ const barlow = Barlow({
 })
 
 export const metadata = {
-  title: 'Atelier Rose',
-  description: 'A 3D design editor for shaping rooms, layouts, and presentation-ready spaces.',
+  title: 'Rose Design Planner',
+  description: 'A 3D space planning workspace for layouts, room editing, and presentation-ready design reviews.',
 }
 
 export default function RootLayout({

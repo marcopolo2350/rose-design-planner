@@ -10,7 +10,7 @@ import {
 const SIDEBAR_TABS: (SidebarTab & { component: React.ComponentType })[] = [
   {
     id: 'site',
-    label: 'Scene',
+    label: 'Plan',
     component: () => null, // Built-in SitePanel handles this
   },
 ]
@@ -20,7 +20,7 @@ export default function Home() {
     <div className="h-screen w-screen">
       <Editor
         layoutVersion="v2"
-        projectId="local-editor"
+        projectId="rose-design-planner"
         sidebarTabs={SIDEBAR_TABS}
         viewerToolbarLeft={<ViewerToolbarLeft />}
         viewerToolbarRight={<ViewerToolbarRight />}

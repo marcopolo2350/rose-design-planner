@@ -1,6 +1,6 @@
-# Pascal Editor
+# Rose Design Planner
 
-A 3D building editor built with React Three Fiber and WebGPU.
+A 3D planning editor for room layouts, furnishing, and design review.
 
 ## Repository Architecture
 
@@ -340,10 +340,10 @@ Clears dirty flag
 
 ```bash
 # Install dependencies
-pnpm install
+npm install
 
 # Run development server
-pnpm dev
+npm run dev
 
 # Open http://localhost:3000
 ```
