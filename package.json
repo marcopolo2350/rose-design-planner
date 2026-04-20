@@ -1,5 +1,5 @@
 {
-  "name": "rose-space-planner",
+  "name": "roses-outdoor-designs",
   "private": true,
   "scripts": {
     "build": "turbo run build",

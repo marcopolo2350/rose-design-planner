@@ -1,4 +1,4 @@
-# Rose Space Planner
+# Rose's Outdoor Designs
 
 A 3D planning editor for room layouts, furnishing, and design review.
 

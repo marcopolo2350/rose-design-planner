@@ -20,7 +20,7 @@ export default function Home() {
     <div className="h-screen w-screen">
       <Editor
         layoutVersion="v2"
-        projectId="rose-space-planner"
+        projectId="roses-outdoor-designs"
         sidebarTabs={SIDEBAR_TABS}
         viewerToolbarLeft={<ViewerToolbarLeft />}
         viewerToolbarRight={<ViewerToolbarRight />}

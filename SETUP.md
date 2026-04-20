@@ -1,4 +1,4 @@
-# Rose Space Planner - Setup
+# Rose's Outdoor Designs - Setup
 
 ## Prerequisites
 

@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        We love hearing ideas from the community! Please describe what you'd like to see in Rose Space Planner.
+        We love hearing ideas from the community! Please describe what you'd like to see in Rose's Outdoor Designs.
 
   - type: textarea
     id: problem

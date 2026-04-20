@@ -1,4 +1,4 @@
-# Rose Space Planner
+# Rose's Outdoor Designs
 
 A 3D planning workspace for Rose's design projects, built from the Pascal editor stack and adapted for layout work, furnishing, and presentation-ready reviews.
 
