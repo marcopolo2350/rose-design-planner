@@ -7,6 +7,7 @@ import {
   resolveMaterial,
 } from '@pascal-app/core'
 import * as THREE from 'three'
+import { resolveCdnUrl } from './asset-url'
 
 const sideMap: Record<MaterialProperties['side'], THREE.Side> = {
   front: THREE.FrontSide,
@@ -54,12 +55,14 @@ function getTextureKey(material?: MaterialSchema): string {
 function getTexture(material?: MaterialSchema): THREE.Texture | undefined {
   const textureConfig = material?.texture
   if (!textureConfig?.url) return undefined
+  const resolvedUrl = resolveCdnUrl(textureConfig.url)
+  if (!resolvedUrl) return undefined
 
   const cacheKey = getTextureKey(material)
   const cached = textureCache.get(cacheKey)
   if (cached) return cached
 
-  const texture = textureLoader.load(textureConfig.url)
+  const texture = textureLoader.load(resolvedUrl)
   texture.wrapS = THREE.RepeatWrapping
   texture.wrapT = THREE.RepeatWrapping
 
@@ -104,8 +107,12 @@ function getPresetTexture(path: string, props: MaterialMapProperties, slot?: Tex
   const cacheKey = getPresetTextureCacheKey(path, props, slot)
   const cached = textureCache.get(cacheKey)
   if (cached) return cached
+  const resolvedUrl = resolveCdnUrl(path)
+  if (!resolvedUrl) {
+    throw new Error(`Failed to resolve texture URL: ${path}`)
+  }
 
-  const texture = textureLoader.load(path)
+  const texture = textureLoader.load(resolvedUrl)
   applyTextureProperties(texture, props, slot)
   textureCache.set(cacheKey, texture)
   return texture
@@ -119,12 +126,14 @@ async function loadPresetTexture(
   const cacheKey = getPresetTextureCacheKey(path, props, slot)
   const cached = textureCache.get(cacheKey)
   if (cached) return cached
+  const resolvedUrl = resolveCdnUrl(path)
+  if (!resolvedUrl) return null
 
   const existingPromise = textureLoadPromises.get(cacheKey)
   if (existingPromise) return existingPromise
 
   const promise = textureLoader
-    .loadAsync(path)
+    .loadAsync(resolvedUrl)
     .then((texture) => {
       applyTextureProperties(texture, props, slot)
       textureCache.set(cacheKey, texture)
@@ -132,7 +141,7 @@ async function loadPresetTexture(
       return texture
     })
     .catch((error) => {
-      console.warn('[viewer] Failed to load material texture', path, error)
+      console.warn('[viewer] Failed to load material texture', resolvedUrl, error)
       textureLoadPromises.delete(cacheKey)
       return null
     })

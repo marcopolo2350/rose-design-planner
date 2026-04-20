@@ -1,6 +1,7 @@
 'use client'
 
 import { type AnyNode, getScaledDimensions, ItemNode, useScene } from '@pascal-app/core'
+import { resolveCdnUrl } from '@pascal-app/viewer'
 import { useViewer } from '@pascal-app/viewer'
 import { Copy, Link, Link2Off, Move, Trash2 } from 'lucide-react'
 import { useCallback, useState } from 'react'
@@ -80,7 +81,7 @@ export function ItemPanel() {
 
   return (
     <PanelWrapper
-      icon={node.asset.thumbnail || assetPath('/icons/furniture.png')}
+      icon={resolveCdnUrl(node.asset.thumbnail) || assetPath('/icons/furniture.png')}
       onClose={handleClose}
       title={node.name || node.asset.name}
       width={300}

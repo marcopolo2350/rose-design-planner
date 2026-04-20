@@ -6,6 +6,7 @@ import {
   type MaterialSchema,
   type MaterialTarget,
 } from '@pascal-app/core'
+import { resolveCdnUrl } from '@pascal-app/viewer'
 import { useState } from 'react'
 
 type MaterialPickerProps = {
@@ -94,7 +95,7 @@ export function MaterialPicker({
                   <img
                     alt={item.label}
                     className="h-full w-full object-cover"
-                    src={item.previewThumbnailUrl}
+                    src={resolveCdnUrl(item.previewThumbnailUrl) || item.previewThumbnailUrl}
                   />
                 ) : item.previewColor ? (
                   <div className="h-full w-full" style={{ backgroundColor: item.previewColor }} />
