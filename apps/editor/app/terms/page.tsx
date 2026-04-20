@@ -3,7 +3,7 @@ import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'Terms of Service',
-  description: 'Terms of Service for Rose Design Planner.',
+  description: 'Terms of Service for Rose Space Planner.',
 }
 
 export default function TermsPage() {
@@ -39,7 +39,7 @@ export default function TermsPage() {
           <section className="mb-8 space-y-4">
             <h2 className="font-semibold text-xl">1. Introduction</h2>
             <p className="text-foreground/90 leading-relaxed">
-              Welcome to Rose Design Planner (&quot;Planner&quot;). By accessing or using this app,
+              Welcome to Rose Space Planner (&quot;Planner&quot;). By accessing or using this app,
               you agree to these Terms of Service.
             </p>
           </section>
@@ -47,7 +47,7 @@ export default function TermsPage() {
           <section className="mb-8 space-y-4">
             <h2 className="font-semibold text-xl">2. The Editor and Platform</h2>
             <p className="text-foreground/90 leading-relaxed">
-              Rose Design Planner is built from open-source software released under the MIT License.
+              Rose Space Planner is built from open-source software released under the MIT License.
               You may use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
               of the software in accordance with the MIT License terms.
             </p>
@@ -141,7 +141,7 @@ export default function TermsPage() {
           <section className="mb-8 space-y-4">
             <h2 className="font-semibold text-xl">9. Limitation of Liability</h2>
             <p className="text-foreground/90 leading-relaxed">
-              TO THE MAXIMUM EXTENT PERMITTED BY LAW, ROSE DESIGN PLANNER SHALL NOT BE LIABLE FOR ANY
+              TO THE MAXIMUM EXTENT PERMITTED BY LAW, ROSE SPACE PLANNER SHALL NOT BE LIABLE FOR ANY
               INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING LOSS OF
               DATA, PROFITS, OR GOODWILL, ARISING FROM YOUR USE OF THE PLATFORM.
             </p>

@@ -1,4 +1,4 @@
-# Rose Design Planner
+# Rose Space Planner
 
 A 3D planning editor for room layouts, furnishing, and design review.
 

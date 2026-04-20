@@ -1,4 +1,4 @@
-# Rose Design Planner - Setup
+# Rose Space Planner - Setup
 
 ## Prerequisites
 

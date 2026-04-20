@@ -1,7 +1,7 @@
 import type { NextConfig } from 'next'
 
 const isGitHubPages = process.env.GITHUB_PAGES === 'true'
-const repoName = process.env.GITHUB_REPOSITORY?.split('/')[1] ?? 'rose-design-planner'
+const repoName = process.env.GITHUB_REPOSITORY?.split('/')[1] ?? 'rose-space-planner'
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || (isGitHubPages ? `/${repoName}` : '')
 
 const nextConfig: NextConfig = {

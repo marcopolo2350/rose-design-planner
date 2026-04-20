@@ -22,7 +22,7 @@ const barlow = Barlow({
 })
 
 export const metadata = {
-  title: 'Rose Design Planner',
+  title: 'Rose Space Planner',
   description: 'A 3D space planning workspace for layouts, room editing, and presentation-ready design reviews.',
 }
 

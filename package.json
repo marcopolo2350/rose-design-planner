@@ -1,5 +1,5 @@
 {
-  "name": "rose-design-planner",
+  "name": "rose-space-planner",
   "private": true,
   "scripts": {
     "build": "turbo run build",

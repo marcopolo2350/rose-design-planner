@@ -1,4 +1,4 @@
-# Contributing to Rose Design Planner
+# Contributing to Rose Space Planner
 
 Thanks for your interest in contributing! We welcome all kinds of contributions — bug fixes, new features, documentation, and ideas.
 
@@ -11,8 +11,8 @@ Thanks for your interest in contributing! We welcome all kinds of contributions 
 ### Setup
 
 ```bash
-git clone https://github.com/marcopolo2350/rose-design-planner.git
-cd rose-design-planner
+git clone https://github.com/marcopolo2350/rose-space-planner.git
+cd rose-space-planner
 npm install
 npm run dev
 ```
