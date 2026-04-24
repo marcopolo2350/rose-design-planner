@@ -420,10 +420,7 @@ export const ViewerOverlay = ({
                 {(levelMode === 'stacked' || levelMode === 'manual') && (
                   <Icon color="currentColor" height={24} icon="charm:stack-push" width={24} />
                 )}
-                <span
-                  aria-hidden="true"
-                  className="truncate font-medium text-[11px] leading-none"
-                >
+                <span aria-hidden="true" className="truncate font-medium text-[11px] leading-none">
                   {levelModeButtonLabels[levelMode]}
                 </span>
               </span>

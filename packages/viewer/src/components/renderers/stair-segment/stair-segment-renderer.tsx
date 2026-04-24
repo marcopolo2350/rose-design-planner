@@ -1,8 +1,18 @@
-import { type AnyNodeId, type StairNode, type StairSegmentNode, useRegistry, useScene } from '@pascal-app/core'
+import {
+  type AnyNodeId,
+  type StairNode,
+  type StairSegmentNode,
+  useRegistry,
+  useScene,
+} from '@pascal-app/core'
 import { useLayoutEffect, useMemo, useRef } from 'react'
 import type * as THREE from 'three'
 import { useNodeEvents } from '../../../hooks/use-node-events'
-import { createMaterial, createMaterialFromPresetRef, DEFAULT_STAIR_MATERIAL } from '../../../lib/materials'
+import {
+  createMaterial,
+  createMaterialFromPresetRef,
+  DEFAULT_STAIR_MATERIAL,
+} from '../../../lib/materials'
 
 export const StairSegmentRenderer = ({ node }: { node: StairSegmentNode }) => {
   const ref = useRef<THREE.Mesh>(null!)
@@ -15,8 +25,9 @@ export const StairSegmentRenderer = ({ node }: { node: StairSegmentNode }) => {
   }, [node.id])
 
   const handlers = useNodeEvents(node, 'stair-segment')
-  const parentNode =
-    node.parentId ? (nodes[node.parentId as AnyNodeId] as StairNode | undefined) : undefined
+  const parentNode = node.parentId
+    ? (nodes[node.parentId as AnyNodeId] as StairNode | undefined)
+    : undefined
 
   const material = useMemo(() => {
     const effectiveMaterialPreset = node.materialPreset ?? parentNode?.materialPreset

@@ -1,4 +1,10 @@
-import { type AnyNodeId, type RoofNode, type RoofSegmentNode, useRegistry, useScene } from '@pascal-app/core'
+import {
+  type AnyNodeId,
+  type RoofNode,
+  type RoofSegmentNode,
+  useRegistry,
+  useScene,
+} from '@pascal-app/core'
 import { useMemo, useRef } from 'react'
 import type * as THREE from 'three'
 import { useNodeEvents } from '../../../hooks/use-node-events'
@@ -14,8 +20,9 @@ export const RoofSegmentRenderer = ({ node }: { node: RoofSegmentNode }) => {
 
   const handlers = useNodeEvents(node, 'roof-segment')
   const debugColors = useViewer((s) => s.debugColors)
-  const parentNode =
-    node.parentId ? (nodes[node.parentId as AnyNodeId] as RoofNode | undefined) : undefined
+  const parentNode = node.parentId
+    ? (nodes[node.parentId as AnyNodeId] as RoofNode | undefined)
+    : undefined
 
   const customMaterial = useMemo(() => {
     const effectiveMaterialPreset = node.materialPreset ?? parentNode?.materialPreset

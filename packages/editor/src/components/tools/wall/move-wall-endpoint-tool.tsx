@@ -8,11 +8,7 @@ import { markToolCancelConsumed } from '../../../hooks/use-keyboard'
 import { sfxEmitter } from '../../../lib/sfx-bus'
 import useEditor, { type MovingWallEndpoint } from '../../../store/use-editor'
 import { CursorSphere } from '../shared/cursor-sphere'
-import {
-  isWallLongEnough,
-  snapWallDraftPoint,
-  type WallPlanPoint,
-} from './wall-drafting'
+import { isWallLongEnough, snapWallDraftPoint, type WallPlanPoint } from './wall-drafting'
 
 function samePoint(a: WallPlanPoint, b: WallPlanPoint) {
   return a[0] === b[0] && a[1] === b[1]
@@ -164,7 +160,10 @@ export const MoveWallEndpointTool: React.FC<{ target: MovingWallEndpoint }> = ({
     }
 
     const restoreOriginal = () => {
-      applyNodePreview([{ id: nodeId, start: originalStart, end: originalEnd }, ...linkedOriginalsRef.current])
+      applyNodePreview([
+        { id: nodeId, start: originalStart, end: originalEnd },
+        ...linkedOriginalsRef.current,
+      ])
     }
 
     const onGridMove = (event: GridEvent) => {

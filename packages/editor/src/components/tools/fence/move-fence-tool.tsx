@@ -110,7 +110,9 @@ export const MoveFenceTool: React.FC<{ node: FenceNode }> = ({ node }) => {
     useScene.temporal.getState().pause()
     let wasCommitted = false
 
-    const applyNodePreview = (updates: Array<{ id: FenceNode['id']; start: [number, number]; end: [number, number] }>) => {
+    const applyNodePreview = (
+      updates: Array<{ id: FenceNode['id']; start: [number, number]; end: [number, number] }>,
+    ) => {
       useScene.getState().updateNodes(
         updates.map((entry) => ({
           id: entry.id as AnyNodeId,

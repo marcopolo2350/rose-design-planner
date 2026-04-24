@@ -18,7 +18,8 @@ export const SlabRenderer = ({ node }: { node: SlabNode }) => {
 
   const material = useMemo(() => {
     const presetMaterial = createMaterialFromPresetRef(node.materialPreset)
-    const sourceMaterial = presetMaterial ?? (node.material ? createMaterial(node.material) : DEFAULT_SLAB_MATERIAL)
+    const sourceMaterial =
+      presetMaterial ?? (node.material ? createMaterial(node.material) : DEFAULT_SLAB_MATERIAL)
     const slabMaterial = sourceMaterial.clone()
 
     // Slabs participate in the WebGPU MRT scene pass. Keeping them opaque avoids

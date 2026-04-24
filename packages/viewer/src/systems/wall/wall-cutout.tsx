@@ -100,10 +100,7 @@ function getHighlightedColor(color: Color, kind: WallHighlightKind): Color {
   return color.clone().lerp(profile.color, profile.blend)
 }
 
-function createHighlightedWallMaterial(
-  material: Material,
-  kind: WallHighlightKind,
-): Material {
+function createHighlightedWallMaterial(material: Material, kind: WallHighlightKind): Material {
   const highlightedMaterial = material.clone() as Material & {
     color?: Color
     emissive?: Color
@@ -187,7 +184,10 @@ function getMaterialsForWall(wallNode: WallNode): WallMaterials {
     'selection',
   ) as MeshStandardNodeMaterial
   const deleteVisible = createHighlightedWallMaterial(visibleMat, 'delete')
-  const deleteInvisible = createHighlightedWallMaterial(invisibleMat, 'delete') as MeshStandardNodeMaterial
+  const deleteInvisible = createHighlightedWallMaterial(
+    invisibleMat,
+    'delete',
+  ) as MeshStandardNodeMaterial
 
   const result: WallMaterials = {
     visible: visibleMat,

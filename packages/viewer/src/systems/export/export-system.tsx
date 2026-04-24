@@ -50,14 +50,17 @@ export const ExportSystem = () => {
             exportRoot,
             (output) => resolve(output as ArrayBuffer),
             (err) => reject(err),
-            { binary: true }
+            { binary: true },
           )
         })
         downloadBlob(new Blob([result], { type: 'model/gltf-binary' }), `${filename}.glb`)
       } else if (format === 'stl') {
         const exporter = new STLExporter()
         const result = exporter.parse(exportRoot, { binary: true }) as DataView
-        downloadBlob(new Blob([result.buffer as ArrayBuffer], { type: 'model/stl' }), `${filename}.stl`)
+        downloadBlob(
+          new Blob([result.buffer as ArrayBuffer], { type: 'model/stl' }),
+          `${filename}.stl`,
+        )
       } else if (format === 'obj') {
         const exporter = new OBJExporter()
         const result = exporter.parse(exportRoot)

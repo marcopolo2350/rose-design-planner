@@ -21,7 +21,13 @@ export const RoofRenderer = ({ node }: { node: RoofNode }) => {
     const mat = node.material
     if (!mat) return null
     return createMaterial(mat)
-  }, [node.materialPreset, node.material, node.material?.preset, node.material?.properties, node.material?.texture])
+  }, [
+    node.materialPreset,
+    node.material,
+    node.material?.preset,
+    node.material?.properties,
+    node.material?.texture,
+  ])
 
   const material = debugColors ? roofDebugMaterials : customMaterial || roofMaterials
 

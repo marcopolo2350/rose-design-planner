@@ -115,7 +115,7 @@ function getWallArcData(wall: WallCurveLike) {
   }
 
   const absSagitta = Math.abs(sagitta)
-  const radius = chord.length * chord.length / (8 * absSagitta) + absSagitta / 2
+  const radius = (chord.length * chord.length) / (8 * absSagitta) + absSagitta / 2
   const centerOffset = radius - absSagitta
   const direction = Math.sign(sagitta) || 1
   const center = {
@@ -183,7 +183,10 @@ export function getWallMidpointHandlePoint(wall: WallCurveLike) {
 
 export function sampleWallCenterline(wall: WallCurveLike, segments = DEFAULT_SAMPLE_SEGMENTS) {
   const count = Math.max(1, segments)
-  return Array.from({ length: count + 1 }, (_, index) => getWallCurveFrameAt(wall, index / count).point)
+  return Array.from(
+    { length: count + 1 },
+    (_, index) => getWallCurveFrameAt(wall, index / count).point,
+  )
 }
 
 export function getWallCurveLength(wall: WallCurveLike, segments = DEFAULT_SAMPLE_SEGMENTS) {

@@ -39,17 +39,17 @@ export default function TermsPage() {
           <section className="mb-8 space-y-4">
             <h2 className="font-semibold text-xl">1. Introduction</h2>
             <p className="text-foreground/90 leading-relaxed">
-              Welcome to Rose&apos;s Outdoor Designs (&quot;Planner&quot;). By accessing or using this app,
-              you agree to these Terms of Service.
+              Welcome to Rose&apos;s Outdoor Designs (&quot;Planner&quot;). By accessing or using
+              this app, you agree to these Terms of Service.
             </p>
           </section>
 
           <section className="mb-8 space-y-4">
             <h2 className="font-semibold text-xl">2. The Editor and Platform</h2>
             <p className="text-foreground/90 leading-relaxed">
-              Rose&apos;s Outdoor Designs is built from open-source software released under the MIT License.
-              You may use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
-              of the software in accordance with the MIT License terms.
+              Rose&apos;s Outdoor Designs is built from open-source software released under the MIT
+              License. You may use, copy, modify, merge, publish, distribute, sublicense, and/or
+              sell copies of the software in accordance with the MIT License terms.
             </p>
             <p className="text-foreground/90 leading-relaxed">
               These terms govern your use of this hosted planner and any related project data stored
@@ -103,8 +103,8 @@ export default function TermsPage() {
             <h2 className="font-semibold text-xl">6. Platform Ownership</h2>
             <p className="text-foreground/90 leading-relaxed">
               The hosted app, including its design, features, and branding, is protected by
-              applicable intellectual property laws. The upstream source code remains available under
-              its original open-source license.
+              applicable intellectual property laws. The upstream source code remains available
+              under its original open-source license.
             </p>
           </section>
 
@@ -141,9 +141,9 @@ export default function TermsPage() {
           <section className="mb-8 space-y-4">
             <h2 className="font-semibold text-xl">9. Limitation of Liability</h2>
             <p className="text-foreground/90 leading-relaxed">
-              TO THE MAXIMUM EXTENT PERMITTED BY LAW, ROSE&apos;S OUTDOOR DESIGNS SHALL NOT BE LIABLE FOR ANY
-              INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING LOSS OF
-              DATA, PROFITS, OR GOODWILL, ARISING FROM YOUR USE OF THE PLATFORM.
+              TO THE MAXIMUM EXTENT PERMITTED BY LAW, ROSE&apos;S OUTDOOR DESIGNS SHALL NOT BE
+              LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES,
+              INCLUDING LOSS OF DATA, PROFITS, OR GOODWILL, ARISING FROM YOUR USE OF THE PLATFORM.
             </p>
           </section>
 

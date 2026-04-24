@@ -14,13 +14,9 @@ export type MaterialCatalogItem = {
   preset: MaterialPresetPayload
 }
 
-const WALL_TARGETS: MaterialTarget[] = [
-  MaterialTargetSchema.enum.wall,
-]
+const WALL_TARGETS: MaterialTarget[] = [MaterialTargetSchema.enum.wall]
 
-const SLAB_TARGETS: MaterialTarget[] = [
-  MaterialTargetSchema.enum.slab,
-]
+const SLAB_TARGETS: MaterialTarget[] = [MaterialTargetSchema.enum.slab]
 
 const WALL_AND_SLAB_TARGETS: MaterialTarget[] = [
   MaterialTargetSchema.enum.wall,
@@ -42,9 +38,7 @@ const ROOF_TARGETS: MaterialTarget[] = [
   MaterialTargetSchema.enum['roof-segment'],
 ]
 
-const CEILING_TARGETS: MaterialTarget[] = [
-  MaterialTargetSchema.enum.ceiling,
-]
+const CEILING_TARGETS: MaterialTarget[] = [MaterialTargetSchema.enum.ceiling]
 
 export const MATERIAL_CATALOG: MaterialCatalogItem[] = [
   {

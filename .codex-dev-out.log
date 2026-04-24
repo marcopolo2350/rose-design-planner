@@ -1,0 +1,63 @@
+
+> dev
+> turbo run dev --env-mode=loose --filter editor
+
+
+   • Packages in scope: editor
+   • Running dev in 1 packages
+   • Remote caching disabled
+
+@pascal-app/core:build: cache miss, executing 9ebe433a7b200171
+@pascal-app/core:build: 
+@pascal-app/core:build: > @pascal-app/core@0.5.1 build
+@pascal-app/core:build: > tsc --build
+@pascal-app/core:build: 
+@pascal-app/viewer:build: cache miss, executing 1b0da351b3ad7ce7
+@pascal-app/viewer:build: 
+@pascal-app/viewer:build: > @pascal-app/viewer@0.5.1 build
+@pascal-app/viewer:build: > tsc --build
+@pascal-app/viewer:build: 
+editor:dev: cache bypass, force executing eab925997b60a8f2
+editor:dev: 
+editor:dev: > editor@0.1.0 dev
+editor:dev: > dotenv -e ./.env.local --override -- next dev --port 3002
+editor:dev: 
+editor:dev: ▲ Next.js 16.2.1 (Turbopack)
+editor:dev: - Local:         http://localhost:3002
+editor:dev: - Network:       http://192.168.1.198:3002
+editor:dev: ✓ Ready in 1153ms
+editor:dev: - Experiments (use with caution):
+editor:dev:   · serverActions
+editor:dev: 
+editor:dev: ○ Compiling / ...
+editor:dev: ⨯ Error: Image Optimization using the default loader is not compatible with `{ output: 'export' }`.
+editor:dev:   Possible solutions:
+editor:dev:     - Remove `{ output: 'export' }` and run "next start" to run server mode including the Image Optimization API.
+editor:dev:     - Configure `{ images: { unoptimized: true } }` in `next.config.js` to disable the Image Optimization API.
+editor:dev:   Read more: https://nextjs.org/docs/messages/export-image-api
+editor:dev:     at ignore-listed frames {
+editor:dev:   digest: '10592172@E500'
+editor:dev: }
+editor:dev:  GET / 500 in 14.5s (next.js: 13.1s, application-code: 1396ms)
+editor:dev: ⚠ Found a change in next.config.ts. Restarting the server to apply the changes...
+editor:dev: ▲ Next.js 16.2.1 (Turbopack)
+editor:dev: - Local:         http://localhost:3002
+editor:dev: - Network:       http://192.168.1.198:3002
+editor:dev: ✓ Ready in 589ms
+editor:dev: - Experiments (use with caution):
+editor:dev:   · serverActions
+editor:dev: 
+editor:dev: (node:9920) Warning: `--localstorage-file` was provided without a valid path
+editor:dev: (Use `node --trace-warnings ...` to show where the warning was created)
+editor:dev:  GET / 200 in 1559ms (next.js: 315ms, application-code: 1244ms)
+editor:dev: ✓ Compiled in 2.4s
+editor:dev: ✓ Finished filesystem cache database compaction in 17.5s
+editor:dev: ✓ Compiled in 697ms
+editor:dev: ⚠ Found a change in next.config.ts. Restarting the server to apply the changes...
+editor:dev: ▲ Next.js 16.2.1 (Turbopack)
+editor:dev: - Local:         http://localhost:3002
+editor:dev: - Network:       http://192.168.1.198:3002
+editor:dev: ✓ Ready in 3.6s
+editor:dev: - Experiments (use with caution):
+editor:dev:   · serverActions
+editor:dev: 

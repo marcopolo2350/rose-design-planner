@@ -17,11 +17,7 @@ type WallMergePlan = {
 let pendingRafId: number | null = null
 let pendingUpdates: Set<AnyNodeId> = new Set()
 
-function pointsEqual(
-  a: [number, number],
-  b: [number, number],
-  tolerance = 1e-6,
-) {
+function pointsEqual(a: [number, number], b: [number, number], tolerance = 1e-6) {
   const dx = a[0] - b[0]
   const dz = a[1] - b[1]
   return dx * dx + dz * dz <= tolerance * tolerance
@@ -40,10 +36,7 @@ function getWallEndpointAtPoint(
   return null
 }
 
-function getWallFreeEndpoint(
-  wall: Pick<WallNode, 'start' | 'end'>,
-  sharedPoint: [number, number],
-) {
+function getWallFreeEndpoint(wall: Pick<WallNode, 'start' | 'end'>, sharedPoint: [number, number]) {
   return pointsEqual(wall.start, sharedPoint) ? wall.end : wall.start
 }
 
@@ -61,11 +54,7 @@ function areWallStylesCompatible(a: WallNode, b: WallNode) {
   )
 }
 
-function areWallsCollinearAcrossPoint(
-  a: WallNode,
-  b: WallNode,
-  sharedPoint: [number, number],
-) {
+function areWallsCollinearAcrossPoint(a: WallNode, b: WallNode, sharedPoint: [number, number]) {
   const freeA = getWallFreeEndpoint(a, sharedPoint)
   const freeB = getWallFreeEndpoint(b, sharedPoint)
   const ax = freeA[0] - sharedPoint[0]
@@ -111,7 +100,10 @@ function buildMergedWallAttachmentUpdates(
   mergedEnd: [number, number],
   nodes: Record<AnyNodeId, AnyNode>,
 ): WallAttachmentUpdate[] {
-  const mergedLength = Math.max(Math.hypot(mergedEnd[0] - mergedStart[0], mergedEnd[1] - mergedStart[1]), 1e-6)
+  const mergedLength = Math.max(
+    Math.hypot(mergedEnd[0] - mergedStart[0], mergedEnd[1] - mergedStart[1]),
+    1e-6,
+  )
   const tangentX = (mergedEnd[0] - mergedStart[0]) / mergedLength
   const tangentZ = (mergedEnd[1] - mergedStart[1]) / mergedLength
   const updates: WallAttachmentUpdate[] = []
@@ -126,11 +118,16 @@ function buildMergedWallAttachmentUpdates(
     const sourceWall = child.parentId === secondary.id ? secondary : primary
     const sourceLength = Math.max(wallLength(sourceWall), 1e-6)
     const localX = typeof child.position[0] === 'number' ? child.position[0] : 0
-    const worldX = sourceWall.start[0] + ((sourceWall.end[0] - sourceWall.start[0]) * localX) / sourceLength
-    const worldZ = sourceWall.start[1] + ((sourceWall.end[1] - sourceWall.start[1]) * localX) / sourceLength
+    const worldX =
+      sourceWall.start[0] + ((sourceWall.end[0] - sourceWall.start[0]) * localX) / sourceLength
+    const worldZ =
+      sourceWall.start[1] + ((sourceWall.end[1] - sourceWall.start[1]) * localX) / sourceLength
     const nextLocalX = Math.max(
       0,
-      Math.min(mergedLength, (worldX - mergedStart[0]) * tangentX + (worldZ - mergedStart[1]) * tangentZ),
+      Math.min(
+        mergedLength,
+        (worldX - mergedStart[0]) * tangentX + (worldZ - mergedStart[1]) * tangentZ,
+      ),
     )
 
     updates.push({

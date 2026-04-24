@@ -44,13 +44,7 @@ export const CursorSphere = forwardRef<Group, CursorSphereProps>(function Cursor
         {/* Center dot */}
         <mesh layers={EDITOR_LAYER} renderOrder={2}>
           <circleGeometry args={[0.06, 32]} />
-          <meshBasicMaterial
-            color={color}
-            depthTest
-            depthWrite={false}
-            opacity={0.9}
-            transparent
-          />
+          <meshBasicMaterial color={color} depthTest depthWrite={false} opacity={0.9} transparent />
         </mesh>
 
         {/* Outer ring / glow */}
