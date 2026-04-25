@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from 'motion/react'
 import { TooltipProvider } from './../../../components/ui/primitives/tooltip'
+import { useIsMobile } from './../../../hooks/use-mobile'
 import { useReducedMotion } from './../../../hooks/use-reduced-motion'
 import { cn } from './../../../lib/utils'
 import useEditor from './../../../store/use-editor'
@@ -17,6 +18,7 @@ export function ActionMenu({ className }: { className?: string }) {
   const mode = useEditor((state) => state.mode)
   const tool = useEditor((state) => state.tool)
   const catalogCategory = useEditor((state) => state.catalogCategory)
+  const isMobile = useIsMobile()
   const reducedMotion = useReducedMotion()
   const transition = reducedMotion
     ? { duration: 0 }
@@ -26,8 +28,10 @@ export function ActionMenu({ className }: { className?: string }) {
     <TooltipProvider>
       <motion.div
         className={cn(
-          'fixed bottom-6 left-1/2 z-50 -translate-x-1/2',
-          'rounded-2xl border border-border bg-background/90 shadow-2xl backdrop-blur-md',
+          'fixed z-50 border border-border bg-background/90 shadow-2xl backdrop-blur-md',
+          isMobile
+            ? 'right-3 bottom-[calc(env(safe-area-inset-bottom)+5.6rem)] left-3 translate-x-0 rounded-lg'
+            : 'bottom-6 left-1/2 -translate-x-1/2 rounded-2xl',
           'transition-colors duration-200 ease-out',
           className,
         )}
@@ -45,7 +49,10 @@ export function ActionMenu({ className }: { className?: string }) {
                 paddingBottom: 8,
                 borderBottomWidth: 1,
               }}
-              className={cn('overflow-hidden border-border border-b px-2 py-2')}
+              className={cn(
+                'overflow-hidden border-border border-b',
+                isMobile ? 'px-3 py-3' : 'px-2 py-2',
+              )}
               exit={{
                 opacity: 0,
                 maxHeight: 0,
@@ -78,8 +85,8 @@ export function ActionMenu({ className }: { className?: string }) {
                 borderBottomWidth: 1,
               }}
               className={cn(
-                'overflow-hidden border-border',
-                'max-h-20 border-b px-2 py-2 opacity-100',
+                'overflow-hidden border-border opacity-100',
+                isMobile ? 'max-h-24 border-b px-3 py-3' : 'max-h-20 border-b px-2 py-2',
               )}
               exit={{
                 opacity: 0,
@@ -97,7 +104,7 @@ export function ActionMenu({ className }: { className?: string }) {
               }}
               transition={transition}
             >
-              <div className="mx-auto w-max">
+              <div className={cn('mx-auto', isMobile ? 'w-full' : 'w-max')}>
                 <FurnishTools />
               </div>
             </motion.div>
@@ -115,7 +122,10 @@ export function ActionMenu({ className }: { className?: string }) {
                 paddingBottom: 8,
                 borderBottomWidth: 1,
               }}
-              className={cn('max-h-20 overflow-hidden border-border border-b px-2 py-2')}
+              className={cn(
+                'overflow-hidden border-border border-b',
+                isMobile ? 'max-h-24 px-3 py-3' : 'max-h-20 px-2 py-2',
+              )}
               exit={{
                 opacity: 0,
                 maxHeight: 0,
@@ -132,14 +142,19 @@ export function ActionMenu({ className }: { className?: string }) {
               }}
               transition={transition}
             >
-              <div className="w-max">
+              <div className={cn(isMobile ? 'w-full' : 'w-max')}>
                 <StructureTools />
               </div>
             </motion.div>
           )}
         </AnimatePresence>
         {/* Control Mode Row - Always visible, centered */}
-        <div className="flex items-center justify-center gap-1 px-2 py-1.5">
+        <div
+          className={cn(
+            'flex items-center justify-center gap-1',
+            isMobile ? 'flex-wrap px-3 py-2.5' : 'px-2 py-1.5',
+          )}
+        >
           <ControlModes />
           <div className="mx-1 h-5 w-px bg-border" />
           <ViewToggles />

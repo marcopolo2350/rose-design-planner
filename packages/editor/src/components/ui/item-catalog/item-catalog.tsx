@@ -9,6 +9,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from './../../../components/ui/primitives/tooltip'
+import { useIsMobile } from './../../../hooks/use-mobile'
 import { assetPath } from './../../../lib/asset-path'
 import { cn } from './../../../lib/utils'
 import useEditor, { type CatalogCategory } from './../../../store/use-editor'
@@ -19,6 +20,7 @@ const PLACEMENT_TAGS = new Set(['floor', 'wall', 'ceiling', 'countertop'])
 export function ItemCatalog({ category }: { category: CatalogCategory }) {
   const selectedItem = useEditor((state) => state.selectedItem)
   const setSelectedItem = useEditor((state) => state.setSelectedItem)
+  const isMobile = useIsMobile()
   const [activePlacementTag, setActivePlacementTag] = useState<string | null>(null)
   const [activeFunctionalTag, setActiveFunctionalTag] = useState<string | null>(null)
 
@@ -172,7 +174,7 @@ export function ItemCatalog({ category }: { category: CatalogCategory }) {
       )}
 
       {/* Items */}
-      <div className="-mx-2 -my-2 flex max-w-xl gap-2 overflow-x-auto p-2">
+      <div className={cn('-my-2 flex gap-2 overflow-x-auto p-2', isMobile ? '-mx-1' : '-mx-2 max-w-xl')}>
         {filteredItems.map((item, index) => {
           const isSelected = selectedItem?.src === item?.src
           const attachmentIcon = getAttachmentIcon(item?.attachTo)
@@ -182,7 +184,10 @@ export function ItemCatalog({ category }: { category: CatalogCategory }) {
                 <button
                   aria-label={`Select ${item.name}`}
                   className={cn(
-                    'relative aspect-square h-14 min-h-14 w-14 min-w-14 shrink-0 flex-col gap-px rounded-lg transition-all duration-200 ease-out hover:scale-105 hover:cursor-pointer',
+                    'relative shrink-0 overflow-hidden rounded-lg transition-all duration-200 ease-out hover:cursor-pointer',
+                    isMobile
+                      ? 'flex h-[5.4rem] min-h-[5.4rem] w-[5.4rem] min-w-[5.4rem] flex-col justify-end bg-card p-1.5 text-left'
+                      : 'aspect-square h-14 min-h-14 w-14 min-w-14 flex-col gap-px hover:scale-105',
                     isSelected && 'ring-2 ring-primary-foreground',
                   )}
                   onClick={() => setSelectedItem(item)}
@@ -190,14 +195,28 @@ export function ItemCatalog({ category }: { category: CatalogCategory }) {
                 >
                   <Image
                     alt={item.name}
-                    className="rounded-lg object-cover"
+                    className={cn('object-cover', isMobile ? 'rounded-md' : 'rounded-lg')}
                     fill
                     loading={index < 8 ? 'eager' : 'lazy'}
-                    sizes="56px"
+                    sizes={isMobile ? '86px' : '56px'}
                     src={resolveCdnUrl(item.thumbnail) || ''}
                   />
+                  <div
+                    className={cn(
+                      'pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent',
+                      isMobile ? 'h-11 rounded-b-md' : 'h-7 rounded-b-lg',
+                    )}
+                  />
+                  <span
+                    className={cn(
+                      'pointer-events-none absolute right-1 left-1 bottom-1 truncate font-medium text-white',
+                      isMobile ? 'text-[11px]' : 'hidden',
+                    )}
+                  >
+                    {item.name}
+                  </span>
                   {attachmentIcon && (
-                    <div className="absolute right-0.5 bottom-0.5 flex h-4 w-4 items-center justify-center rounded bg-black/60">
+                    <div className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded bg-black/60">
                       <Image
                         alt={item.attachTo === 'ceiling' ? 'Ceiling attachment' : 'Wall attachment'}
                         className="h-4 w-4"
@@ -209,9 +228,11 @@ export function ItemCatalog({ category }: { category: CatalogCategory }) {
                   )}
                 </button>
               </TooltipTrigger>
-              <TooltipContent className="text-xs" side="top">
-                {item.name}
-              </TooltipContent>
+              {!isMobile && (
+                <TooltipContent className="text-xs" side="top">
+                  {item.name}
+                </TooltipContent>
+              )}
             </Tooltip>
           )
         })}

@@ -32,6 +32,7 @@ import {
 import { distance, smoothstep, uv, vec2 } from 'three/tsl'
 import { LineBasicNodeMaterial, MeshBasicNodeMaterial } from 'three/webgpu'
 import { EDITOR_LAYER } from '../../../lib/constants'
+import { triggerHaptic } from '../../../lib/haptics'
 import { sfxEmitter } from '../../../lib/sfx-bus'
 import { snapToGrid } from './placement-math'
 import {
@@ -267,6 +268,7 @@ export function usePlacementCoordinator(config: PlacementCoordinatorConfig): Rea
       }
 
       draftNode.commit(result.nodeUpdate)
+      triggerHaptic('success')
       if (configRef.current.onCommitted()) {
         draftNode.create(gridPosition.current, asset, currentRotation)
         revalidate()
@@ -410,6 +412,7 @@ export function usePlacementCoordinator(config: PlacementCoordinatorConfig): Rea
         useLiveTransforms.getState().clear(draftNode.current.id)
       }
       draftNode.commit(result.nodeUpdate)
+      triggerHaptic('success')
       if (result.dirtyNodeId) {
         useScene.getState().dirtyNodes.add(result.dirtyNodeId)
       }
@@ -570,6 +573,7 @@ export function usePlacementCoordinator(config: PlacementCoordinatorConfig): Rea
         useLiveTransforms.getState().clear(draftNode.current.id)
       }
       draftNode.commit(result.nodeUpdate)
+      triggerHaptic('success')
 
       if (configRef.current.onCommitted()) {
         // Try to set up next draft on the same surface
@@ -660,6 +664,7 @@ export function usePlacementCoordinator(config: PlacementCoordinatorConfig): Rea
         useLiveTransforms.getState().clear(draftNode.current.id)
       }
       draftNode.commit(result.nodeUpdate)
+      triggerHaptic('success')
 
       if (configRef.current.onCommitted()) {
         const nodes = useScene.getState().nodes

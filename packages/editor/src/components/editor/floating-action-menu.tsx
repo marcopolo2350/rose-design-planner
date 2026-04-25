@@ -23,6 +23,7 @@ import { useFrame } from '@react-three/fiber'
 import { Move } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
+import { useIsMobile } from '../../hooks/use-mobile'
 import { sfxEmitter } from '../../lib/sfx-bus'
 import useEditor from '../../store/use-editor'
 import { NodeActionMenu } from './node-action-menu'
@@ -44,6 +45,7 @@ const DELETE_ONLY_TYPES: string[] = []
 const HOLE_TYPES = ['slab', 'ceiling']
 
 export function FloatingActionMenu() {
+  const isMobile = useIsMobile()
   const selectedIds = useViewer((s) => s.selection.selectedIds)
   const updateNode = useScene((s) => s.updateNode)
   const mode = useEditor((s) => s.mode)
@@ -436,7 +438,9 @@ export function FloatingActionMenu() {
             >
               <button
                 aria-label="Move wall start"
-                className={`pointer-events-auto flex h-8 w-8 items-center justify-center rounded-full border bg-background/95 shadow-lg backdrop-blur-md transition-colors ${
+                className={`pointer-events-auto flex items-center justify-center rounded-full border bg-background/95 shadow-lg backdrop-blur-md transition-colors ${
+                  isMobile ? 'h-11 w-11' : 'h-8 w-8'
+                } ${
                   altPressed
                     ? 'border-amber-500/80 bg-amber-500/15 text-amber-100 hover:bg-amber-500/20 hover:text-white'
                     : 'border-border text-muted-foreground hover:bg-accent hover:text-foreground'
@@ -446,7 +450,7 @@ export function FloatingActionMenu() {
                 title="Move wall start (Alt to detach)"
                 type="button"
               >
-                <Move className="h-4 w-4" />
+                <Move className={isMobile ? 'h-5 w-5' : 'h-4 w-4'} />
               </button>
             </Html>
           </group>
@@ -458,7 +462,9 @@ export function FloatingActionMenu() {
             >
               <button
                 aria-label="Move wall end"
-                className={`pointer-events-auto flex h-8 w-8 items-center justify-center rounded-full border bg-background/95 shadow-lg backdrop-blur-md transition-colors ${
+                className={`pointer-events-auto flex items-center justify-center rounded-full border bg-background/95 shadow-lg backdrop-blur-md transition-colors ${
+                  isMobile ? 'h-11 w-11' : 'h-8 w-8'
+                } ${
                   altPressed
                     ? 'border-amber-500/80 bg-amber-500/15 text-amber-100 hover:bg-amber-500/20 hover:text-white'
                     : 'border-border text-muted-foreground hover:bg-accent hover:text-foreground'
@@ -468,7 +474,7 @@ export function FloatingActionMenu() {
                 title="Move wall end (Alt to detach)"
                 type="button"
               >
-                <Move className="h-4 w-4" />
+                <Move className={isMobile ? 'h-5 w-5' : 'h-4 w-4'} />
               </button>
             </Html>
           </group>

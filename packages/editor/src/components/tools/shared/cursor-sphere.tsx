@@ -1,7 +1,7 @@
 import { Html } from '@react-three/drei'
-import type { ThreeElements } from '@react-three/fiber'
-import { forwardRef } from 'react'
-import type { Group } from 'three'
+import { useFrame, type ThreeElements } from '@react-three/fiber'
+import { forwardRef, useRef } from 'react'
+import type { Group, Mesh } from 'three'
 import { furnishTools } from '../../../components/ui/action-menu/furnish-tools'
 import { tools } from '../../../components/ui/action-menu/structure-tools'
 import { EDITOR_LAYER } from '../../../lib/constants'
@@ -20,6 +20,9 @@ export const CursorSphere = forwardRef<Group, CursorSphereProps>(function Cursor
   { color = '#818cf8', showTooltip = true, height = 2.5, visible = true, tooltipContent, ...props },
   ref,
 ) {
+  const centerRef = useRef<Mesh>(null)
+  const ringRef = useRef<Mesh>(null)
+  const lineRef = useRef<Mesh>(null)
   const tool = useEditor((s) => s.tool)
   const mode = useEditor((s) => s.mode)
   const catalogCategory = useEditor((s) => s.catalogCategory)
@@ -37,18 +40,35 @@ export const CursorSphere = forwardRef<Group, CursorSphereProps>(function Cursor
 
   const isVisible = visible && !isFloorplanHovered
 
+  useFrame(({ clock }) => {
+    const pulse = 1 + Math.sin(clock.elapsedTime * 4.5) * 0.08
+    const glowPulse = 1 + Math.sin(clock.elapsedTime * 3.2) * 0.12
+
+    if (centerRef.current) {
+      centerRef.current.scale.setScalar(pulse)
+    }
+
+    if (ringRef.current) {
+      ringRef.current.scale.setScalar(glowPulse)
+    }
+
+    if (lineRef.current) {
+      lineRef.current.scale.y = 1 + Math.sin(clock.elapsedTime * 2.8) * 0.04
+    }
+  })
+
   return (
     <group ref={ref} {...props} visible={isVisible}>
       {/* Flat marker on the ground */}
       <group rotation={[-Math.PI / 2, 0, 0]}>
         {/* Center dot */}
-        <mesh layers={EDITOR_LAYER} renderOrder={2}>
+        <mesh layers={EDITOR_LAYER} ref={centerRef} renderOrder={2}>
           <circleGeometry args={[0.06, 32]} />
           <meshBasicMaterial color={color} depthTest depthWrite={false} opacity={0.9} transparent />
         </mesh>
 
         {/* Outer ring / glow */}
-        <mesh layers={EDITOR_LAYER} renderOrder={2}>
+        <mesh layers={EDITOR_LAYER} ref={ringRef} renderOrder={2}>
           <circleGeometry args={[0.16, 32]} />
           <meshBasicMaterial
             color={color}
@@ -62,7 +82,12 @@ export const CursorSphere = forwardRef<Group, CursorSphereProps>(function Cursor
 
       {/* Vertical line */}
       {height > 0 && (
-        <mesh layers={EDITOR_LAYER} position={[0, height / 2, 0]} renderOrder={2}>
+        <mesh
+          layers={EDITOR_LAYER}
+          position={[0, height / 2, 0]}
+          ref={lineRef}
+          renderOrder={2}
+        >
           <cylinderGeometry args={[0.01, 0.01, height, 8]} />
           <meshBasicMaterial
             color={color}

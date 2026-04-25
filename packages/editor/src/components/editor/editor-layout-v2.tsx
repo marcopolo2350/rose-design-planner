@@ -1,6 +1,9 @@
 'use client'
 
+import { motion } from 'motion/react'
 import { type ReactNode, useCallback, useEffect, useRef } from 'react'
+import { useIsMobile } from '../../hooks/use-mobile'
+import { cn } from '../../lib/utils'
 import useEditor from '../../store/use-editor'
 import { useSidebarStore } from '../ui/primitives/sidebar'
 import { type SidebarTab, TabBar } from '../ui/sidebar/tab-bar'
@@ -142,26 +145,51 @@ function RightColumn({
   toolbarRight,
   children,
   overlays,
+  isMobile = false,
 }: {
   toolbarLeft?: ReactNode
   toolbarRight?: ReactNode
   children: ReactNode
   overlays?: ReactNode
+  isMobile?: boolean
 }) {
   return (
     <div
       className="relative flex min-w-0 flex-1 flex-col overflow-hidden"
       style={{
-        borderTopLeftRadius: 16,
-        clipPath: 'inset(0 0 0 0 round 16px 0 0 0)',
-        boxShadow: '-4px -2px 16px rgba(0, 0, 0, 0.08), -1px 0 4px rgba(0, 0, 0, 0.04)',
+        borderTopLeftRadius: isMobile ? 0 : 16,
+        clipPath: isMobile ? 'none' : 'inset(0 0 0 0 round 16px 0 0 0)',
+        boxShadow: isMobile
+          ? 'none'
+          : '-4px -2px 16px rgba(0, 0, 0, 0.08), -1px 0 4px rgba(0, 0, 0, 0.04)',
       }}
     >
       {/* Viewer toolbar */}
       {(toolbarLeft || toolbarRight) && (
-        <div className="pointer-events-none absolute top-3 right-3 left-3 z-20 flex items-center justify-between gap-2">
-          <div className="pointer-events-auto flex items-center gap-2">{toolbarLeft}</div>
-          <div className="pointer-events-auto flex items-center gap-2">{toolbarRight}</div>
+        <div
+          className={cn(
+            'pointer-events-none absolute right-3 left-3 z-20 flex gap-2',
+            isMobile
+              ? 'top-3 flex-col items-stretch'
+              : 'top-3 items-center justify-between',
+          )}
+        >
+          <div
+            className={cn(
+              'pointer-events-auto flex gap-2',
+              isMobile ? 'flex-wrap items-start' : 'items-center',
+            )}
+          >
+            {toolbarLeft}
+          </div>
+          <div
+            className={cn(
+              'pointer-events-auto flex gap-2',
+              isMobile ? 'flex-wrap items-start self-end' : 'items-center',
+            )}
+          >
+            {toolbarRight}
+          </div>
         </div>
       )}
       {/* Canvas area */}
@@ -202,6 +230,16 @@ export function EditorLayoutV2({
   viewerContent,
   overlays,
 }: EditorLayoutV2Props) {
+  const isMobile = useIsMobile()
+  const activePanel = useEditor((s) => s.activeSidebarPanel)
+  const setActivePanel = useEditor((s) => s.setActiveSidebarPanel)
+
+  useEffect(() => {
+    if (sidebarTabs.length > 0 && !sidebarTabs.some((tab) => tab.id === activePanel)) {
+      setActivePanel(sidebarTabs[0]!.id)
+    }
+  }, [activePanel, setActivePanel, sidebarTabs])
+
   return (
     <div className="dark flex h-full w-full flex-col bg-sidebar text-foreground">
       {/* Top navbar */}
@@ -209,7 +247,7 @@ export function EditorLayoutV2({
 
       {/* Main content: left column + right column */}
       <div className="flex min-h-0 flex-1">
-        {sidebarTabs.length > 0 && (
+        {!isMobile && sidebarTabs.length > 0 && (
           <LeftColumn
             renderTabContent={renderTabContent}
             sidebarOverlay={sidebarOverlay}
@@ -217,6 +255,7 @@ export function EditorLayoutV2({
           />
         )}
         <RightColumn
+          isMobile={isMobile}
           overlays={overlays}
           toolbarLeft={viewerToolbarLeft}
           toolbarRight={viewerToolbarRight}
@@ -224,6 +263,25 @@ export function EditorLayoutV2({
           {viewerContent}
         </RightColumn>
       </div>
+
+      {isMobile && sidebarTabs.length > 0 && (
+        <div className="pointer-events-none fixed right-3 bottom-3 left-3 z-40 flex flex-col gap-3">
+          <motion.div
+            animate={{ opacity: 1, y: 0 }}
+            className="pointer-events-auto overflow-hidden rounded-lg border border-border/80 bg-sidebar/96 shadow-2xl backdrop-blur-md"
+            initial={{ opacity: 0, y: 24 }}
+            transition={{ duration: 0.22, ease: 'easeOut' }}
+          >
+            <div className="max-h-[42vh] overflow-y-auto">
+              {renderTabContent(activePanel)}
+              {sidebarOverlay && <div className="border-border/60 border-t">{sidebarOverlay}</div>}
+            </div>
+            <div className="border-border/70 border-t px-2 py-2">
+              <TabBar activeTab={activePanel} onTabChange={setActivePanel} tabs={sidebarTabs} />
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   )
 }
