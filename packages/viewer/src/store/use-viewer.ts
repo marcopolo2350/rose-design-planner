@@ -18,6 +18,15 @@ type Outliner = {
   hoveredObjects: Object3D[]
 }
 
+export type TimeOfDay = 'day' | 'goldenHour' | 'dusk' | 'evening'
+export type CameraPreset =
+  | 'showcase'
+  | 'reveal'
+  | 'patio'
+  | 'pool'
+  | 'evening'
+  | 'walkthrough'
+
 type ViewerState = {
   selection: SelectionPath
   previewSelectedIds: BaseNode['id'][]
@@ -76,6 +85,19 @@ type ViewerState = {
 
   cameraDragging: boolean
   setCameraDragging: (dragging: boolean) => void
+
+  // Outdoor experience layer — beautiful sky, grass, fog, time-of-day
+  outdoorMode: boolean
+  setOutdoorMode: (enabled: boolean) => void
+
+  timeOfDay: TimeOfDay
+  setTimeOfDay: (time: TimeOfDay) => void
+
+  showcaseMode: boolean
+  setShowcaseMode: (enabled: boolean) => void
+
+  cameraPresetRequest: { id: CameraPreset; tick: number } | null
+  requestCameraPreset: (id: CameraPreset) => void
 }
 
 const useViewer = create<ViewerState>()(
@@ -202,6 +224,18 @@ const useViewer = create<ViewerState>()(
 
       cameraDragging: false,
       setCameraDragging: (dragging) => set({ cameraDragging: dragging }),
+
+      outdoorMode: true,
+      setOutdoorMode: (enabled) => set({ outdoorMode: enabled }),
+
+      timeOfDay: 'day',
+      setTimeOfDay: (time) => set({ timeOfDay: time }),
+
+      showcaseMode: false,
+      setShowcaseMode: (enabled) => set({ showcaseMode: enabled }),
+
+      cameraPresetRequest: null,
+      requestCameraPreset: (id) => set({ cameraPresetRequest: { id, tick: Date.now() } }),
     }),
     {
       name: 'viewer-preferences',
@@ -212,6 +246,8 @@ const useViewer = create<ViewerState>()(
         levelMode: state.levelMode,
         wallMode: state.wallMode,
         projectPreferences: state.projectPreferences,
+        outdoorMode: state.outdoorMode,
+        timeOfDay: state.timeOfDay,
       }),
     },
   ),

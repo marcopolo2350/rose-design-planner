@@ -146,6 +146,7 @@ export const Grid = ({
   })
 
   const showGrid = useViewer((state) => state.showGrid)
+  const showcaseMode = useViewer((state) => state.showcaseMode)
 
   return (
     <mesh
@@ -153,7 +154,7 @@ export const Grid = ({
       material={material}
       ref={gridRef}
       rotation-x={-Math.PI / 2}
-      visible={showGrid}
+      visible={showGrid && !showcaseMode}
     >
       <planeGeometry args={[fadeDistance * 2, fadeDistance * 2]} />
     </mesh>

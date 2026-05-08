@@ -1,7 +1,7 @@
 'use client'
 
 import { type CameraControlEvent, emitter, sceneRegistry, useScene } from '@pascal-app/core'
-import { useViewer, WalkthroughControls, ZONE_LAYER } from '@pascal-app/viewer'
+import { CAMERA_PRESETS, useViewer, WalkthroughControls, ZONE_LAYER } from '@pascal-app/viewer'
 import { CameraControls, CameraControlsImpl } from '@react-three/drei'
 import { useThree } from '@react-three/fiber'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
@@ -364,6 +364,30 @@ export const CustomCameraControls = () => {
   const onRest = useCallback(() => {
     useViewer.getState().setCameraDragging(false)
   }, [])
+
+  // Cinematic camera presets — when the toolbar requests a preset we
+  // animate the camera to its position/target. Uses a cancellable async
+  // tween via setLookAt's built-in interpolation.
+  const cameraPresetRequest = useViewer((s) => s.cameraPresetRequest)
+  useEffect(() => {
+    if (!(cameraPresetRequest && controls.current)) return
+    const preset = CAMERA_PRESETS[cameraPresetRequest.id]
+    if (!preset) return
+
+    if (preset.id === 'walkthrough') {
+      useViewer.getState().setWalkthroughMode(true)
+      return
+    } else {
+      useViewer.getState().setWalkthroughMode(false)
+    }
+
+    if (preset.preferredTimeOfDay) {
+      useViewer.getState().setTimeOfDay(preset.preferredTimeOfDay)
+    }
+
+    const [px, py, pz, tx, ty, tz] = preset.shot
+    controls.current.setLookAt(px, py, pz, tx, ty, tz, true)
+  }, [cameraPresetRequest])
 
   if (walkthroughMode) {
     return <WalkthroughControls />

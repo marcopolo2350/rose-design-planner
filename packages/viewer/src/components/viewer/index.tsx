@@ -22,6 +22,7 @@ import { LevelSystem } from '../../systems/level/level-system'
 import { ScanSystem } from '../../systems/scan/scan-system'
 import { WallCutout } from '../../systems/wall/wall-cutout'
 import { ZoneSystem } from '../../systems/zone/zone-system'
+import { OutdoorEnvironment } from '../outdoor/outdoor-environment'
 import { SceneRenderer } from '../renderers/scene-renderer'
 import FrameLimiter from './frame-limiter'
 import { Lights } from './lights'
@@ -145,6 +146,7 @@ const Viewer: React.FC<ViewerProps> = ({
       {/* <directionalLight position={[10, 10, 5]} intensity={0.5} castShadow
         /> */}
       <Lights />
+      <OutdoorEnvironment />
       <Bvh>
         <SceneRenderer />
       </Bvh>

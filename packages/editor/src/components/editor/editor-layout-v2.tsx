@@ -1,5 +1,6 @@
 'use client'
 
+import { useViewer } from '@pascal-app/viewer'
 import { motion } from 'motion/react'
 import { type ReactNode, useCallback, useEffect, useRef } from 'react'
 import { useIsMobile } from '../../hooks/use-mobile'
@@ -153,6 +154,8 @@ function RightColumn({
   overlays?: ReactNode
   isMobile?: boolean
 }) {
+  const showcaseMode = useViewer((s) => s.showcaseMode)
+
   return (
     <div
       className="relative flex min-w-0 flex-1 flex-col overflow-hidden"
@@ -168,10 +171,11 @@ function RightColumn({
       {(toolbarLeft || toolbarRight) && (
         <div
           className={cn(
-            'pointer-events-none absolute right-3 left-3 z-20 flex gap-2',
+            'pointer-events-none absolute right-3 left-3 z-20 flex gap-2 transition-opacity duration-500',
             isMobile
               ? 'top-3 flex-col items-stretch'
               : 'top-3 items-center justify-between',
+            showcaseMode && 'pointer-events-none opacity-0 hover:opacity-100',
           )}
         >
           <div
@@ -197,13 +201,33 @@ function RightColumn({
       {/* Overlays scoped to the viewer column */}
       {overlays && (
         <div
-          className="pointer-events-none absolute inset-0 z-30"
+          className={cn(
+            'pointer-events-none absolute inset-0 z-30 transition-opacity duration-500',
+            showcaseMode && 'opacity-0',
+          )}
           style={{ transform: 'translateZ(0)' }}
         >
           {overlays}
         </div>
       )}
+      {/* Showcase exit hint */}
+      {showcaseMode && <ShowcaseExitHint />}
     </div>
+  )
+}
+
+function ShowcaseExitHint() {
+  const setShowcase = useViewer((s) => s.setShowcaseMode)
+  return (
+    <button
+      aria-label="Exit Showcase Mode"
+      className="pointer-events-auto absolute top-4 right-4 z-50 flex items-center gap-1.5 rounded-full border border-white/15 bg-black/40 px-3 py-1.5 text-[11px] text-white/85 backdrop-blur-md transition-opacity hover:bg-black/55"
+      onClick={() => setShowcase(false)}
+      type="button"
+    >
+      <span className="font-medium">Showcase</span>
+      <span className="opacity-60">— click to exit</span>
+    </button>
   )
 }
 
@@ -240,19 +264,43 @@ export function EditorLayoutV2({
     }
   }, [activePanel, setActivePanel, sidebarTabs])
 
+  // Showcase mode: fade non-essential UI to give cinematic focus to the scene.
+  // Keeps the canvas fully interactive but quiets the chrome.
+  const showcaseMode = useViewer((s) => s.showcaseMode)
+
   return (
-    <div className="dark flex h-full w-full flex-col bg-sidebar text-foreground">
+    <div
+      className={cn(
+        'dark flex h-full w-full flex-col bg-sidebar text-foreground transition-opacity duration-500',
+      )}
+      data-showcase={showcaseMode ? 'on' : 'off'}
+    >
       {/* Top navbar */}
-      {navbarSlot}
+      <div
+        className={cn(
+          'transition-opacity duration-500',
+          showcaseMode ? 'pointer-events-none opacity-0' : 'opacity-100',
+        )}
+      >
+        {navbarSlot}
+      </div>
 
       {/* Main content: left column + right column */}
       <div className="flex min-h-0 flex-1">
         {!isMobile && sidebarTabs.length > 0 && (
-          <LeftColumn
-            renderTabContent={renderTabContent}
-            sidebarOverlay={sidebarOverlay}
-            tabs={sidebarTabs}
-          />
+          <div
+            className={cn(
+              'flex transition-all duration-500',
+              showcaseMode ? 'pointer-events-none -translate-x-2 opacity-0' : 'opacity-100',
+            )}
+            style={{ width: showcaseMode ? 0 : undefined, overflow: showcaseMode ? 'hidden' : undefined }}
+          >
+            <LeftColumn
+              renderTabContent={renderTabContent}
+              sidebarOverlay={sidebarOverlay}
+              tabs={sidebarTabs}
+            />
+          </div>
         )}
         <RightColumn
           isMobile={isMobile}

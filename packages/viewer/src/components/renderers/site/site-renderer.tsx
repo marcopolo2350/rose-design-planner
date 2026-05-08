@@ -4,6 +4,7 @@ import { useMemo, useRef } from 'react'
 import { BufferGeometry, Float32BufferAttribute, type Group, Path, Shape } from 'three'
 import { useNodeEvents } from '../../../hooks/use-node-events'
 import useViewer from '../../../store/use-viewer'
+import { getTimeOfDayPalette } from '../../outdoor/time-of-day-palette'
 import { NodeRenderer } from '../node-renderer'
 
 const Y_OFFSET = 0.01
@@ -39,7 +40,18 @@ export const SiteRenderer = ({ node }: { node: SiteNode }) => {
   useRegistry(node.id, 'site', ref)
 
   const theme = useViewer((state) => state.theme)
-  const bgColor = theme === 'dark' ? '#1f2433' : '#fafafa'
+  const outdoorMode = useViewer((state) => state.outdoorMode)
+  const timeOfDay = useViewer((state) => state.timeOfDay)
+  // In outdoor mode, the site ground takes a lawn tone derived from the
+  // current time of day so it blends seamlessly into the surrounding grass.
+  // A slightly darker shade gives the impression of "inside the property"
+  // turf vs. surrounding wild grass — subtle, but it reads as designed.
+  const bgColor = outdoorMode
+    ? `#${getTimeOfDayPalette(timeOfDay).groundTint.clone().multiplyScalar(0.92).getHexString()}`
+    : theme === 'dark'
+      ? '#1f2433'
+      : '#fafafa'
+  const boundaryColor = outdoorMode ? '#dcb277' : '#f59e0b'
 
   // Cache slab polygon references to keep the selector stable across unrelated store updates
   const slabPolygonsCache = useRef<[number, number][][]>([])
@@ -143,7 +155,12 @@ export const SiteRenderer = ({ node }: { node: SiteNode }) => {
       {/* Simple boundary line */}
       {/* @ts-ignore */}
       <line frustumCulled={false} geometry={lineGeometry} renderOrder={9}>
-        <lineBasicMaterial color="#f59e0b" linewidth={2} opacity={0.6} transparent />
+        <lineBasicMaterial
+          color={boundaryColor}
+          linewidth={2}
+          opacity={outdoorMode ? 0.45 : 0.6}
+          transparent
+        />
       </line>
     </group>
   )

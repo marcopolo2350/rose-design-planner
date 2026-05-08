@@ -1,3 +1,15 @@
+export {
+  CAMERA_PRESET_ORDER,
+  CAMERA_PRESETS,
+  type CameraShot,
+} from './components/outdoor/camera-presets'
+export { OutdoorEnvironment } from './components/outdoor/outdoor-environment'
+export {
+  getTimeOfDayPalette,
+  TIME_OF_DAY_LABELS,
+  TIME_OF_DAY_ORDER,
+  type TimeOfDayPalette,
+} from './components/outdoor/time-of-day-palette'
 export { default as Viewer } from './components/viewer'
 export { SSGI_PARAMS } from './components/viewer/post-processing'
 export { WalkthroughControls } from './components/viewer/walkthrough-controls'
@@ -16,6 +28,6 @@ export {
   disposeMaterial,
 } from './lib/materials'
 export { mergedOutline } from './lib/merged-outline-node'
-export { default as useViewer } from './store/use-viewer'
+export { default as useViewer, type CameraPreset, type TimeOfDay } from './store/use-viewer'
 export { InteractiveSystem } from './systems/interactive/interactive-system'
 export { snapLevelsToTruePositions } from './systems/level/level-utils'

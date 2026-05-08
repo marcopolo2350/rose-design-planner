@@ -1,8 +1,14 @@
 'use client'
 
 import { Icon as IconifyIcon } from '@iconify/react'
-import { useViewer } from '@pascal-app/viewer'
-import { Check, ChevronsLeft, ChevronsRight, Columns2, Eye, Footprints, Moon, Sun } from 'lucide-react'
+import {
+  CAMERA_PRESET_ORDER,
+  CAMERA_PRESETS,
+  TIME_OF_DAY_LABELS,
+  TIME_OF_DAY_ORDER,
+  useViewer,
+} from '@pascal-app/viewer'
+import { Check, ChevronsLeft, ChevronsRight, Columns2, Eye, Footprints, Moon, Sparkles, Sun } from 'lucide-react'
 import { useCallback } from 'react'
 import { assetPath } from '../../lib/asset-path'
 import { cn } from '../../lib/utils'
@@ -379,6 +385,162 @@ function PreviewButton() {
   )
 }
 
+// ── Outdoor: time of day pill ───────────────────────────────────────────────
+
+const TIME_OF_DAY_ICON: Record<string, string> = {
+  day: 'lucide:sun',
+  goldenHour: 'lucide:sunset',
+  dusk: 'lucide:cloud-moon',
+  evening: 'lucide:moon-star',
+}
+
+const TIME_OF_DAY_TINT: Record<string, string> = {
+  day: 'text-sky-300',
+  goldenHour: 'text-amber-300',
+  dusk: 'text-rose-300',
+  evening: 'text-indigo-300',
+}
+
+function TimeOfDayPill() {
+  const outdoorMode = useViewer((s) => s.outdoorMode)
+  const timeOfDay = useViewer((s) => s.timeOfDay)
+  const setTimeOfDay = useViewer((s) => s.setTimeOfDay)
+
+  if (!outdoorMode) return null
+
+  const cycle = () => {
+    const idx = TIME_OF_DAY_ORDER.indexOf(timeOfDay)
+    const next = TIME_OF_DAY_ORDER[(idx + 1) % TIME_OF_DAY_ORDER.length]
+    if (next) setTimeOfDay(next)
+  }
+
+  return (
+    <DropdownMenu>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <button
+              aria-label={`Time of day: ${TIME_OF_DAY_LABELS[timeOfDay]}`}
+              className={cn(TOOLBAR_BTN, 'w-auto gap-1.5 px-2.5')}
+              onContextMenu={(e) => {
+                e.preventDefault()
+                cycle()
+              }}
+              type="button"
+            >
+              <IconifyIcon
+                className={TIME_OF_DAY_TINT[timeOfDay]}
+                height={14}
+                icon={TIME_OF_DAY_ICON[timeOfDay] ?? 'lucide:sun'}
+                width={14}
+              />
+              <span className="font-medium text-xs">{TIME_OF_DAY_LABELS[timeOfDay]}</span>
+            </button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">
+          Time of day · right-click to cycle
+        </TooltipContent>
+      </Tooltip>
+      <DropdownMenuContent align="center" side="bottom">
+        {TIME_OF_DAY_ORDER.map((time) => {
+          const isActive = time === timeOfDay
+          return (
+            <DropdownMenuItem key={time} onSelect={() => setTimeOfDay(time)}>
+              <span className="flex min-w-[120px] items-center justify-between gap-3">
+                <span className="flex items-center gap-2">
+                  <IconifyIcon
+                    className={TIME_OF_DAY_TINT[time]}
+                    height={14}
+                    icon={TIME_OF_DAY_ICON[time] ?? 'lucide:sun'}
+                    width={14}
+                  />
+                  <span>{TIME_OF_DAY_LABELS[time]}</span>
+                </span>
+                {isActive ? <Check className="h-3.5 w-3.5" /> : <span className="h-3.5 w-3.5" />}
+              </span>
+            </DropdownMenuItem>
+          )
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
+// ── Outdoor: cinematic camera preset dropdown ───────────────────────────────
+
+function CameraPresetMenu() {
+  const outdoorMode = useViewer((s) => s.outdoorMode)
+  const requestCameraPreset = useViewer((s) => s.requestCameraPreset)
+
+  if (!outdoorMode) return null
+
+  return (
+    <DropdownMenu>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <button
+              aria-label="Cinematic camera presets"
+              className={cn(TOOLBAR_BTN, 'w-auto gap-1.5 px-2.5')}
+              type="button"
+            >
+              <IconifyIcon height={14} icon="lucide:clapperboard" width={14} />
+              <span className="font-medium text-xs">Views</span>
+            </button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">Cinematic camera views</TooltipContent>
+      </Tooltip>
+      <DropdownMenuContent align="center" side="bottom">
+        {CAMERA_PRESET_ORDER.map((id) => {
+          const preset = CAMERA_PRESETS[id]
+          if (!preset) return null
+          return (
+            <DropdownMenuItem key={id} onSelect={() => requestCameraPreset(id)}>
+              <span className="flex min-w-[200px] flex-col gap-0.5">
+                <span className="font-medium">{preset.label}</span>
+                <span className="text-[11px] text-muted-foreground/80">
+                  {preset.description}
+                </span>
+              </span>
+            </DropdownMenuItem>
+          )
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
+// ── Outdoor: Showcase Mode button — fades UI, warms lights, gives cinematic feel ──
+
+function ShowcaseButton() {
+  const outdoorMode = useViewer((s) => s.outdoorMode)
+  const showcaseMode = useViewer((s) => s.showcaseMode)
+  const setShowcaseMode = useViewer((s) => s.setShowcaseMode)
+
+  if (!outdoorMode) return null
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          aria-label="Toggle Showcase Mode"
+          className={cn(
+            TOOLBAR_BTN,
+            showcaseMode && 'bg-amber-400/15 text-amber-300 hover:bg-amber-400/25',
+          )}
+          onClick={() => setShowcaseMode(!showcaseMode)}
+          type="button"
+        >
+          <Sparkles className="h-3.5 w-3.5" />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side="bottom">Showcase mode</TooltipContent>
+    </Tooltip>
+  )
+}
+
 // ── Composed toolbar sections ───────────────────────────────────────────────
 
 export function ViewerToolbarLeft() {
@@ -393,6 +555,10 @@ export function ViewerToolbarLeft() {
 export function ViewerToolbarRight() {
   return (
     <div className={TOOLBAR_CONTAINER}>
+      <TimeOfDayPill />
+      <CameraPresetMenu />
+      <ShowcaseButton />
+      <div className="my-1.5 w-px bg-border/50" />
       <LevelModeToggle />
       <WallModeToggle />
       <GridSnapToggle />
