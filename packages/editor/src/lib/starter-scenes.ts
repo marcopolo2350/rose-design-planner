@@ -4,6 +4,7 @@ import type { CameraPreset, MoodId, TimeOfDay } from '@pascal-app/viewer'
 import type { SceneGraph } from './scene'
 
 export type StarterSceneId =
+  | 'ultimateEstate'
   | 'gardenRetreat'
   | 'resortPoolside'
   | 'firepitLounge'
@@ -283,6 +284,30 @@ const ASSETS: Record<string, CatalogAsset> = {
     scale: [1, 1, 1],
     tags: ['floor', 'seating'],
   },
+  tesla: {
+    id: 'tesla',
+    category: 'outdoor',
+    name: 'Tesla',
+    thumbnail: '/items/tesla/thumbnail.webp',
+    src: '/items/tesla/model.glb',
+    dimensions: [2, 1.7, 5],
+    offset: [0, 0, 0],
+    rotation: [0, 0, 0],
+    scale: [1, 1, 1],
+    tags: ['floor', 'garage'],
+  },
+  'basket-hoop': {
+    id: 'basket-hoop',
+    category: 'outdoor',
+    name: 'Basket Hoop',
+    thumbnail: '/items/basket-hoop/thumbnail.webp',
+    src: '/items/basket-hoop/model.glb',
+    dimensions: [1.5, 3, 1],
+    offset: [0, 0, 0],
+    rotation: [0, 0, 0],
+    scale: [1, 1, 1],
+    tags: ['floor', 'sports'],
+  },
 }
 
 type ItemSpec = {
@@ -335,6 +360,297 @@ type StarterSceneSpec = {
 // ── The starter scenes ────────────────────────────────────────────────────
 
 const SCENES: Record<StarterSceneId, StarterSceneSpec> = {
+  // ── Ultimate Estate — the crown-jewel demo ─────────────────────────────
+  // A massive evening hero scene built from every procedural item the
+  // engine ships: motor court with Tesla, infinity-edge pool with coping
+  // and shimmer, pergola lounge over the water, separate firepit
+  // conversation circle, outdoor kitchen with dining for eight, sport
+  // court, putting green, ringed perimeter of palms and over thirty
+  // garden lanterns. Designed to be loaded directly into Showcase Mode
+  // at evening so every light is glowing.
+  ultimateEstate: {
+    id: 'ultimateEstate',
+    label: 'Ultimate Estate',
+    description: 'A billionaire-tier evening estate — pool, pergolas, firepit, kitchen, sport court, motor court — every light glowing at once.',
+    timeOfDay: 'evening',
+    cameraPreset: 'showcase',
+    icon: 'lucide:gem',
+    tint: 'text-amber-300',
+    siteHalfSize: 38,
+    slabs: [
+      // ── Motor court (back of property, where the driveway ends) ──
+      {
+        polygon: [
+          [-9, -32],
+          [9, -32],
+          [9, -22],
+          [-9, -22],
+        ],
+        materialPreset: 'concrete',
+      },
+      // ── Driveway path (motor court → main level) ──
+      {
+        polygon: [
+          [-2.5, -22],
+          [2.5, -22],
+          [2.5, -13],
+          [-2.5, -13],
+        ],
+        materialPreset: 'tile',
+      },
+      // ── Main pool deck (centerpiece, huge) ──
+      {
+        polygon: [
+          [-18, -13],
+          [18, -13],
+          [18, 11],
+          [-18, 11],
+        ],
+        materialPreset: 'tile',
+      },
+      // ── Infinity-edge main pool ──
+      {
+        polygon: [
+          [-7, -5],
+          [7, -5],
+          [7, 5],
+          [-7, 5],
+        ],
+        elevation: 0.06,
+        material: {
+          properties: {
+            color: '#1d6da8',
+            roughness: 0.12,
+            metalness: 0.5,
+            opacity: 0.92,
+            transparent: true,
+          },
+        },
+      },
+      // ── Spa / hot tub (deeper blue, hexagon-ish) at one end of pool ──
+      {
+        polygon: [
+          [-12, -2.5],
+          [-9.5, -3.5],
+          [-8, -1.5],
+          [-8.5, 1.5],
+          [-10.5, 2.5],
+          [-12.5, 1],
+        ],
+        elevation: 0.07,
+        material: {
+          properties: {
+            color: '#0f4f78',
+            roughness: 0.1,
+            metalness: 0.55,
+            opacity: 0.94,
+            transparent: true,
+          },
+        },
+      },
+      // ── Tennis court (south of main deck) ──
+      {
+        polygon: [
+          [-9, 14],
+          [9, 14],
+          [9, 26],
+          [-9, 26],
+        ],
+        material: {
+          properties: {
+            color: '#3a6a4a',
+            roughness: 0.95,
+            metalness: 0,
+          },
+        },
+      },
+      // ── Putting green (west of tennis) ──
+      {
+        polygon: [
+          [-22, 14],
+          [-12, 14],
+          [-12, 22],
+          [-22, 22],
+        ],
+        material: {
+          properties: {
+            color: '#5c8a3a',
+            roughness: 1,
+            metalness: 0,
+          },
+        },
+      },
+      // ── Basketball half-court (east of tennis) ──
+      {
+        polygon: [
+          [12, 14],
+          [22, 14],
+          [22, 22],
+          [12, 22],
+        ],
+        material: {
+          properties: {
+            color: '#955a35',
+            roughness: 0.9,
+            metalness: 0,
+          },
+        },
+      },
+    ],
+    items: [
+      // ─── MAIN POOL (centerpiece) ────────────────────────────────────────
+      // Stone coping wrapping the 14×10 water area
+      { asset: 'pool-coping', position: [0, 0, 0], dimensions: [15, 0.12, 11] },
+      // Caustic shimmer overlay sized to fit inside the coping
+      { asset: 'pool-shimmer', position: [0, 0.07, 0], dimensions: [13.7, 0.02, 9.7] },
+      // Sunbeds along the north long edge of the pool — 4 facing south
+      { asset: 'sunbed', position: [-6, 0, -7], rotationY: 0 },
+      { asset: 'sunbed', position: [-2, 0, -7], rotationY: 0 },
+      { asset: 'sunbed', position: [2, 0, -7], rotationY: 0 },
+      { asset: 'sunbed', position: [6, 0, -7], rotationY: 0 },
+      { asset: 'patio-umbrella', position: [-4, 0, -7.5] },
+      { asset: 'patio-umbrella', position: [4, 0, -7.5] },
+      // Sunbeds along the south long edge — 4 facing north
+      { asset: 'sunbed', position: [-6, 0, 7], rotationY: Math.PI },
+      { asset: 'sunbed', position: [-2, 0, 7], rotationY: Math.PI },
+      { asset: 'sunbed', position: [2, 0, 7], rotationY: Math.PI },
+      { asset: 'sunbed', position: [6, 0, 7], rotationY: Math.PI },
+      { asset: 'patio-umbrella', position: [-4, 0, 7.5] },
+      { asset: 'patio-umbrella', position: [4, 0, 7.5] },
+
+      // ─── EAST END: Pergola lounge with sofa + coffee table ──────────────
+      { asset: 'pergola', position: [13, 0, 0] },
+      { asset: 'sofa', position: [13, 0, 0], rotationY: -Math.PI / 2, scale: [1, 1, 1] },
+      { asset: 'coffee-table', position: [13, 0, 1.6], scale: [0.6, 0.6, 0.6] },
+      { asset: 'lounge-chair', position: [11.5, 0, 1.8], rotationY: -Math.PI / 4 },
+      { asset: 'lounge-chair', position: [14.5, 0, 1.8], rotationY: -Math.PI * 0.75 },
+      { asset: 'planter-box', position: [11, 0, -1.8] },
+      { asset: 'planter-box', position: [15, 0, -1.8] },
+
+      // ─── WEST END: Outdoor kitchen + grand dining ───────────────────────
+      // Kitchen island
+      { asset: 'outdoor-kitchen-island', position: [-15.5, 0, -8], rotationY: 0 },
+      // Bar stool stand-ins (use small lounge chair scaled down — closest match)
+      { asset: 'planter-box', position: [-13.5, 0, -8.2] },
+      { asset: 'planter-box', position: [-17.5, 0, -8.2] },
+      // Grand dining table for 8
+      { asset: 'pergola', position: [-14, 0, 5] },
+      { asset: 'dining-table', position: [-14, 0, 5], rotationY: Math.PI / 2 },
+      { asset: 'dining-chair', position: [-15.7, 0, 5], rotationY: Math.PI / 2 },
+      { asset: 'dining-chair', position: [-12.3, 0, 5], rotationY: -Math.PI / 2 },
+      { asset: 'dining-chair', position: [-15, 0, 4], rotationY: 0 },
+      { asset: 'dining-chair', position: [-13, 0, 4], rotationY: 0 },
+      { asset: 'dining-chair', position: [-15, 0, 6], rotationY: Math.PI },
+      { asset: 'dining-chair', position: [-13, 0, 6], rotationY: Math.PI },
+      { asset: 'dining-chair', position: [-14.5, 0, 3], rotationY: 0 },
+      { asset: 'dining-chair', position: [-13.5, 0, 7], rotationY: Math.PI },
+
+      // ─── SOUTH-EAST: Firepit conversation circle ────────────────────────
+      { asset: 'firepit', position: [14, 0, -8] },
+      { asset: 'lounge-chair', position: [12.2, 0, -8], rotationY: -Math.PI / 2 },
+      { asset: 'lounge-chair', position: [15.8, 0, -8], rotationY: Math.PI / 2 },
+      { asset: 'lounge-chair', position: [14, 0, -9.8], rotationY: 0 },
+      { asset: 'lounge-chair', position: [14, 0, -6.2], rotationY: Math.PI },
+      { asset: 'planter-box', position: [11, 0, -10.5] },
+      { asset: 'planter-box', position: [17, 0, -10.5] },
+
+      // ─── SPA EDGE: Two flanking lounge chairs ──────────────────────────
+      { asset: 'lounge-chair', position: [-10.5, 0, -5], rotationY: Math.PI / 6 },
+      { asset: 'lounge-chair', position: [-13.5, 0, 4.5], rotationY: -Math.PI / 6 },
+
+      // ─── MOTOR COURT ────────────────────────────────────────────────────
+      { asset: 'tesla', position: [-3, 0, -27], rotationY: 0 },
+      { asset: 'tesla', position: [3, 0, -27], rotationY: 0 },
+      { asset: 'planter-box', position: [-7.5, 0, -23.5] },
+      { asset: 'planter-box', position: [7.5, 0, -23.5] },
+      { asset: 'planter-box', position: [-7.5, 0, -30.5] },
+      { asset: 'planter-box', position: [7.5, 0, -30.5] },
+      { asset: 'palm', position: [-10, 0, -26], scale: [0.5, 0.5, 0.5] },
+      { asset: 'palm', position: [10, 0, -26], scale: [0.5, 0.5, 0.5] },
+      { asset: 'garden-lantern', position: [-8.5, 0, -22.5] },
+      { asset: 'garden-lantern', position: [8.5, 0, -22.5] },
+      { asset: 'garden-lantern', position: [-8.5, 0, -31.5] },
+      { asset: 'garden-lantern', position: [8.5, 0, -31.5] },
+
+      // ─── DRIVEWAY PATH (motor court → main level) ──────────────────────
+      { asset: 'stepping-stone', position: [0, 0, -21], scale: [1.3, 1, 1.3] },
+      { asset: 'stepping-stone', position: [0, 0, -19], scale: [1.3, 1, 1.3] },
+      { asset: 'stepping-stone', position: [0, 0, -17], scale: [1.3, 1, 1.3] },
+      { asset: 'stepping-stone', position: [0, 0, -15], scale: [1.3, 1, 1.3] },
+      { asset: 'garden-lantern', position: [-2.5, 0, -20] },
+      { asset: 'garden-lantern', position: [2.5, 0, -18] },
+      { asset: 'garden-lantern', position: [-2.5, 0, -16] },
+      { asset: 'tree', position: [-5, 0, -19], scale: [0.6, 0.6, 0.6] },
+      { asset: 'tree', position: [5, 0, -19], scale: [0.6, 0.6, 0.6] },
+      { asset: 'fir-tree', position: [-6, 0, -16], scale: [1.1, 1.1, 1.1] },
+      { asset: 'fir-tree', position: [6, 0, -16], scale: [1.1, 1.1, 1.1] },
+
+      // ─── POOL DECK PERIMETER LANTERNS ───────────────────────────────────
+      // North edge
+      { asset: 'garden-lantern', position: [-15, 0, -12] },
+      { asset: 'garden-lantern', position: [-9, 0, -12] },
+      { asset: 'garden-lantern', position: [-3, 0, -12] },
+      { asset: 'garden-lantern', position: [3, 0, -12] },
+      { asset: 'garden-lantern', position: [9, 0, -12] },
+      { asset: 'garden-lantern', position: [15, 0, -12] },
+      // South edge
+      { asset: 'garden-lantern', position: [-15, 0, 10] },
+      { asset: 'garden-lantern', position: [-9, 0, 10] },
+      { asset: 'garden-lantern', position: [-3, 0, 10] },
+      { asset: 'garden-lantern', position: [3, 0, 10] },
+      { asset: 'garden-lantern', position: [9, 0, 10] },
+      { asset: 'garden-lantern', position: [15, 0, 10] },
+      // West & east edges
+      { asset: 'garden-lantern', position: [-17.5, 0, -2] },
+      { asset: 'garden-lantern', position: [-17.5, 0, 2] },
+      { asset: 'garden-lantern', position: [17.5, 0, -2] },
+      { asset: 'garden-lantern', position: [17.5, 0, 2] },
+
+      // ─── SPORT COURTS ───────────────────────────────────────────────────
+      // Tennis court — corner lanterns
+      { asset: 'garden-lantern', position: [-8.5, 0, 14.5] },
+      { asset: 'garden-lantern', position: [8.5, 0, 14.5] },
+      { asset: 'garden-lantern', position: [-8.5, 0, 25.5] },
+      { asset: 'garden-lantern', position: [8.5, 0, 25.5] },
+      // Basketball court — hoop + corner lights
+      { asset: 'basket-hoop', position: [21, 0, 18] },
+      { asset: 'garden-lantern', position: [12.5, 0, 14.5] },
+      { asset: 'garden-lantern', position: [21.5, 0, 21.5] },
+      // Putting green corners
+      { asset: 'garden-lantern', position: [-21.5, 0, 14.5] },
+      { asset: 'garden-lantern', position: [-12.5, 0, 21.5] },
+
+      // ─── LANDSCAPING (palms + trees + bushes ringing the property) ─────
+      // North (back) row
+      { asset: 'palm', position: [-22, 0, -8], scale: [0.55, 0.55, 0.55] },
+      { asset: 'palm', position: [22, 0, -8], scale: [0.55, 0.55, 0.55] },
+      { asset: 'palm', position: [-26, 0, -2], scale: [0.5, 0.5, 0.5] },
+      { asset: 'palm', position: [26, 0, -2], scale: [0.5, 0.5, 0.5] },
+      // Middle row
+      { asset: 'palm', position: [-26, 0, 6], scale: [0.5, 0.5, 0.5] },
+      { asset: 'palm', position: [26, 0, 6], scale: [0.5, 0.5, 0.5] },
+      // South perimeter
+      { asset: 'palm', position: [-28, 0, 18], scale: [0.5, 0.5, 0.5] },
+      { asset: 'palm', position: [28, 0, 18], scale: [0.5, 0.5, 0.5] },
+      { asset: 'palm', position: [-28, 0, 28], scale: [0.5, 0.5, 0.5] },
+      { asset: 'palm', position: [28, 0, 28], scale: [0.5, 0.5, 0.5] },
+      // Distant trees for depth
+      { asset: 'tree', position: [-30, 0, -12], scale: [0.6, 0.6, 0.6] },
+      { asset: 'tree', position: [30, 0, -12], scale: [0.6, 0.6, 0.6] },
+      { asset: 'fir-tree', position: [-32, 0, 0], scale: [1.4, 1.4, 1.4] },
+      { asset: 'fir-tree', position: [32, 0, 0], scale: [1.4, 1.4, 1.4] },
+      { asset: 'fir-tree', position: [-32, 0, 22], scale: [1.4, 1.4, 1.4] },
+      { asset: 'fir-tree', position: [32, 0, 22], scale: [1.4, 1.4, 1.4] },
+      // Bushes softening corners
+      { asset: 'bush', position: [-19, 0, -13.5], scale: [0.7, 0.7, 0.7] },
+      { asset: 'bush', position: [19, 0, -13.5], scale: [0.7, 0.7, 0.7] },
+      { asset: 'bush', position: [-19, 0, 12], scale: [0.7, 0.7, 0.7] },
+      { asset: 'bush', position: [19, 0, 12], scale: [0.7, 0.7, 0.7] },
+      { asset: 'bush', position: [-12, 0, -34], scale: [0.6, 0.6, 0.6] },
+      { asset: 'bush', position: [12, 0, -34], scale: [0.6, 0.6, 0.6] },
+    ],
+  },
+
   gardenRetreat: {
     id: 'gardenRetreat',
     label: 'Garden retreat',
@@ -716,13 +1032,14 @@ const SCENES: Record<StarterSceneId, StarterSceneSpec> = {
 }
 
 export const STARTER_SCENE_ORDER: StarterSceneId[] = [
-  'gardenRetreat',
+  'ultimateEstate',
+  'luxuryNighttime',
   'resortPoolside',
+  'outdoorKitchen',
   'firepitLounge',
   'modernEvening',
-  'outdoorKitchen',
+  'gardenRetreat',
   'compactBackyard',
-  'luxuryNighttime',
 ]
 
 export type StarterSceneSummary = {
