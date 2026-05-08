@@ -43,7 +43,10 @@ export function MobileOutdoorSheet() {
     <>
       <button
         aria-label="Open outdoor controls"
-        className="pointer-events-auto fixed right-3 bottom-3 z-40 flex h-12 w-12 items-center justify-center rounded-full border border-white/12 bg-neutral-900/85 text-amber-300 shadow-2xl backdrop-blur-md transition-colors hover:bg-neutral-800/90"
+        // Positioned above the mobile bottom panel (max-h-[42vh] content
+        // + ~50px TabBar + padding ≈ 50% of viewport). Bottom-[calc(50vh+2rem)]
+        // gives the FAB headroom so it never sits on top of panel content.
+        className="pointer-events-auto fixed right-3 bottom-[calc(50vh+2rem)] z-50 flex h-12 w-12 items-center justify-center rounded-full border border-white/12 bg-neutral-900/85 text-amber-300 shadow-2xl backdrop-blur-md transition-colors hover:bg-neutral-800/90"
         onClick={() => setOpen(true)}
         type="button"
       >

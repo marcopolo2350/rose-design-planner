@@ -368,6 +368,14 @@ export const CustomCameraControls = () => {
   // Cinematic camera presets — when the toolbar requests a preset we
   // animate the camera to its position/target. Uses a cancellable async
   // tween via setLookAt's built-in interpolation.
+  //
+  // Note: we deliberately do NOT touch time-of-day here. Higher-level
+  // handlers (mood selector, starter scene) set the scene's intended
+  // time-of-day first, then ask for the camera preset; if this effect
+  // also wrote time-of-day it would clobber the scene's intent on a
+  // ~350ms delay. The CAMERA_PRESETS entries still record their
+  // `preferredTimeOfDay` for documentation, but that field is consumed
+  // only at the level that owns "what mood does this scene want."
   const cameraPresetRequest = useViewer((s) => s.cameraPresetRequest)
   useEffect(() => {
     if (!(cameraPresetRequest && controls.current)) return
@@ -379,10 +387,6 @@ export const CustomCameraControls = () => {
       return
     } else {
       useViewer.getState().setWalkthroughMode(false)
-    }
-
-    if (preset.preferredTimeOfDay) {
-      useViewer.getState().setTimeOfDay(preset.preferredTimeOfDay)
     }
 
     const [px, py, pz, tx, ty, tz] = preset.shot

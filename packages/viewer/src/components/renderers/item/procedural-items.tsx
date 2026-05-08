@@ -3,17 +3,9 @@
 import type { ItemNode } from '@pascal-app/core'
 import { useFrame } from '@react-three/fiber'
 import { useMemo, useRef } from 'react'
-import {
-  AdditiveBlending,
-  Color,
-  type Group,
-  MathUtils,
-  type Mesh,
-  type PointLight,
-} from 'three'
+import { AdditiveBlending, MathUtils, type Mesh, type PointLight } from 'three'
 import { useNodeEvents } from '../../../hooks/use-node-events'
 import useViewer from '../../../store/use-viewer'
-import { getTimeOfDayPalette } from '../../outdoor/time-of-day-palette'
 
 /**
  * Procedural items — node assets with no GLB. The asset.src takes the
@@ -58,7 +50,6 @@ function Firepit({ node }: { node: ItemNode }) {
 
     // Fire intensity: low in day, high at evening — gives the firepit
     // emotional purpose tied to scene mood.
-    const palette = getTimeOfDayPalette(timeOfDay)
     const target =
       timeOfDay === 'evening'
         ? 1.15
@@ -163,7 +154,7 @@ function Pergola({ node }: { node: ItemNode }) {
       out.push({ z: -innerD / 2 + t * innerD })
     }
     return out
-  }, [d, slatCount, postSize])
+  }, [d])
 
   // Half-extents
   const halfW = w / 2
