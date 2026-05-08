@@ -51,7 +51,7 @@ export function StarterPicker() {
   const handleLoad = useCallback(
     (id: StarterSceneId) => {
       const scene = buildStarterScene(id)
-      applySceneGraphToEditor(scene)
+      applySceneGraphToEditor(scene, { resetToSelect: true })
       const atmosphere = getStarterSceneAtmosphere(id)
       const mood = atmosphere.mood ? MOODS[atmosphere.mood] : null
       const timeOfDay = mood?.timeOfDay ?? atmosphere.timeOfDay

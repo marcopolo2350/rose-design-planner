@@ -205,7 +205,7 @@ function SectionStarters({ onClose }: { onClose: () => void }) {
 
   const apply = useCallback(
     (id: (typeof STARTER_SCENE_ORDER)[number]) => {
-      applySceneGraphToEditor(buildStarterScene(id))
+      applySceneGraphToEditor(buildStarterScene(id), { resetToSelect: true })
       const atmosphere = getStarterSceneAtmosphere(id)
       const mood = atmosphere.mood ? MOODS[atmosphere.mood] : null
       const tod = mood?.timeOfDay ?? atmosphere.timeOfDay

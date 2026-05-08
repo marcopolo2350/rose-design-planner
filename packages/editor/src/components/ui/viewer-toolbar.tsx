@@ -569,7 +569,7 @@ function StarterScenesMenu() {
             <DropdownMenuItem
               key={id}
               onSelect={() => {
-                applySceneGraphToEditor(buildStarterScene(id))
+                applySceneGraphToEditor(buildStarterScene(id), { resetToSelect: true })
                 const atmosphere = getStarterSceneAtmosphere(id)
                 const m = atmosphere.mood ? MOODS[atmosphere.mood] : null
                 const tod = m?.timeOfDay ?? atmosphere.timeOfDay

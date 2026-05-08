@@ -363,7 +363,10 @@ function hasUsableSceneGraph(sceneGraph?: SceneGraph | null): sceneGraph is Scen
   )
 }
 
-export function applySceneGraphToEditor(sceneGraph?: SceneGraph | null) {
+export function applySceneGraphToEditor(
+  sceneGraph?: SceneGraph | null,
+  opts?: { resetToSelect?: boolean },
+) {
   if (hasUsableSceneGraph(sceneGraph)) {
     const { nodes, rootNodeIds } = sceneGraph
     useScene.getState().setScene(nodes as any, rootNodeIds as any)
@@ -372,6 +375,16 @@ export function applySceneGraphToEditor(sceneGraph?: SceneGraph | null) {
   }
 
   syncEditorSelectionFromCurrentScene()
+
+  // For explicit user-driven scene loads (e.g. picking a starter from the
+  // picker or toolbar), drop the editor into a clean Select mode so the
+  // user doesn't inherit a stale Build/Wall tool prompt from a persisted
+  // session. Initial-mount loads pass false here so persisted UI state is
+  // honored as before.
+  if (opts?.resetToSelect) {
+    useEditor.getState().setMode('select')
+    useEditor.getState().setTool(null)
+  }
 }
 
 const LOCAL_STORAGE_KEY = 'pascal-editor-scene'

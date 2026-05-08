@@ -223,6 +223,18 @@ const ASSETS: Record<string, CatalogAsset> = {
     scale: [1, 1, 1],
     tags: ['lighting', 'floor'],
   },
+  'pool-coping': {
+    id: 'pool-coping',
+    category: 'outdoor',
+    name: 'Pool Coping',
+    thumbnail: '/items/pool-coping/thumbnail.webp',
+    src: 'proc://pool-coping',
+    dimensions: [7, 0.06, 5],
+    offset: [0, 0, 0],
+    rotation: [0, 0, 0],
+    scale: [1, 1, 1],
+    tags: ['structure', 'floor'],
+  },
   'dining-chair': {
     id: 'dining-chair',
     category: 'furniture',
@@ -266,6 +278,9 @@ type ItemSpec = {
   position: [number, number, number]
   rotationY?: number
   scale?: [number, number, number]
+  /** Override the asset's default dimensions for this placement (e.g. a
+   *  pool-coping sized to wrap a specific water polygon). */
+  dimensions?: [number, number, number]
 }
 
 type SlabSpec = {
@@ -373,9 +388,9 @@ const SCENES: Record<StarterSceneId, StarterSceneSpec> = {
         elevation: 0.06,
         material: {
           properties: {
-            color: '#3a92cc',
-            roughness: 0.18,
-            metalness: 0.35,
+            color: '#2f86c2',
+            roughness: 0.14,
+            metalness: 0.45,
             opacity: 0.92,
             transparent: true,
           },
@@ -383,22 +398,36 @@ const SCENES: Record<StarterSceneId, StarterSceneSpec> = {
       },
     ],
     items: [
+      // Pool coping — stone frame around the water (sized 8.6×6.6 to wrap
+      // an 8×6 water area with a ~30cm trim). Slightly raised so it reads
+      // as a stone cap rather than a paint stripe.
+      { asset: 'pool-coping', position: [0, 0, 0], dimensions: [8.6, 0.1, 6.6] },
       // Palms framing the deck corners
       { asset: 'palm', position: [-8, 0, -6], scale: [0.55, 0.55, 0.55] },
       { asset: 'palm', position: [8, 0, -6], scale: [0.55, 0.55, 0.55] },
       { asset: 'palm', position: [-8, 0, 6], scale: [0.55, 0.55, 0.55] },
       { asset: 'palm', position: [8, 0, 6], scale: [0.55, 0.55, 0.55] },
       // Sunbeds along one side of the pool, all facing the water
-      { asset: 'sunbed', position: [-5.5, 0, -3.5], rotationY: Math.PI / 2 },
-      { asset: 'sunbed', position: [-5.5, 0, -1.5], rotationY: Math.PI / 2 },
-      { asset: 'sunbed', position: [-5.5, 0, 0.5], rotationY: Math.PI / 2 },
-      { asset: 'sunbed', position: [-5.5, 0, 2.5], rotationY: Math.PI / 2 },
+      { asset: 'sunbed', position: [-5.6, 0, -3.5], rotationY: Math.PI / 2 },
+      { asset: 'sunbed', position: [-5.6, 0, -1.5], rotationY: Math.PI / 2 },
+      { asset: 'sunbed', position: [-5.6, 0, 0.5], rotationY: Math.PI / 2 },
+      { asset: 'sunbed', position: [-5.6, 0, 2.5], rotationY: Math.PI / 2 },
       // Patio umbrellas between sunbeds for shade
-      { asset: 'patio-umbrella', position: [-6, 0, -2.5] },
-      { asset: 'patio-umbrella', position: [-6, 0, 1.5] },
+      { asset: 'patio-umbrella', position: [-6.1, 0, -2.5] },
+      { asset: 'patio-umbrella', position: [-6.1, 0, 1.5] },
       // A second pair facing back across the pool
-      { asset: 'sunbed', position: [5.5, 0, -1], rotationY: -Math.PI / 2 },
-      { asset: 'sunbed', position: [5.5, 0, 1], rotationY: -Math.PI / 2 },
+      { asset: 'sunbed', position: [5.6, 0, -1], rotationY: -Math.PI / 2 },
+      { asset: 'sunbed', position: [5.6, 0, 1], rotationY: -Math.PI / 2 },
+      // Planters punctuating the deck edges
+      { asset: 'planter-box', position: [-5.5, 0, 4.4] },
+      { asset: 'planter-box', position: [5.5, 0, 4.4] },
+      { asset: 'planter-box', position: [-5.5, 0, -4.4] },
+      { asset: 'planter-box', position: [5.5, 0, -4.4] },
+      // Lanterns along the deck edge — light up at dusk/evening
+      { asset: 'garden-lantern', position: [-6.5, 0, 4.7] },
+      { asset: 'garden-lantern', position: [-2.5, 0, 4.7] },
+      { asset: 'garden-lantern', position: [2.5, 0, 4.7] },
+      { asset: 'garden-lantern', position: [6.5, 0, 4.7] },
     ],
   },
 
@@ -617,39 +646,49 @@ const SCENES: Record<StarterSceneId, StarterSceneSpec> = {
         elevation: 0.06,
         material: {
           properties: {
-            color: '#2a78b8',
-            roughness: 0.15,
-            metalness: 0.4,
-            opacity: 0.92,
+            color: '#1d6da8',
+            roughness: 0.12,
+            metalness: 0.5,
+            opacity: 0.93,
             transparent: true,
           },
         },
       },
     ],
     items: [
+      // Pool coping — stone frame wrapping the 8×5 water area
+      { asset: 'pool-coping', position: [0, 0, 0], dimensions: [8.6, 0.1, 5.6] },
       // Pergola lounge area at the back of the deck
       { asset: 'pergola', position: [0, 0, 5] },
       { asset: 'sofa', position: [0, 0, 5], rotationY: Math.PI / 2, scale: [0.95, 0.95, 0.95] },
       { asset: 'lounge-chair', position: [-2, 0, 5.2], rotationY: -Math.PI / 2 },
       { asset: 'lounge-chair', position: [2, 0, 5.2], rotationY: Math.PI / 2 },
       // Firepit moment off to the side of the pool
-      { asset: 'firepit', position: [-5.5, 0, 0] },
-      { asset: 'lounge-chair', position: [-5.5, 0, -1.4], rotationY: 0 },
-      { asset: 'lounge-chair', position: [-5.5, 0, 1.4], rotationY: Math.PI },
+      { asset: 'firepit', position: [-5.6, 0, 0] },
+      { asset: 'lounge-chair', position: [-5.6, 0, -1.6], rotationY: 0 },
+      { asset: 'lounge-chair', position: [-5.6, 0, 1.6], rotationY: Math.PI },
       // Sunbeds along the far side of the pool
-      { asset: 'sunbed', position: [5.5, 0, -1.5], rotationY: -Math.PI / 2 },
-      { asset: 'sunbed', position: [5.5, 0, 0.5], rotationY: -Math.PI / 2 },
-      { asset: 'sunbed', position: [5.5, 0, 2.5], rotationY: -Math.PI / 2 },
+      { asset: 'sunbed', position: [5.6, 0, -1.5], rotationY: -Math.PI / 2 },
+      { asset: 'sunbed', position: [5.6, 0, 0.5], rotationY: -Math.PI / 2 },
+      { asset: 'sunbed', position: [5.6, 0, 2.5], rotationY: -Math.PI / 2 },
       // Garden lanterns ringing the pool deck — the night-glow chorus
       { asset: 'garden-lantern', position: [-6.5, 0, -3.5] },
       { asset: 'garden-lantern', position: [-3, 0, -3.5] },
+      { asset: 'garden-lantern', position: [0, 0, -3.5] },
       { asset: 'garden-lantern', position: [3, 0, -3.5] },
       { asset: 'garden-lantern', position: [6.5, 0, -3.5] },
       { asset: 'garden-lantern', position: [-6.5, 0, 5.5] },
+      { asset: 'garden-lantern', position: [-3, 0, 5.5] },
+      { asset: 'garden-lantern', position: [3, 0, 5.5] },
       { asset: 'garden-lantern', position: [6.5, 0, 5.5] },
-      // Planters along the pergola edge
+      // Lantern next to firepit grouping
+      { asset: 'garden-lantern', position: [-5.6, 0, -2.8] },
+      { asset: 'garden-lantern', position: [-5.6, 0, 2.8] },
+      // Planters along the pergola edge & at deck corners
       { asset: 'planter-box', position: [-2.4, 0, 6.8] },
       { asset: 'planter-box', position: [2.4, 0, 6.8] },
+      { asset: 'planter-box', position: [-6.8, 0, -3.7] },
+      { asset: 'planter-box', position: [6.8, 0, -3.7] },
       // Palms framing the property
       { asset: 'palm', position: [-9, 0, -5], scale: [0.55, 0.55, 0.55] },
       { asset: 'palm', position: [9, 0, -5], scale: [0.55, 0.55, 0.55] },
@@ -789,7 +828,7 @@ export function buildStarterScene(id: StarterSceneId): SceneGraph {
         name: asset.name,
         thumbnail: asset.thumbnail,
         src: asset.src,
-        dimensions: asset.dimensions,
+        dimensions: item.dimensions ?? asset.dimensions,
         offset: asset.offset,
         rotation: asset.rotation,
         scale: asset.scale,

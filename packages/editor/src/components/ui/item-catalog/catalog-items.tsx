@@ -239,6 +239,19 @@ export const CATALOG_ITEMS: AssetInput[] = [
   },
 
   {
+    id: 'pool-coping',
+    category: 'outdoor',
+    tags: ['structure', 'floor'],
+    name: 'Pool Coping',
+    thumbnail: '/items/pool-coping/thumbnail.webp',
+    src: 'proc://pool-coping',
+    scale: [1, 1, 1],
+    offset: [0, 0, 0],
+    rotation: [0, 0, 0],
+    dimensions: [7, 0.06, 5],
+  },
+
+  {
     id: 'window-double',
     category: 'window',
     tags: ['wall'],

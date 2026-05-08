@@ -35,46 +35,57 @@ export function getProceduralId(src: string): string {
 
 function Firepit({ node }: { node: ItemNode }) {
   const handlers = useNodeEvents(node, 'item')
-  const flameRef = useRef<Mesh>(null!)
+  const flameOuterRef = useRef<Mesh>(null!)
+  const flameInnerRef = useRef<Mesh>(null!)
+  const haloRef = useRef<Mesh>(null!)
   const emberRef = useRef<Mesh>(null!)
   const lightRef = useRef<PointLight>(null!)
   const timeOfDay = useViewer((s) => s.timeOfDay)
 
-  // Cylinder bowl ~0.85m wide, 0.42m tall — fits a small group around it
-  const baseRadius = 0.42
-  const baseHeight = 0.42
-  const innerRadius = 0.32
+  // Cylinder bowl ~0.95m wide, 0.45m tall — fits a small group around it
+  const baseRadius = 0.46
+  const baseHeight = 0.45
+  const innerRadius = 0.34
 
   useFrame((_, delta) => {
     const dt = MathUtils.clamp(delta * 6, 0, 1)
 
     // Fire intensity: low in day, high at evening — gives the firepit
-    // emotional purpose tied to scene mood.
+    // emotional purpose tied to scene mood. Even at "day" we keep a
+    // small reading so the firepit always looks lit (not a black bowl).
     const target =
       timeOfDay === 'evening'
-        ? 1.15
+        ? 1.4
         : timeOfDay === 'dusk'
-          ? 0.85
+          ? 1.0
           : timeOfDay === 'goldenHour'
-            ? 0.4
-            : 0.18
+            ? 0.55
+            : 0.32
 
     if (lightRef.current) {
       lightRef.current.intensity = MathUtils.lerp(
         lightRef.current.intensity,
-        target * 5.5,
+        target * 7.5,
         dt,
       )
     }
 
-    if (flameRef.current && emberRef.current) {
-      // Subtle flicker — not seizure-inducing
-      const flicker =
-        0.92 + Math.sin(performance.now() * 0.012) * 0.04 + Math.cos(performance.now() * 0.018) * 0.025
-      flameRef.current.scale.set(flicker, 0.85 + flicker * 0.15, flicker)
+    if (flameOuterRef.current && flameInnerRef.current && emberRef.current && haloRef.current) {
+      // Two-octave flicker for a livelier flame
+      const t = performance.now()
+      const f1 = 0.92 + Math.sin(t * 0.012) * 0.05 + Math.cos(t * 0.019) * 0.03
+      const f2 = 0.94 + Math.sin(t * 0.027) * 0.04
+      flameOuterRef.current.scale.set(f1, 0.88 + f1 * 0.18, f1)
+      flameInnerRef.current.scale.set(f2, 0.82 + f2 * 0.22, f2)
       ;(emberRef.current.material as any).emissiveIntensity = MathUtils.lerp(
         (emberRef.current.material as any).emissiveIntensity ?? 1,
-        target * 2.4 + 0.3,
+        target * 2.8 + 0.4,
+        dt,
+      )
+      // Halo: a soft sprite that glows around the bowl, brighter at evening
+      ;(haloRef.current.material as any).opacity = MathUtils.lerp(
+        (haloRef.current.material as any).opacity ?? 0,
+        target * 0.55,
         dt,
       )
     }
@@ -84,46 +95,80 @@ function Firepit({ node }: { node: ItemNode }) {
     <group {...handlers}>
       {/* Stone bowl — slight taper for a more natural cast-stone look */}
       <mesh castShadow position={[0, baseHeight / 2, 0]} receiveShadow>
-        <cylinderGeometry args={[baseRadius, baseRadius * 1.12, baseHeight, 28]} />
+        <cylinderGeometry args={[baseRadius, baseRadius * 1.12, baseHeight, 32]} />
         <meshStandardMaterial color="#3a3633" metalness={0} roughness={0.92} />
       </mesh>
+      {/* Lip — thin lighter ring on top edge */}
+      <mesh position={[0, baseHeight - 0.01, 0]}>
+        <cylinderGeometry args={[baseRadius + 0.02, baseRadius + 0.02, 0.04, 32, 1, true]} />
+        <meshStandardMaterial color="#5a544f" metalness={0} roughness={0.8} side={2} />
+      </mesh>
       {/* Inner ember bed — warm emissive */}
-      <mesh ref={emberRef} position={[0, baseHeight - 0.04, 0]}>
-        <cylinderGeometry args={[innerRadius, innerRadius, 0.06, 22]} />
+      <mesh ref={emberRef} position={[0, baseHeight - 0.03, 0]}>
+        <cylinderGeometry args={[innerRadius, innerRadius, 0.08, 28]} />
         <meshStandardMaterial
           color="#1d0a04"
           emissive="#ff6420"
-          emissiveIntensity={1.5}
+          emissiveIntensity={1.8}
           metalness={0.1}
           roughness={0.9}
         />
       </mesh>
-      {/* Flame: short cone with additive emissive — only visible at dusk/evening
-          via emissiveIntensity ramping with time of day */}
+      {/* Flame outer cone — orange */}
       <mesh
-        ref={flameRef}
-        position={[0, baseHeight + 0.18, 0]}
+        ref={flameOuterRef}
+        position={[0, baseHeight + 0.22, 0]}
         renderOrder={3}
       >
-        <coneGeometry args={[0.18, 0.55, 14, 1, true]} />
+        <coneGeometry args={[0.22, 0.65, 16, 1, true]} />
         <meshStandardMaterial
           color="#ff8a3a"
           emissive="#ff7a28"
-          emissiveIntensity={2.6}
+          emissiveIntensity={2.8}
           transparent
-          opacity={0.78}
+          opacity={0.82}
           depthWrite={false}
           blending={AdditiveBlending}
           metalness={0}
           roughness={1}
         />
       </mesh>
+      {/* Flame inner cone — yellow core */}
+      <mesh
+        ref={flameInnerRef}
+        position={[0, baseHeight + 0.18, 0]}
+        renderOrder={4}
+      >
+        <coneGeometry args={[0.13, 0.42, 12, 1, true]} />
+        <meshStandardMaterial
+          color="#ffd76b"
+          emissive="#ffd76b"
+          emissiveIntensity={2.2}
+          transparent
+          opacity={0.85}
+          depthWrite={false}
+          blending={AdditiveBlending}
+          metalness={0}
+          roughness={1}
+        />
+      </mesh>
+      {/* Soft halo — additive sprite-like sphere that fades in at dusk/evening */}
+      <mesh ref={haloRef} position={[0, baseHeight + 0.25, 0]} renderOrder={2}>
+        <sphereGeometry args={[1.1, 16, 12]} />
+        <meshBasicMaterial
+          color="#ff9a5a"
+          transparent
+          opacity={0}
+          depthWrite={false}
+          blending={AdditiveBlending}
+        />
+      </mesh>
       {/* Warm point light — gates intensity by time of day for emotional impact */}
       <pointLight
         ref={lightRef}
-        color="#ff8a4a"
+        color="#ff9a4a"
         decay={2}
-        distance={9}
+        distance={11}
         intensity={0}
         position={[0, baseHeight + 0.4, 0]}
       />
@@ -314,6 +359,52 @@ function SteppingStone({ node }: { node: ItemNode }) {
   )
 }
 
+// ─── Pool Coping ────────────────────────────────────────────────────────────
+
+function PoolCoping({ node }: { node: ItemNode }) {
+  const handlers = useNodeEvents(node, 'item')
+  const [w, h, d] = node.asset.dimensions
+  // Coping is a stone frame around a pool. asset.dimensions is the OUTER
+  // edge size; we render four thin slabs at the perimeter, leaving the
+  // inner rectangle hollow so the water slab shows through.
+  const copingWidth = 0.45
+  const halfW = w / 2
+  const halfD = d / 2
+  const innerW = Math.max(0.5, w - copingWidth * 2)
+  const innerD = Math.max(0.5, d - copingWidth * 2)
+
+  return (
+    <group {...handlers}>
+      {/* Top side (z = -halfD + copingWidth/2) */}
+      <mesh position={[0, h / 2, -halfD + copingWidth / 2]} receiveShadow>
+        <boxGeometry args={[w, h, copingWidth]} />
+        <meshStandardMaterial color="#cfc7b6" metalness={0.05} roughness={0.55} />
+      </mesh>
+      {/* Bottom side */}
+      <mesh position={[0, h / 2, halfD - copingWidth / 2]} receiveShadow>
+        <boxGeometry args={[w, h, copingWidth]} />
+        <meshStandardMaterial color="#cfc7b6" metalness={0.05} roughness={0.55} />
+      </mesh>
+      {/* Left side (z spans innerD between the top/bottom) */}
+      <mesh
+        position={[-halfW + copingWidth / 2, h / 2, 0]}
+        receiveShadow
+      >
+        <boxGeometry args={[copingWidth, h, innerD]} />
+        <meshStandardMaterial color="#cfc7b6" metalness={0.05} roughness={0.55} />
+      </mesh>
+      {/* Right side */}
+      <mesh
+        position={[halfW - copingWidth / 2, h / 2, 0]}
+        receiveShadow
+      >
+        <boxGeometry args={[copingWidth, h, innerD]} />
+        <meshStandardMaterial color="#cfc7b6" metalness={0.05} roughness={0.55} />
+      </mesh>
+    </group>
+  )
+}
+
 // ─── Garden Lantern ────────────────────────────────────────────────────────
 
 function GardenLantern({ node }: { node: ItemNode }) {
@@ -389,6 +480,7 @@ const PROCEDURAL_REGISTRY: Record<
   'planter-box': PlanterBox,
   'stepping-stone': SteppingStone,
   'garden-lantern': GardenLantern,
+  'pool-coping': PoolCoping,
 }
 
 export const PROCEDURAL_ITEM_IDS = Object.keys(PROCEDURAL_REGISTRY)

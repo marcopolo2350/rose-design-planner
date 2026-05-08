@@ -14,6 +14,7 @@ import { assetPath } from './../../../lib/asset-path'
 import { cn } from './../../../lib/utils'
 import useEditor, { type CatalogCategory } from './../../../store/use-editor'
 import { CATALOG_ITEMS } from './catalog-items'
+import { resolveItemThumbnail } from './procedural-thumbnails'
 
 const PLACEMENT_TAGS = new Set(['floor', 'wall', 'ceiling', 'countertop'])
 
@@ -199,7 +200,14 @@ export function ItemCatalog({ category }: { category: CatalogCategory }) {
                     fill
                     loading={index < 8 ? 'eager' : 'lazy'}
                     sizes={isMobile ? '86px' : '56px'}
-                    src={resolveCdnUrl(item.thumbnail) || ''}
+                    // Procedural items return an inline SVG data URI from
+                    // resolveItemThumbnail; GLB items fall through to the
+                    // CDN-resolved thumbnail path.
+                    src={
+                      item.src?.startsWith('proc://')
+                        ? resolveItemThumbnail(item as { src: string; thumbnail: string })
+                        : resolveCdnUrl(item.thumbnail) || ''
+                    }
                   />
                   <div
                     className={cn(
