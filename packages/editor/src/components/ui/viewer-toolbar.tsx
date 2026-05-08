@@ -14,6 +14,12 @@ import { Check, ChevronsLeft, ChevronsRight, Columns2, Eye, Footprints, Moon, Sp
 import { useCallback } from 'react'
 import { useIsMobile } from '../../hooks/use-mobile'
 import { assetPath } from '../../lib/asset-path'
+import { applySceneGraphToEditor } from '../../lib/scene'
+import {
+  buildStarterScene,
+  getStarterSceneSummary,
+  STARTER_SCENE_ORDER,
+} from '../../lib/starter-scenes'
 import { cn } from '../../lib/utils'
 import useEditor from '../../store/use-editor'
 import type { GridSnapStep, ViewMode } from '../../store/use-editor'
@@ -517,6 +523,73 @@ function CameraPresetMenu() {
   )
 }
 
+// ── Outdoor: Starter scenes dropdown ────────────────────────────────────────
+
+function StarterScenesMenu() {
+  const outdoorMode = useViewer((s) => s.outdoorMode)
+  const setTimeOfDay = useViewer((s) => s.setTimeOfDay)
+  const requestCameraPreset = useViewer((s) => s.requestCameraPreset)
+  const setStarterPickerOpen = useEditor((s) => s.setStarterPickerOpen)
+  const isMobile = useIsMobile()
+
+  if (!outdoorMode || isMobile) return null
+
+  return (
+    <DropdownMenu>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <button
+              aria-label="Starter backyard scenes"
+              className={cn(TOOLBAR_BTN, 'w-auto gap-1.5 px-2.5')}
+              type="button"
+            >
+              <IconifyIcon className="text-emerald-300" height={14} icon="lucide:layout-template" width={14} />
+              <span className="font-medium text-xs">Starters</span>
+            </button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">Pre-built backyard layouts</TooltipContent>
+      </Tooltip>
+      <DropdownMenuContent align="center" side="bottom">
+        <DropdownMenuItem onSelect={() => setStarterPickerOpen(true)}>
+          <span className="flex min-w-[220px] items-center gap-2">
+            <IconifyIcon className="text-white/70" height={14} icon="lucide:wand-2" width={14} />
+            <span className="font-medium">Open vibe picker…</span>
+          </span>
+        </DropdownMenuItem>
+        <div className="my-1 h-px bg-white/8" />
+        {STARTER_SCENE_ORDER.map((id) => {
+          const summary = getStarterSceneSummary(id)
+          const mood = MOODS[id]
+          return (
+            <DropdownMenuItem
+              key={id}
+              onSelect={() => {
+                applySceneGraphToEditor(buildStarterScene(id))
+                if (mood) {
+                  setTimeOfDay(mood.timeOfDay)
+                  setTimeout(() => requestCameraPreset(mood.cameraPreset), 350)
+                }
+              }}
+            >
+              <span className="flex min-w-[220px] flex-col gap-0.5">
+                <span className="flex items-center gap-2">
+                  <IconifyIcon className={mood?.tint} height={14} icon={mood?.icon ?? 'lucide:layout-template'} width={14} />
+                  <span className="font-medium">{summary.label}</span>
+                </span>
+                <span className="text-[11px] text-muted-foreground/80">
+                  {summary.description}
+                </span>
+              </span>
+            </DropdownMenuItem>
+          )
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
 // ── Outdoor: Mood selector — bundles time-of-day + camera framing ──────────
 
 function MoodMenu() {
@@ -624,6 +697,7 @@ export function ViewerToolbarLeft() {
 export function ViewerToolbarRight() {
   return (
     <div className={TOOLBAR_CONTAINER}>
+      <StarterScenesMenu />
       <MoodMenu />
       <TimeOfDayPill />
       <CameraPresetMenu />

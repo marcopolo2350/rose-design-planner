@@ -164,6 +164,10 @@ type EditorState = {
   setActiveSidebarPanel: (id: string) => void
   floorplanPaneRatio: number
   setFloorplanPaneRatio: (ratio: number) => void
+  // Outdoor "Pick a backyard vibe" starter picker — opens automatically on
+  // first run with an empty scene, can be re-opened from the toolbar.
+  isStarterPickerOpen: boolean
+  setStarterPickerOpen: (open: boolean) => void
 }
 
 export type PersistedEditorUiState = Pick<
@@ -568,6 +572,8 @@ const useEditor = create<EditorState>()(
       floorplanPaneRatio: DEFAULT_PERSISTED_EDITOR_LAYOUT_STATE.floorplanPaneRatio,
       setFloorplanPaneRatio: (ratio) =>
         set({ floorplanPaneRatio: normalizeFloorplanPaneRatio(ratio) }),
+      isStarterPickerOpen: false,
+      setStarterPickerOpen: (open) => set({ isStarterPickerOpen: open }),
     }),
     {
       name: 'pascal-editor-ui-preferences',

@@ -189,8 +189,11 @@ function RightColumn({
           <div
             className={cn(
               'pointer-events-auto flex gap-2',
-              isMobile ? 'flex-wrap items-start self-end' : 'items-center',
+              isMobile
+                ? 'no-scrollbar max-w-full items-center self-end overflow-x-auto'
+                : 'items-center',
             )}
+            style={isMobile ? { scrollbarWidth: 'none' } : undefined}
           >
             {toolbarRight}
           </div>

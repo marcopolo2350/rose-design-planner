@@ -40,6 +40,7 @@ import { ErrorBoundary } from '../ui/primitives/error-boundary'
 import { useSidebarStore } from '../ui/primitives/sidebar'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/primitives/tooltip'
 import { SceneLoader } from '../ui/scene-loader'
+import { StarterPicker, StarterPickerAutoOpener } from '../ui/starter-picker'
 import { AppSidebar } from '../ui/sidebar/app-sidebar'
 import type { ExtraPanel } from '../ui/sidebar/icon-rail'
 import { SettingsPanel, type SettingsPanelProps } from '../ui/sidebar/panels/settings-panel'
@@ -919,6 +920,8 @@ export default function Editor({
             )}
             <EditorCommands />
             <CommandPalette emptyAction={commandPaletteEmptyAction} />
+            <StarterPickerAutoOpener />
+            <StarterPicker />
           </>
         )}
       </PresetsProvider>
