@@ -3,7 +3,7 @@
 import { type CameraControlEvent, emitter, sceneRegistry, useScene } from '@pascal-app/core'
 import { CAMERA_PRESETS, useViewer, WalkthroughControls, ZONE_LAYER } from '@pascal-app/viewer'
 import { CameraControls, CameraControlsImpl } from '@react-three/drei'
-import { useThree } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { Box3, Vector3 } from 'three'
 import { EDITOR_LAYER } from '../../lib/constants'
@@ -394,6 +394,7 @@ export const CustomCameraControls = () => {
   // *presented* to them rather than just having UI fade away. We orbit
   // ±35° azimuth and reframe to a slightly higher hero angle.
   const showcaseMode = useViewer((s) => s.showcaseMode)
+  const showcaseAutoplay = useViewer((s) => s.showcaseAutoplay)
   const previousShowcaseRef = useRef(showcaseMode)
   useEffect(() => {
     if (!controls.current) return
@@ -429,6 +430,17 @@ export const CustomCameraControls = () => {
       )
     }
   }, [showcaseMode])
+
+  // Showcase autoplay: slow continuous orbit when both showcase mode AND
+  // autoplay are enabled. ~0.05 rad/sec = a full revolution in ~2 minutes,
+  // slow enough to feel cinematic, not nauseating. Pauses while the user
+  // is dragging the camera so it doesn't fight them.
+  useFrame((_, delta) => {
+    if (!(showcaseMode && showcaseAutoplay && controls.current)) return
+    if (useViewer.getState().cameraDragging) return
+    // azimuthAngle increases over time → camera dollies around the target
+    controls.current.azimuthAngle += 0.05 * delta
+  })
 
   if (walkthroughMode) {
     return <WalkthroughControls />

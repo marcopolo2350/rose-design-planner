@@ -8,6 +8,7 @@ import { DistantTreeline } from './distant-treeline'
 import { Fireflies } from './fireflies'
 import { GrassGround } from './grass-ground'
 import { OutdoorLights } from './outdoor-lights'
+import { ShowcaseAutoplay } from './showcase-autoplay'
 import { SkyDome } from './sky-dome'
 import { getTimeOfDayPalette } from './time-of-day-palette'
 
@@ -74,6 +75,7 @@ export function OutdoorEnvironment() {
       <DistantTreeline />
       <OutdoorLights />
       <Fireflies />
+      <ShowcaseAutoplay />
     </group>
   )
 }

@@ -25,6 +25,7 @@ import { applyMaterialOverrideToMaterials } from '../../../lib/materials'
 import { useItemLightPool } from '../../../store/use-item-light-pool'
 import { ErrorBoundary } from '../../error-boundary'
 import { NodeRenderer } from '../node-renderer'
+import { isProceduralItemSrc, ProceduralItem } from './procedural-items'
 
 const getMaterialForOriginal = (original: Material): MeshStandardNodeMaterial => {
   if (original.name.toLowerCase() === 'glass') {
@@ -49,13 +50,25 @@ export const ItemRenderer = ({ node }: { node: ItemNode }) => {
 
   useRegistry(node.id, node.type, ref)
 
+  // Procedural items skip the GLB loader entirely — their src looks
+  // like "proc://firepit" and resolves to a Three.js geometry component.
+  // This keeps GLB-backed items totally untouched while letting us ship
+  // destination content (firepit, pergola, kitchen, planter) inline.
+  const isProcedural = isProceduralItemSrc(node.asset.src)
+
   return (
     <group position={node.position} ref={ref} rotation={node.rotation} visible={node.visible}>
-      <ErrorBoundary fallback={<BrokenItemFallback node={node} />}>
-        <Suspense fallback={<PreviewModel node={node} />}>
-          <ModelRenderer node={node} />
-        </Suspense>
-      </ErrorBoundary>
+      {isProcedural ? (
+        <ErrorBoundary fallback={<BrokenItemFallback node={node} />}>
+          <ProceduralItem node={node} />
+        </ErrorBoundary>
+      ) : (
+        <ErrorBoundary fallback={<BrokenItemFallback node={node} />}>
+          <Suspense fallback={<PreviewModel node={node} />}>
+            <ModelRenderer node={node} />
+          </Suspense>
+        </ErrorBoundary>
+      )}
       {node.children?.map((childId) => (
         <NodeRenderer key={childId} nodeId={childId} />
       ))}

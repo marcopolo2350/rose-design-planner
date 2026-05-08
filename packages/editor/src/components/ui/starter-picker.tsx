@@ -8,8 +8,10 @@ import { cn } from '../../lib/utils'
 import { applySceneGraphToEditor } from '../../lib/scene'
 import {
   buildStarterScene,
+  getStarterSceneAtmosphere,
   getStarterSceneSummary,
   STARTER_SCENE_ORDER,
+  type StarterSceneId,
 } from '../../lib/starter-scenes'
 import useEditor from '../../store/use-editor'
 
@@ -47,15 +49,18 @@ export function StarterPicker() {
   }, [setOpen])
 
   const handleLoad = useCallback(
-    (id: typeof STARTER_SCENE_ORDER[number]) => {
+    (id: StarterSceneId) => {
       const scene = buildStarterScene(id)
       applySceneGraphToEditor(scene)
-      const mood = MOODS[id]
-      if (mood) {
-        setTimeOfDay(mood.timeOfDay)
-        // Defer the camera preset slightly so the scene mounts first
-        // and the camera tween targets the actual content.
-        setTimeout(() => requestCameraPreset(mood.cameraPreset), 350)
+      const atmosphere = getStarterSceneAtmosphere(id)
+      const mood = atmosphere.mood ? MOODS[atmosphere.mood] : null
+      const timeOfDay = mood?.timeOfDay ?? atmosphere.timeOfDay
+      const cameraPreset = mood?.cameraPreset ?? atmosphere.cameraPreset
+      if (timeOfDay) setTimeOfDay(timeOfDay)
+      if (cameraPreset) {
+        // Defer slightly so the scene mounts first and the camera tween
+        // targets the actual content.
+        setTimeout(() => requestCameraPreset(cameraPreset), 350)
       }
       onClose()
     },
@@ -91,10 +96,28 @@ export function StarterPicker() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="grid max-h-[60vh] grid-cols-1 gap-3 overflow-y-auto pr-1 sm:grid-cols-2">
           {STARTER_SCENE_ORDER.map((id) => {
             const summary = getStarterSceneSummary(id)
-            const mood = MOODS[id]
+            const mood = summary.mood ? MOODS[summary.mood] : null
+            const icon = summary.icon ?? mood?.icon ?? 'lucide:circle'
+            const tint = summary.tint ?? mood?.tint ?? 'text-white'
+            const gradient =
+              id === 'gardenRetreat'
+                ? 'bg-gradient-to-br from-emerald-700/15 via-emerald-500/5 to-transparent'
+                : id === 'resortPoolside'
+                  ? 'bg-gradient-to-br from-amber-600/20 via-orange-500/8 to-transparent'
+                  : id === 'firepitLounge'
+                    ? 'bg-gradient-to-br from-rose-700/20 via-orange-700/8 to-transparent'
+                    : id === 'modernEvening'
+                      ? 'bg-gradient-to-br from-indigo-700/20 via-violet-700/8 to-transparent'
+                      : id === 'outdoorKitchen'
+                        ? 'bg-gradient-to-br from-orange-600/20 via-amber-500/5 to-transparent'
+                        : id === 'compactBackyard'
+                          ? 'bg-gradient-to-br from-sky-700/15 via-cyan-500/5 to-transparent'
+                          : id === 'luxuryNighttime'
+                            ? 'bg-gradient-to-br from-violet-700/25 via-indigo-500/8 to-transparent'
+                            : ''
             return (
               <button
                 aria-label={`Load starter scene: ${summary.label}`}
@@ -106,27 +129,15 @@ export function StarterPicker() {
                 onClick={() => handleLoad(id)}
                 type="button"
               >
-                <div
-                  className={cn(
-                    'absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100',
-                    id === 'gardenRetreat' &&
-                      'bg-gradient-to-br from-emerald-700/15 via-emerald-500/5 to-transparent',
-                    id === 'resortPoolside' &&
-                      'bg-gradient-to-br from-amber-600/20 via-orange-500/8 to-transparent',
-                    id === 'firepitLounge' &&
-                      'bg-gradient-to-br from-rose-700/20 via-orange-700/8 to-transparent',
-                    id === 'modernEvening' &&
-                      'bg-gradient-to-br from-indigo-700/20 via-violet-700/8 to-transparent',
-                  )}
-                />
+                <div className={cn('absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100', gradient)} />
                 <div className="relative z-10 flex items-center gap-2">
                   <span
                     className={cn(
                       'flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-black/30',
-                      mood?.tint,
+                      tint,
                     )}
                   >
-                    <IconifyIcon height={16} icon={mood?.icon ?? 'lucide:circle'} width={16} />
+                    <IconifyIcon height={16} icon={icon} width={16} />
                   </span>
                   <span className="font-medium text-base text-white">{summary.label}</span>
                 </div>

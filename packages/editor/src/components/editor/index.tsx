@@ -37,10 +37,12 @@ import { FloatingLevelSelector } from '../ui/floating-level-selector'
 import { HelperManager } from '../ui/helpers/helper-manager'
 import { PanelManager } from '../ui/panels/panel-manager'
 import { ErrorBoundary } from '../ui/primitives/error-boundary'
+import { MobileOutdoorSheet } from '../ui/mobile-outdoor-sheet'
 import { useSidebarStore } from '../ui/primitives/sidebar'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/primitives/tooltip'
 import { SceneLoader } from '../ui/scene-loader'
 import { StarterPicker, StarterPickerAutoOpener } from '../ui/starter-picker'
+import { TutorialAutoOpener, TutorialOverlay } from '../ui/tutorial-overlay'
 import { AppSidebar } from '../ui/sidebar/app-sidebar'
 import type { ExtraPanel } from '../ui/sidebar/icon-rail'
 import { SettingsPanel, type SettingsPanelProps } from '../ui/sidebar/panels/settings-panel'
@@ -922,6 +924,9 @@ export default function Editor({
             <CommandPalette emptyAction={commandPaletteEmptyAction} />
             <StarterPickerAutoOpener />
             <StarterPicker />
+            <TutorialAutoOpener />
+            <TutorialOverlay />
+            <MobileOutdoorSheet />
           </>
         )}
       </PresetsProvider>

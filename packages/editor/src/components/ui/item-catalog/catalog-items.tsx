@@ -155,6 +155,89 @@ export const CATALOG_ITEMS: AssetInput[] = [
     dimensions: [1, 1.2, 1.5],
   },
 
+  // ── Procedural outdoor "destination" items ───────────────────────────────
+  // These have no GLB; the viewer's ItemRenderer recognizes the proc:// src
+  // and renders Three.js geometry inline. They're placed here so they show
+  // up in the Furnish catalog like any other outdoor item.
+
+  {
+    id: 'firepit',
+    category: 'outdoor',
+    tags: ['leisure', 'floor', 'lighting'],
+    name: 'Fire Pit',
+    thumbnail: '/items/firepit/thumbnail.webp',
+    src: 'proc://firepit',
+    scale: [1, 1, 1],
+    offset: [0, 0, 0],
+    rotation: [0, 0, 0],
+    dimensions: [0.95, 0.85, 0.95],
+  },
+
+  {
+    id: 'pergola',
+    category: 'outdoor',
+    tags: ['structure', 'floor'],
+    name: 'Pergola',
+    thumbnail: '/items/pergola/thumbnail.webp',
+    src: 'proc://pergola',
+    scale: [1, 1, 1],
+    offset: [0, 0, 0],
+    rotation: [0, 0, 0],
+    dimensions: [4, 2.6, 4],
+  },
+
+  {
+    id: 'outdoor-kitchen-island',
+    category: 'outdoor',
+    tags: ['leisure', 'floor', 'kitchen'],
+    name: 'Outdoor Kitchen',
+    thumbnail: '/items/outdoor-kitchen-island/thumbnail.webp',
+    src: 'proc://outdoor-kitchen-island',
+    scale: [1, 1, 1],
+    offset: [0, 0, 0],
+    rotation: [0, 0, 0],
+    dimensions: [2.6, 0.95, 0.7],
+  },
+
+  {
+    id: 'planter-box',
+    category: 'outdoor',
+    tags: ['vegetation', 'floor'],
+    name: 'Planter Box',
+    thumbnail: '/items/planter-box/thumbnail.webp',
+    src: 'proc://planter-box',
+    scale: [1, 1, 1],
+    offset: [0, 0, 0],
+    rotation: [0, 0, 0],
+    dimensions: [0.7, 0.85, 0.7],
+  },
+
+  {
+    id: 'stepping-stone',
+    category: 'outdoor',
+    tags: ['floor', 'pathing'],
+    name: 'Stepping Stone',
+    thumbnail: '/items/stepping-stone/thumbnail.webp',
+    src: 'proc://stepping-stone',
+    scale: [1, 1, 1],
+    offset: [0, 0, 0],
+    rotation: [0, 0, 0],
+    dimensions: [0.55, 0.05, 0.4],
+  },
+
+  {
+    id: 'garden-lantern',
+    category: 'outdoor',
+    tags: ['lighting', 'floor'],
+    name: 'Garden Lantern',
+    thumbnail: '/items/garden-lantern/thumbnail.webp',
+    src: 'proc://garden-lantern',
+    scale: [1, 1, 1],
+    offset: [0, 0, 0],
+    rotation: [0, 0, 0],
+    dimensions: [0.18, 0.55, 0.18],
+  },
+
   {
     id: 'window-double',
     category: 'window',

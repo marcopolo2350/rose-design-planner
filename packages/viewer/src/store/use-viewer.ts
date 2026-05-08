@@ -96,6 +96,12 @@ type ViewerState = {
   showcaseMode: boolean
   setShowcaseMode: (enabled: boolean) => void
 
+  /** When true together with showcaseMode, the camera slowly auto-orbits and
+   *  the time-of-day advances on a slow loop — turns Showcase into an
+   *  ambient, screensaver-style presentation. */
+  showcaseAutoplay: boolean
+  setShowcaseAutoplay: (enabled: boolean) => void
+
   cameraPresetRequest: { id: CameraPreset; tick: number } | null
   requestCameraPreset: (id: CameraPreset) => void
 }
@@ -233,6 +239,9 @@ const useViewer = create<ViewerState>()(
 
       showcaseMode: false,
       setShowcaseMode: (enabled) => set({ showcaseMode: enabled }),
+
+      showcaseAutoplay: true,
+      setShowcaseAutoplay: (enabled) => set({ showcaseAutoplay: enabled }),
 
       cameraPresetRequest: null,
       requestCameraPreset: (id) => set({ cameraPresetRequest: { id, tick: Date.now() } }),

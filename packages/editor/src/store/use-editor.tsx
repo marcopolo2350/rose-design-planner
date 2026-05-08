@@ -168,6 +168,10 @@ type EditorState = {
   // first run with an empty scene, can be re-opened from the toolbar.
   isStarterPickerOpen: boolean
   setStarterPickerOpen: (open: boolean) => void
+  // In-app tutorial (multi-step modal) — opens once after the picker
+  // resolves on first run; reopenable from a Help button any time.
+  isTutorialOpen: boolean
+  setTutorialOpen: (open: boolean) => void
 }
 
 export type PersistedEditorUiState = Pick<
@@ -574,6 +578,8 @@ const useEditor = create<EditorState>()(
         set({ floorplanPaneRatio: normalizeFloorplanPaneRatio(ratio) }),
       isStarterPickerOpen: false,
       setStarterPickerOpen: (open) => set({ isStarterPickerOpen: open }),
+      isTutorialOpen: false,
+      setTutorialOpen: (open) => set({ isTutorialOpen: open }),
     }),
     {
       name: 'pascal-editor-ui-preferences',

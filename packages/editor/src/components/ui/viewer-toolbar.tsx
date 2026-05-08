@@ -17,6 +17,7 @@ import { assetPath } from '../../lib/asset-path'
 import { applySceneGraphToEditor } from '../../lib/scene'
 import {
   buildStarterScene,
+  getStarterSceneAtmosphere,
   getStarterSceneSummary,
   STARTER_SCENE_ORDER,
 } from '../../lib/starter-scenes'
@@ -561,21 +562,25 @@ function StarterScenesMenu() {
         <div className="my-1 h-px bg-white/8" />
         {STARTER_SCENE_ORDER.map((id) => {
           const summary = getStarterSceneSummary(id)
-          const mood = MOODS[id]
+          const mood = summary.mood ? MOODS[summary.mood] : null
+          const icon = summary.icon ?? mood?.icon ?? 'lucide:layout-template'
+          const tint = summary.tint ?? mood?.tint
           return (
             <DropdownMenuItem
               key={id}
               onSelect={() => {
                 applySceneGraphToEditor(buildStarterScene(id))
-                if (mood) {
-                  setTimeOfDay(mood.timeOfDay)
-                  setTimeout(() => requestCameraPreset(mood.cameraPreset), 350)
-                }
+                const atmosphere = getStarterSceneAtmosphere(id)
+                const m = atmosphere.mood ? MOODS[atmosphere.mood] : null
+                const tod = m?.timeOfDay ?? atmosphere.timeOfDay
+                const cam = m?.cameraPreset ?? atmosphere.cameraPreset
+                if (tod) setTimeOfDay(tod)
+                if (cam) setTimeout(() => requestCameraPreset(cam), 350)
               }}
             >
               <span className="flex min-w-[220px] flex-col gap-0.5">
                 <span className="flex items-center gap-2">
-                  <IconifyIcon className={mood?.tint} height={14} icon={mood?.icon ?? 'lucide:layout-template'} width={14} />
+                  <IconifyIcon className={tint} height={14} icon={icon} width={14} />
                   <span className="font-medium">{summary.label}</span>
                 </span>
                 <span className="text-[11px] text-muted-foreground/80">
@@ -653,6 +658,31 @@ function MoodMenu() {
   )
 }
 
+// ── Help / tutorial — always visible, always discoverable ─────────────────
+
+function HelpButton() {
+  const setTutorialOpen = useEditor((s) => s.setTutorialOpen)
+  const isMobile = useIsMobile()
+
+  if (isMobile) return null // mobile uses the outdoor sheet's section
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          aria-label="How to use Rose's Outdoor Designs"
+          className={cn(TOOLBAR_BTN, 'text-white/65 hover:text-white')}
+          onClick={() => setTutorialOpen(true)}
+          type="button"
+        >
+          <IconifyIcon height={14} icon="lucide:help-circle" width={14} />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side="bottom">How to use</TooltipContent>
+    </Tooltip>
+  )
+}
+
 // ── Outdoor: Showcase Mode button — fades UI, warms lights, gives cinematic feel ──
 
 function ShowcaseButton() {
@@ -702,6 +732,7 @@ export function ViewerToolbarRight() {
       <TimeOfDayPill />
       <CameraPresetMenu />
       <ShowcaseButton />
+      <HelpButton />
       <div className="my-1.5 w-px bg-border/50" />
       <LevelModeToggle />
       <WallModeToggle />
