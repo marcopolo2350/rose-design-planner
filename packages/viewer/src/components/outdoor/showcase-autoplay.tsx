@@ -23,7 +23,9 @@ import useViewer, { type TimeOfDay } from '../../store/use-viewer'
  */
 
 const PHASES: TimeOfDay[] = ['day', 'goldenHour', 'dusk', 'evening', 'goldenHour']
-const PHASE_DURATION_SEC = 12
+// Tuned for filming: a 30-second demo cuts past three palettes; longer
+// holds let the eye absorb each mood and avoid the slideshow feel.
+const PHASE_DURATION_SEC = 16
 
 export function ShowcaseAutoplay() {
   const phaseElapsed = useRef(0)

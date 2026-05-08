@@ -252,6 +252,19 @@ export const CATALOG_ITEMS: AssetInput[] = [
   },
 
   {
+    id: 'pool-shimmer',
+    category: 'outdoor',
+    tags: ['structure', 'floor'],
+    name: 'Pool Shimmer',
+    thumbnail: '/items/pool-shimmer/thumbnail.webp',
+    src: 'proc://pool-shimmer',
+    scale: [1, 1, 1],
+    offset: [0, 0, 0],
+    rotation: [0, 0, 0],
+    dimensions: [6, 0.02, 4],
+  },
+
+  {
     id: 'window-double',
     category: 'window',
     tags: ['wall'],

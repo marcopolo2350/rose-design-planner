@@ -235,6 +235,18 @@ const ASSETS: Record<string, CatalogAsset> = {
     scale: [1, 1, 1],
     tags: ['structure', 'floor'],
   },
+  'pool-shimmer': {
+    id: 'pool-shimmer',
+    category: 'outdoor',
+    name: 'Pool Shimmer',
+    thumbnail: '/items/pool-shimmer/thumbnail.webp',
+    src: 'proc://pool-shimmer',
+    dimensions: [6, 0.02, 4],
+    offset: [0, 0, 0],
+    rotation: [0, 0, 0],
+    scale: [1, 1, 1],
+    tags: ['structure', 'floor'],
+  },
   'dining-chair': {
     id: 'dining-chair',
     category: 'furniture',
@@ -402,6 +414,9 @@ const SCENES: Record<StarterSceneId, StarterSceneSpec> = {
       // an 8×6 water area with a ~30cm trim). Slightly raised so it reads
       // as a stone cap rather than a paint stripe.
       { asset: 'pool-coping', position: [0, 0, 0], dimensions: [8.6, 0.1, 6.6] },
+      // Pool shimmer — animated caustic-ripple overlay sized to fit
+      // INSIDE the coping inner edge (≈ 7.7 × 5.7).
+      { asset: 'pool-shimmer', position: [0, 0.07, 0], dimensions: [7.7, 0.02, 5.7] },
       // Palms framing the deck corners
       { asset: 'palm', position: [-8, 0, -6], scale: [0.55, 0.55, 0.55] },
       { asset: 'palm', position: [8, 0, -6], scale: [0.55, 0.55, 0.55] },
@@ -658,6 +673,8 @@ const SCENES: Record<StarterSceneId, StarterSceneSpec> = {
     items: [
       // Pool coping — stone frame wrapping the 8×5 water area
       { asset: 'pool-coping', position: [0, 0, 0], dimensions: [8.6, 0.1, 5.6] },
+      // Pool shimmer — caustic-ripple overlay inside the coping
+      { asset: 'pool-shimmer', position: [0, 0.07, 0], dimensions: [7.7, 0.02, 4.7] },
       // Pergola lounge area at the back of the deck
       { asset: 'pergola', position: [0, 0, 5] },
       { asset: 'sofa', position: [0, 0, 5], rotationY: Math.PI / 2, scale: [0.95, 0.95, 0.95] },

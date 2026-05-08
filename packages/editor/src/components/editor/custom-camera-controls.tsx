@@ -436,14 +436,14 @@ export const CustomCameraControls = () => {
   }, [showcaseMode])
 
   // Showcase autoplay: slow continuous orbit when both showcase mode AND
-  // autoplay are enabled. ~0.05 rad/sec = a full revolution in ~2 minutes,
+  // autoplay are enabled. ~0.035 rad/sec ≈ a full revolution in ~3 min,
   // slow enough to feel cinematic, not nauseating. Pauses while the user
   // is dragging the camera so it doesn't fight them.
   useFrame((_, delta) => {
     if (!(showcaseMode && showcaseAutoplay && controls.current)) return
     if (useViewer.getState().cameraDragging) return
     // azimuthAngle increases over time → camera dollies around the target
-    controls.current.azimuthAngle += 0.05 * delta
+    controls.current.azimuthAngle += 0.035 * delta
   })
 
   if (walkthroughMode) {

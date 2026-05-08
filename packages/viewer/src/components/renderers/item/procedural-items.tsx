@@ -4,8 +4,70 @@ import type { ItemNode } from '@pascal-app/core'
 import { useFrame } from '@react-three/fiber'
 import { useMemo, useRef } from 'react'
 import { AdditiveBlending, MathUtils, type Mesh, type PointLight } from 'three'
+import {
+  abs,
+  color as tslColor,
+  cos,
+  float,
+  fract,
+  mix,
+  positionLocal,
+  positionWorld,
+  sin,
+  smoothstep,
+  time,
+  vec3,
+} from 'three/tsl'
+import { MeshStandardNodeMaterial } from 'three/webgpu'
 import { useNodeEvents } from '../../../hooks/use-node-events'
 import useViewer from '../../../store/use-viewer'
+
+// ─── Shared procedural materials ───────────────────────────────────────────
+//
+// These are created once per module and shared across all instances of an
+// item type. Changing time-of-day or scene state doesn't require swapping
+// materials; the TSL nodes evaluate per-fragment.
+
+/** Wood-grain material: a base wood color modulated by horizontal stripes
+ *  of varying density so posts/beams/slats read as planks instead of flat
+ *  brown boxes. */
+function makeWoodGrainMaterial(baseHex: string, accentHex: string) {
+  const mat = new MeshStandardNodeMaterial({
+    metalness: 0,
+    roughness: 0.85,
+  })
+  // Use local position so each mesh's grain runs along its long axis
+  const stripe = sin(positionLocal.y.mul(36)).mul(0.5).add(0.5)
+  const stripe2 = sin(positionLocal.y.mul(11.3).add(positionLocal.x.mul(2.1))).mul(0.5).add(0.5)
+  const grain = stripe.mul(0.55).add(stripe2.mul(0.45))
+  // Subtle horizontal variation
+  const lateral = sin(positionLocal.x.mul(2.7).add(positionLocal.z.mul(1.9))).mul(0.5).add(0.5)
+  const variation = grain.mul(0.7).add(lateral.mul(0.3))
+  const c = mix(tslColor(baseHex), tslColor(accentHex), variation.mul(0.55))
+  mat.colorNode = c
+  return mat
+}
+
+/** Stone-tile material with slight panel-line breakup — used for the
+ *  outdoor-kitchen counter base and toe-kick. */
+function makeStonePanelMaterial(baseHex: string, lineHex: string) {
+  const mat = new MeshStandardNodeMaterial({
+    metalness: 0.05,
+    roughness: 0.78,
+  })
+  const lineX = abs(fract(positionLocal.x.mul(2.4)).sub(0.5))
+  const lineY = abs(fract(positionLocal.y.mul(2.0)).sub(0.5))
+  const line = smoothstep(0.49, 0.5, lineX.max(lineY))
+  const c = mix(tslColor(baseHex), tslColor(lineHex), line.mul(0.45))
+  mat.colorNode = c
+  return mat
+}
+
+const WOOD_PERGOLA_POST = makeWoodGrainMaterial('#8c6a3e', '#5a3e1c')
+const WOOD_PERGOLA_BEAM = makeWoodGrainMaterial('#7a5a32', '#4a3018')
+const WOOD_PERGOLA_SLAT = makeWoodGrainMaterial('#876539', '#5e4220')
+const WOOD_PLANTER = makeWoodGrainMaterial('#8a6a44', '#5a3a20')
+const KITCHEN_BASE = makeStonePanelMaterial('#3d3d3d', '#2a2a2a')
 
 /**
  * Procedural items — node assets with no GLB. The asset.src takes the
@@ -181,15 +243,14 @@ function Firepit({ node }: { node: ItemNode }) {
 function Pergola({ node }: { node: ItemNode }) {
   const handlers = useNodeEvents(node, 'item')
   const [w, h, d] = node.asset.dimensions
+  const timeOfDay = useViewer((s) => s.timeOfDay)
 
-  // Default 4x2.5x4 pergola with 8 roof slats running along the X axis.
+  // Default 4x2.6x4 pergola with 9 roof slats running along the Z axis.
   const postSize = 0.14
   const beamSize = 0.12
   const slatCount = 9
   const slatThickness = 0.06
   const slatHeight = 0.14
-  const woodColor = '#8c6a3e'
-  const beamColor = '#7a5a32'
 
   const slats = useMemo(() => {
     const out: { z: number }[] = []
@@ -205,6 +266,44 @@ function Pergola({ node }: { node: ItemNode }) {
   const halfW = w / 2
   const halfD = d / 2
 
+  // Bistro-style string lights: 14 small bulbs along the long beams.
+  // Their emissive intensity + small point lights ramp on at dusk/evening.
+  const stringBulbCount = 14
+  const stringBulbs = useMemo(() => {
+    const out: { x: number }[] = []
+    for (let i = 0; i < stringBulbCount; i++) {
+      const t = (i + 0.5) / stringBulbCount
+      out.push({ x: -halfW + t * w })
+    }
+    return out
+  }, [w, halfW])
+
+  const bulbsRef = useRef<Mesh[]>([])
+  const lightsRef = useRef<PointLight[]>([])
+
+  useFrame((_, delta) => {
+    const dt = MathUtils.clamp(delta * 5, 0, 1)
+    const target =
+      timeOfDay === 'evening'
+        ? 1.0
+        : timeOfDay === 'dusk'
+          ? 0.65
+          : timeOfDay === 'goldenHour'
+            ? 0.18
+            : 0
+    for (const b of bulbsRef.current) {
+      if (!b) continue
+      const m = b.material as any
+      if (typeof m.emissiveIntensity === 'number') {
+        m.emissiveIntensity = MathUtils.lerp(m.emissiveIntensity, target * 1.6 + 0.04, dt)
+      }
+    }
+    for (const l of lightsRef.current) {
+      if (!l) continue
+      l.intensity = MathUtils.lerp(l.intensity, target * 0.45, dt)
+    }
+  })
+
   return (
     <group {...handlers}>
       {/* Four corner posts */}
@@ -214,16 +313,26 @@ function Pergola({ node }: { node: ItemNode }) {
         [-halfW + postSize / 2, -halfD + postSize / 2],
         [halfW - postSize / 2, -halfD + postSize / 2],
       ].map(([px, pz], i) => (
-        <mesh castShadow key={`post-${i}`} position={[px!, h / 2, pz!]} receiveShadow>
+        <mesh
+          castShadow
+          key={`post-${i}`}
+          material={WOOD_PERGOLA_POST}
+          position={[px!, h / 2, pz!]}
+          receiveShadow
+        >
           <boxGeometry args={[postSize, h, postSize]} />
-          <meshStandardMaterial color={woodColor} metalness={0} roughness={0.85} />
         </mesh>
       ))}
       {/* Two long beams running X */}
       {[halfD - postSize / 2, -halfD + postSize / 2].map((z, i) => (
-        <mesh castShadow key={`beam-x-${i}`} position={[0, h - beamSize / 2, z]} receiveShadow>
+        <mesh
+          castShadow
+          key={`beam-x-${i}`}
+          material={WOOD_PERGOLA_BEAM}
+          position={[0, h - beamSize / 2, z]}
+          receiveShadow
+        >
           <boxGeometry args={[w, beamSize, beamSize]} />
-          <meshStandardMaterial color={beamColor} metalness={0} roughness={0.85} />
         </mesh>
       ))}
       {/* Two short cross-beams */}
@@ -231,11 +340,11 @@ function Pergola({ node }: { node: ItemNode }) {
         <mesh
           castShadow
           key={`beam-z-${i}`}
+          material={WOOD_PERGOLA_BEAM}
           position={[x, h - beamSize / 2 - beamSize - 0.005, 0]}
           receiveShadow
         >
           <boxGeometry args={[beamSize, beamSize, d - postSize]} />
-          <meshStandardMaterial color={beamColor} metalness={0} roughness={0.85} />
         </mesh>
       ))}
       {/* Slatted roof — runs along Z so each slat's long axis is X */}
@@ -243,13 +352,52 @@ function Pergola({ node }: { node: ItemNode }) {
         <mesh
           castShadow
           key={`slat-${i}`}
+          material={WOOD_PERGOLA_SLAT}
           position={[0, h - beamSize / 2 - beamSize - slatHeight / 2 - 0.01, s.z]}
           receiveShadow
         >
           <boxGeometry args={[w - postSize, slatHeight, slatThickness]} />
-          <meshStandardMaterial color={woodColor} metalness={0} roughness={0.82} />
         </mesh>
       ))}
+      {/* String lights along both long beams — bistro-style row of bulbs */}
+      {[halfD - postSize / 2, -halfD + postSize / 2].map((z) =>
+        stringBulbs.map((b, i) => {
+          const idx = stringBulbs.indexOf(b) + (z > 0 ? 0 : stringBulbCount)
+          return (
+            <group key={`bulb-${z.toFixed(2)}-${i}`} position={[b.x, h - beamSize - 0.02, z]}>
+              <mesh
+                ref={(m) => {
+                  if (m) bulbsRef.current[idx] = m
+                }}
+              >
+                <sphereGeometry args={[0.045, 8, 6]} />
+                <meshStandardMaterial
+                  color="#fff5d6"
+                  emissive="#ffd285"
+                  emissiveIntensity={0}
+                  metalness={0}
+                  roughness={0.5}
+                />
+              </mesh>
+              {/* Only put point lights on every-other bulb to keep light
+                  count manageable — Three.js forward renderer handles
+                  ~16 dynamic lights gracefully. 14 bulbs × 2 sides = 28
+                  bulbs but only 7 lights. */}
+              {i % 2 === 0 && z > 0 ? (
+                <pointLight
+                  ref={(l) => {
+                    if (l) lightsRef.current[i / 2] = l
+                  }}
+                  color="#ffd9a0"
+                  decay={2}
+                  distance={3.5}
+                  intensity={0}
+                />
+              ) : null}
+            </group>
+          )
+        }),
+      )}
     </group>
   )
 }
@@ -268,10 +416,9 @@ function OutdoorKitchenIsland({ node }: { node: ItemNode }) {
 
   return (
     <group {...handlers}>
-      {/* Cabinet base — concrete tone */}
-      <mesh castShadow position={[0, counterHeight / 2, 0]} receiveShadow>
+      {/* Cabinet base — stone-panel material with subtle line breakup */}
+      <mesh castShadow material={KITCHEN_BASE} position={[0, counterHeight / 2, 0]} receiveShadow>
         <boxGeometry args={[w, counterHeight, d]} />
-        <meshStandardMaterial color="#404040" metalness={0.05} roughness={0.85} />
       </mesh>
       {/* Counter top — light stone slab, slightly larger than the base */}
       <mesh
@@ -280,7 +427,12 @@ function OutdoorKitchenIsland({ node }: { node: ItemNode }) {
         receiveShadow
       >
         <boxGeometry args={[w + 0.06, 0.05, d + 0.05]} />
-        <meshStandardMaterial color="#dcd5c8" metalness={0.08} roughness={0.55} />
+        <meshStandardMaterial color="#dcd5c8" metalness={0.08} roughness={0.5} />
+      </mesh>
+      {/* Counter top edge — tiny darker stripe along the front edge for a real-looking lip */}
+      <mesh position={[0, counterHeight + 0.001, d / 2 + 0.025]}>
+        <boxGeometry args={[w + 0.06, 0.04, 0.005]} />
+        <meshStandardMaterial color="#aea49a" metalness={0.05} roughness={0.6} />
       </mesh>
       {/* Inset grill — dark metallic block on top */}
       <mesh
@@ -289,13 +441,34 @@ function OutdoorKitchenIsland({ node }: { node: ItemNode }) {
         receiveShadow
       >
         <boxGeometry args={[grillWidth, grillHeight, grillDepth]} />
-        <meshStandardMaterial color="#1a1a1a" metalness={0.85} roughness={0.35} />
+        <meshStandardMaterial color="#1a1a1a" metalness={0.85} roughness={0.32} />
       </mesh>
+      {/* Grill grates — thin black lines visible from above */}
+      {[0, 1, 2, 3].map((i) => (
+        <mesh
+          key={`grate-${i}`}
+          position={[
+            0,
+            counterHeight + 0.05 + grillHeight + 0.001,
+            -grillDepth / 2 + 0.08 + (i * (grillDepth - 0.16)) / 3,
+          ]}
+        >
+          <boxGeometry args={[grillWidth - 0.08, 0.005, 0.015]} />
+          <meshStandardMaterial color="#3a3a3a" metalness={0.7} roughness={0.4} />
+        </mesh>
+      ))}
       {/* Cabinet doors — thin slats on the front */}
       {[-w / 4, w / 4].map((x, i) => (
         <mesh key={`door-${i}`} position={[x, counterHeight / 2, d / 2 + 0.005]}>
           <boxGeometry args={[w / 2 - 0.08, counterHeight - 0.12, 0.01]} />
-          <meshStandardMaterial color="#2c2c2c" metalness={0.1} roughness={0.7} />
+          <meshStandardMaterial color="#252525" metalness={0.15} roughness={0.6} />
+        </mesh>
+      ))}
+      {/* Door handles */}
+      {[-w / 4, w / 4].map((x, i) => (
+        <mesh key={`handle-${i}`} position={[x + 0.18, counterHeight - 0.18, d / 2 + 0.013]}>
+          <boxGeometry args={[0.08, 0.012, 0.012]} />
+          <meshStandardMaterial color="#9a9690" metalness={0.85} roughness={0.3} />
         </mesh>
       ))}
       {/* Toe-kick recess — thin dark line at the bottom */}
@@ -317,24 +490,38 @@ function PlanterBox({ node }: { node: ItemNode }) {
 
   return (
     <group {...handlers}>
-      {/* Wooden box */}
-      <mesh castShadow position={[0, boxHeight / 2, 0]} receiveShadow>
+      {/* Wooden box with TSL grain */}
+      <mesh castShadow material={WOOD_PLANTER} position={[0, boxHeight / 2, 0]} receiveShadow>
         <boxGeometry args={[w, boxHeight, d]} />
-        <meshStandardMaterial color="#8a6a44" metalness={0} roughness={0.85} />
       </mesh>
       {/* Soil cap — slightly inset darker top */}
       <mesh position={[0, boxHeight + 0.005, 0]}>
         <boxGeometry args={[w - 0.04, 0.02, d - 0.04]} />
         <meshStandardMaterial color="#2c1f12" metalness={0} roughness={1} />
       </mesh>
-      {/* Foliage — green dome */}
+      {/* Main foliage — slightly squashed sphere for a hedge feel */}
       <mesh
         castShadow
-        position={[0, boxHeight + foliageRadius * 0.8, 0]}
+        position={[0, boxHeight + foliageRadius * 0.78, 0]}
         receiveShadow
       >
-        <sphereGeometry args={[foliageRadius, 12, 8]} />
-        <meshStandardMaterial color="#5d8a3f" metalness={0} roughness={1} />
+        <sphereGeometry args={[foliageRadius, 14, 10]} />
+        <meshStandardMaterial color="#587f3a" metalness={0} roughness={1} />
+      </mesh>
+      {/* Two small extra clumps for visual breakup */}
+      <mesh
+        castShadow
+        position={[-foliageRadius * 0.55, boxHeight + foliageRadius * 0.6, foliageRadius * 0.3]}
+      >
+        <sphereGeometry args={[foliageRadius * 0.55, 10, 8]} />
+        <meshStandardMaterial color="#6f9648" metalness={0} roughness={1} />
+      </mesh>
+      <mesh
+        castShadow
+        position={[foliageRadius * 0.5, boxHeight + foliageRadius * 0.55, -foliageRadius * 0.35]}
+      >
+        <sphereGeometry args={[foliageRadius * 0.5, 10, 8]} />
+        <meshStandardMaterial color="#557a35" metalness={0} roughness={1} />
       </mesh>
     </group>
   )
@@ -354,6 +541,55 @@ function SteppingStone({ node }: { node: ItemNode }) {
       >
         <boxGeometry args={[w, h, d]} />
         <meshStandardMaterial color="#bfb8a8" metalness={0} roughness={0.95} />
+      </mesh>
+    </group>
+  )
+}
+
+// ─── Pool Shimmer ──────────────────────────────────────────────────────────
+
+/** Animated additive shimmer plane sized to fit on top of a pool's water
+ *  surface. asset.dimensions = [w, _, d] of the water polygon; the plane
+ *  is rendered horizontal at y ≈ 0.001 above the placement point so it
+ *  doesn't z-fight the water slab. The shimmer is a slow-time TSL ripple
+ *  in HSL-warm-cool that reads as moving caustics under the water. */
+function PoolShimmer({ node }: { node: ItemNode }) {
+  const handlers = useNodeEvents(node, 'item')
+  const [w, , d] = node.asset.dimensions
+
+  const material = useMemo(() => {
+    const mat = new MeshStandardNodeMaterial({
+      transparent: true,
+      depthWrite: false,
+      metalness: 0.3,
+      roughness: 0.18,
+    })
+    mat.blending = AdditiveBlending
+    // Two layered sin waves at slightly different frequencies/speeds —
+    // their interference reads as a real caustic ripple
+    const wp = positionWorld
+    const t = time.mul(0.6)
+    const r1 = sin(wp.x.mul(2.4).add(t.mul(1.1))).mul(cos(wp.z.mul(2.0).sub(t.mul(0.9))))
+    const r2 = sin(wp.x.mul(4.1).sub(t.mul(0.7))).mul(cos(wp.z.mul(3.7).add(t.mul(1.3))))
+    const wave = r1.mul(0.5).add(0.5).mul(r2.mul(0.5).add(0.5))
+    // Color: bright sky-blue highlight on pale base
+    const c = mix(tslColor('#5fa3d8'), tslColor('#e8f4ff'), wave.mul(0.85))
+    mat.colorNode = c
+    // Opacity dips low — we don't want to wash out the underlying water,
+    // just hint at light dancing on the surface
+    mat.opacityNode = wave.mul(0.32).add(0.04)
+    return mat
+  }, [])
+
+  return (
+    <group {...handlers}>
+      <mesh
+        material={material}
+        position={[0, 0.012, 0]}
+        renderOrder={5}
+        rotation-x={-Math.PI / 2}
+      >
+        <planeGeometry args={[w, d, 1, 1]} />
       </mesh>
     </group>
   )
@@ -481,6 +717,7 @@ const PROCEDURAL_REGISTRY: Record<
   'stepping-stone': SteppingStone,
   'garden-lantern': GardenLantern,
   'pool-coping': PoolCoping,
+  'pool-shimmer': PoolShimmer,
 }
 
 export const PROCEDURAL_ITEM_IDS = Object.keys(PROCEDURAL_REGISTRY)

@@ -1,16 +1,71 @@
 # Rose's Outdoor Designs
 
-A 3D planning workspace for Rose's design projects, built from the Pascal editor stack and adapted for layout work, furnishing, and presentation-ready reviews.
+**A cinematic outdoor-living visualizer.** Luxury backyard scenes you can audition, transform, and present — with cross-fading time-of-day, hand-tuned hero camera shots, an autoplay Showcase mode, and a procedural-item engine that ships destination pieces (firepit, pergola, outdoor kitchen, pool with caustic shimmer) inline.
+
+[**Open the live app →**](https://marcopolo2350.github.io/roses-outdoor-designs/)
 
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![npm @pascal-app/core](https://img.shields.io/npm/v/@pascal-app/core?label=%40pascal-app%2Fcore)](https://www.npmjs.com/package/@pascal-app/core)
-[![npm @pascal-app/viewer](https://img.shields.io/npm/v/@pascal-app/viewer?label=%40pascal-app%2Fviewer)](https://www.npmjs.com/package/@pascal-app/viewer)
-[![Discord](https://img.shields.io/badge/Discord-Join%20Server-5865F2?logo=discord&logoColor=white)](https://discord.gg/SaBRA9t2)
-[![X (Twitter)](https://img.shields.io/badge/follow-%40pascal__app-black?logo=x&logoColor=white)](https://x.com/pascal_app)
+[![Built on Pascal](https://img.shields.io/badge/built%20on-Pascal%20editor-2a78b8)](https://github.com/pascalorg/editor)
 
-https://github.com/user-attachments/assets/8b50e7cf-cebe-4579-9cf3-8786b35f7b6b
+---
 
+## What it feels like
 
+Open the app, and the first thing you see is a vibe picker — _Garden retreat, Resort poolside, Firepit lounge, Outdoor kitchen, Compact backyard, Modern evening, Luxury nighttime_. Pick one and you land **inside a designed space** with the right lighting and a hero camera shot already framing the property. Hit the sparkle button to enter Showcase: the UI fades, the camera slowly orbits, and time-of-day cycles through day → golden hour → dusk → evening on a 16-second loop. The firepit warms, lanterns bloom on, the pool surface shimmers, fireflies start to appear.
+
+It's not a CAD tool. It's a backyard you can sit inside.
+
+## 30-second demo flow
+
+| Time | What happens |
+|---|---|
+| 0:00–0:03 | Picker open → click **Luxury nighttime**. |
+| 0:03–0:07 | Scene loads. Evening palette settles. Camera glides to the hero angle (Showcase Reveal). |
+| 0:07–0:14 | Click **Showcase** (sparkle button). UI fades. Slow orbit reveals pool shimmer, firepit, ringed lanterns. |
+| 0:14–0:20 | Autoplay advances → golden hour. Whole world warms across one breath. |
+| 0:20–0:26 | → dusk. Lanterns and firepit dial up. Fireflies fade in. |
+| 0:26–0:30 | → evening. Hold final frame on the pergola lounge with bistro string lights glowing. |
+
+Recommended capture: OBS / ScreenStudio at 1440×900, 60fps, sidebar collapsed.
+
+## Hero scenes (best for screenshots)
+
+1. **Luxury Nighttime** — pool with stone coping & caustic shimmer, firepit corner with halo, 11 garden lanterns ringing the deck, pergola lounge under string lights.
+2. **Resort Poolside** — coping-wrapped pool, palms framing four corners, aligned sunbeds with umbrellas, planters punctuating the deck.
+3. **Outdoor Kitchen** — pergola overhead, kitchen island with stone counter and grill grates, dining for six, planters flanking, lanterns at the corners.
+4. **Firepit Lounge** — octagonal stone patio, conversation circle of lounge chairs, real animated firepit at the center, four corner lanterns.
+5. **Modern Evening** — clean marble patio under deep navy sky, palms silhouetted, minimal sunbeds.
+6. **Garden Retreat** — wooden patio framed by trees and bushes, lounge chairs and coffee table.
+7. **Compact Backyard** — stepping-stone path leading into a firepit corner with planters along the back fence.
+
+## Controls
+
+**Desktop**
+
+| Action | Control |
+|---|---|
+| Pan | Hold Space + Left-drag |
+| Rotate | Right-drag |
+| Zoom | Scroll |
+| Open vibe picker | Toolbar → **Starters** |
+| Set mood (atmosphere bundle) | Toolbar → **Mood** |
+| Time of day | Toolbar → **Day** pill (left-click menu, right-click cycles) |
+| Camera preset | Toolbar → **Views** |
+| Showcase Mode | Toolbar → sparkle button |
+| How to use | Toolbar → **?** |
+
+**Mobile (<768px)** — tap the floating sparkle button at right edge for the full Outdoor sheet (Mood, Time, Camera, Starters, Showcase, Help).
+
+## What's under the hood
+
+- **Atmosphere system** — sky dome, fog, hemisphere/rim/fill lights, tone-mapping exposure, and a 96-firefly particle system, all cross-fading on a shared time-of-day palette.
+- **Procedural-item engine** — `proc://` items render Three.js geometry inline (no GLB), shipping firepit, pergola, outdoor kitchen island, planter box, stepping stone, garden lantern, pool coping, and pool shimmer. TSL-driven materials add wood grain and panel breakup without textures.
+- **7 starter scenes** — pre-composed luxury layouts paired with a Mood (time-of-day + hero camera).
+- **Showcase Mode** — UI fades, camera dollies into a hero hero angle, autoplay slowly orbits + cycles time of day on a 16-second hold per phase.
+- **Mobile bottom sheet** — phones get a floating action button → bottom sheet with Mood, Time, Camera, Starters, Showcase, Help.
+- **In-app tutorial** — 8-step walkthrough auto-opens on first run after the picker is resolved; re-openable via Help.
+
+---
 
 ## Repository Architecture
 

@@ -98,6 +98,18 @@ export const PROCEDURAL_THUMBNAILS: Record<string, string> = {
       '<path d="M22 36 Q34 32 48 36 T76 36" stroke="#aacde8" stroke-width="1.5" fill="none" opacity="0.7"/>' +
       '<path d="M22 50 Q34 46 48 50 T76 50" stroke="#aacde8" stroke-width="1.5" fill="none" opacity="0.5"/>',
   ),
+  'pool-shimmer': baseSvg(
+    [
+      { offset: '0%', color: '#1a5a8a' },
+      { offset: '100%', color: '#0a2a5a' },
+    ],
+    // pool with caustic ripple highlights
+    '<rect x="6" y="10" width="84" height="76" rx="4" fill="#1c5c8a"/>' +
+      '<path d="M14 28 Q26 22 40 28 T68 28 T90 28" stroke="#bce3ff" stroke-width="2" fill="none" opacity="0.8"/>' +
+      '<path d="M10 44 Q24 38 38 44 T66 44 T90 44" stroke="#a8d8ff" stroke-width="2" fill="none" opacity="0.65"/>' +
+      '<path d="M16 60 Q28 54 42 60 T70 60 T92 60" stroke="#bce3ff" stroke-width="2" fill="none" opacity="0.55"/>' +
+      '<path d="M12 76 Q26 70 40 76 T68 76 T90 76" stroke="#a8d8ff" stroke-width="2" fill="none" opacity="0.4"/>',
+  ),
 }
 
 /**
