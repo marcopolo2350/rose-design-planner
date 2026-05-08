@@ -389,6 +389,47 @@ export const CustomCameraControls = () => {
     controls.current.setLookAt(px, py, pz, tx, ty, tz, true)
   }, [cameraPresetRequest])
 
+  // Showcase Reveal — when entering Showcase Mode, gently orbit the camera
+  // around the current target so the user feels the world is being
+  // *presented* to them rather than just having UI fade away. We orbit
+  // ±35° azimuth and reframe to a slightly higher hero angle.
+  const showcaseMode = useViewer((s) => s.showcaseMode)
+  const previousShowcaseRef = useRef(showcaseMode)
+  useEffect(() => {
+    if (!controls.current) return
+    const wasShowcase = previousShowcaseRef.current
+    previousShowcaseRef.current = showcaseMode
+
+    if (showcaseMode && !wasShowcase) {
+      // Capture the current target so the orbit pivots around what the
+      // user is actually looking at, not the world origin.
+      const target = new Vector3()
+      const position = new Vector3()
+      controls.current.getTarget(target)
+      controls.current.getPosition(position)
+
+      const radius = position.distanceTo(target)
+      const startAzimuth = controls.current.azimuthAngle
+      const heroPolar = Math.max(0.32, Math.min(controls.current.polarAngle, 1.05))
+
+      // Step 1: ease into a slightly elevated, off-axis hero angle.
+      const heroAzimuth = startAzimuth + 0.6
+      const heroX = target.x + Math.sin(heroAzimuth) * Math.sin(heroPolar) * radius
+      const heroY = target.y + Math.cos(heroPolar) * radius
+      const heroZ = target.z + Math.cos(heroAzimuth) * Math.sin(heroPolar) * radius
+
+      controls.current.setLookAt(
+        heroX,
+        heroY,
+        heroZ,
+        target.x,
+        target.y,
+        target.z,
+        true,
+      )
+    }
+  }, [showcaseMode])
+
   if (walkthroughMode) {
     return <WalkthroughControls />
   }

@@ -4,12 +4,15 @@ import { Icon as IconifyIcon } from '@iconify/react'
 import {
   CAMERA_PRESET_ORDER,
   CAMERA_PRESETS,
+  MOOD_ORDER,
+  MOODS,
   TIME_OF_DAY_LABELS,
   TIME_OF_DAY_ORDER,
   useViewer,
 } from '@pascal-app/viewer'
 import { Check, ChevronsLeft, ChevronsRight, Columns2, Eye, Footprints, Moon, Sparkles, Sun } from 'lucide-react'
 import { useCallback } from 'react'
+import { useIsMobile } from '../../hooks/use-mobile'
 import { assetPath } from '../../lib/asset-path'
 import { cn } from '../../lib/utils'
 import useEditor from '../../store/use-editor'
@@ -405,8 +408,9 @@ function TimeOfDayPill() {
   const outdoorMode = useViewer((s) => s.outdoorMode)
   const timeOfDay = useViewer((s) => s.timeOfDay)
   const setTimeOfDay = useViewer((s) => s.setTimeOfDay)
+  const isMobile = useIsMobile()
 
-  if (!outdoorMode) return null
+  if (!outdoorMode || isMobile) return null
 
   const cycle = () => {
     const idx = TIME_OF_DAY_ORDER.indexOf(timeOfDay)
@@ -472,8 +476,9 @@ function TimeOfDayPill() {
 function CameraPresetMenu() {
   const outdoorMode = useViewer((s) => s.outdoorMode)
   const requestCameraPreset = useViewer((s) => s.requestCameraPreset)
+  const isMobile = useIsMobile()
 
-  if (!outdoorMode) return null
+  if (!outdoorMode || isMobile) return null
 
   return (
     <DropdownMenu>
@@ -512,14 +517,78 @@ function CameraPresetMenu() {
   )
 }
 
+// ── Outdoor: Mood selector — bundles time-of-day + camera framing ──────────
+
+function MoodMenu() {
+  const outdoorMode = useViewer((s) => s.outdoorMode)
+  const setTimeOfDay = useViewer((s) => s.setTimeOfDay)
+  const requestCameraPreset = useViewer((s) => s.requestCameraPreset)
+  const isMobile = useIsMobile()
+
+  if (!outdoorMode || isMobile) return null
+
+  return (
+    <DropdownMenu>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <button
+              aria-label="Backyard mood presets"
+              className={cn(TOOLBAR_BTN, 'w-auto gap-1.5 px-2.5')}
+              type="button"
+            >
+              <IconifyIcon className="text-emerald-300" height={14} icon="lucide:wand-2" width={14} />
+              <span className="font-medium text-xs">Mood</span>
+            </button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">
+          One-click mood — time of day &amp; framing
+        </TooltipContent>
+      </Tooltip>
+      <DropdownMenuContent align="center" side="bottom">
+        {MOOD_ORDER.map((id) => {
+          const mood = MOODS[id]
+          if (!mood) return null
+          return (
+            <DropdownMenuItem
+              key={id}
+              onSelect={() => {
+                setTimeOfDay(mood.timeOfDay)
+                requestCameraPreset(mood.cameraPreset)
+              }}
+            >
+              <span className="flex min-w-[220px] flex-col gap-0.5">
+                <span className="flex items-center gap-2">
+                  <IconifyIcon
+                    className={mood.tint}
+                    height={14}
+                    icon={mood.icon}
+                    width={14}
+                  />
+                  <span className="font-medium">{mood.label}</span>
+                </span>
+                <span className="text-[11px] text-muted-foreground/80">
+                  {mood.description}
+                </span>
+              </span>
+            </DropdownMenuItem>
+          )
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
 // ── Outdoor: Showcase Mode button — fades UI, warms lights, gives cinematic feel ──
 
 function ShowcaseButton() {
   const outdoorMode = useViewer((s) => s.outdoorMode)
   const showcaseMode = useViewer((s) => s.showcaseMode)
   const setShowcaseMode = useViewer((s) => s.setShowcaseMode)
+  const isMobile = useIsMobile()
 
-  if (!outdoorMode) return null
+  if (!outdoorMode || isMobile) return null
 
   return (
     <Tooltip>
@@ -555,6 +624,7 @@ export function ViewerToolbarLeft() {
 export function ViewerToolbarRight() {
   return (
     <div className={TOOLBAR_CONTAINER}>
+      <MoodMenu />
       <TimeOfDayPill />
       <CameraPresetMenu />
       <ShowcaseButton />

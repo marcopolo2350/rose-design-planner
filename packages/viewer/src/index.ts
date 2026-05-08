@@ -3,6 +3,7 @@ export {
   CAMERA_PRESETS,
   type CameraShot,
 } from './components/outdoor/camera-presets'
+export { type Mood, type MoodId, MOOD_ORDER, MOODS } from './components/outdoor/mood-presets'
 export { OutdoorEnvironment } from './components/outdoor/outdoor-environment'
 export {
   getTimeOfDayPalette,
