@@ -8,7 +8,6 @@ import {
   abs,
   color as tslColor,
   cos,
-  float,
   fract,
   mix,
   positionLocal,
@@ -16,7 +15,6 @@ import {
   sin,
   smoothstep,
   time,
-  vec3,
 } from 'three/tsl'
 import { MeshStandardNodeMaterial } from 'three/webgpu'
 import { useNodeEvents } from '../../../hooks/use-node-events'

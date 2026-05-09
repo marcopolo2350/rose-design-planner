@@ -5,18 +5,16 @@ import { useMemo, useRef } from 'react'
 import {
   AdditiveBlending,
   BufferGeometry,
+  Color,
   Float32BufferAttribute,
   type Points,
 } from 'three'
-import { Color } from 'three'
 import {
-  add,
   cos,
   float,
   mix,
   positionLocal,
   sin,
-  smoothstep,
   time,
   uniform,
   vec3,
