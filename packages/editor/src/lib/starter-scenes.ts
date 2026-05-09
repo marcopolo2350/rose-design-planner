@@ -338,6 +338,17 @@ type SlabSpec = {
   }
 }
 
+type WallSpec = {
+  start: [number, number]
+  end: [number, number]
+  /** Wall height in meters (default 3m) */
+  height?: number
+  /** Wall thickness in meters (default 0.2m) */
+  thickness?: number
+  /** Library or legacy material preset ref */
+  materialPreset?: string
+}
+
 type StarterSceneSpec = {
   id: StarterSceneId
   label: string
@@ -346,6 +357,9 @@ type StarterSceneSpec = {
   siteHalfSize: number
   slabs: SlabSpec[]
   items: ItemSpec[]
+  /** Optional walls — used to construct the mansion silhouette in
+   *  Ultimate Estate. Each wall is a 2-point segment with a height. */
+  walls?: WallSpec[]
   /** Atmosphere to apply when this scene loads — keyed by mood id when
    *  available, else explicit time-of-day + camera preset */
   mood?: MoodId
@@ -362,23 +376,90 @@ type StarterSceneSpec = {
 const SCENES: Record<StarterSceneId, StarterSceneSpec> = {
   // ── Ultimate Estate — the crown-jewel demo ─────────────────────────────
   // A massive evening hero scene built from every procedural item the
-  // engine ships: motor court with Tesla, infinity-edge pool with coping
-  // and shimmer, pergola lounge over the water, separate firepit
-  // conversation circle, outdoor kitchen with dining for eight, sport
-  // court, putting green, ringed perimeter of palms and over thirty
-  // garden lanterns. Designed to be loaded directly into Showcase Mode
-  // at evening so every light is glowing.
+  // engine ships PLUS a real mansion silhouette: motor court with Tesla
+  // in front of a 26m × 10m main residence with east + west wings and
+  // flat roofs, then an infinity-edge pool with coping and shimmer,
+  // pergola lounge, firepit circle, outdoor kitchen with dining for
+  // eight, sport court, putting green, ringed perimeter of palms and
+  // over thirty garden lanterns. Designed to be loaded directly into
+  // Showcase Mode at evening so every light is glowing.
   ultimateEstate: {
     id: 'ultimateEstate',
     label: 'Ultimate Estate',
-    description: 'A billionaire-tier evening estate — pool, pergolas, firepit, kitchen, sport court, motor court — every light glowing at once.',
+    description: 'A billionaire-tier evening estate — modern mansion, infinity pool, pergolas, firepit, kitchen, sport courts, motor court — every light glowing at once.',
     timeOfDay: 'evening',
     cameraPreset: 'showcase',
     icon: 'lucide:gem',
     tint: 'text-amber-300',
-    siteHalfSize: 38,
+    siteHalfSize: 44,
     slabs: [
-      // ── Motor court (back of property, where the driveway ends) ──
+      // ── MANSION FOOTPRINTS ──
+      // Main residence floor (gets covered by walls + roof above)
+      {
+        polygon: [
+          [-13, -42],
+          [13, -42],
+          [13, -32],
+          [-13, -32],
+        ],
+        materialPreset: 'library:wall-marble1',
+      },
+      // Main residence roof — flat slab at elevation 6.55, just above
+      // the 6.5m walls
+      {
+        polygon: [
+          [-13, -42],
+          [13, -42],
+          [13, -32],
+          [-13, -32],
+        ],
+        elevation: 6.55,
+        materialPreset: 'library:wall-granite1',
+      },
+      // East wing floor
+      {
+        polygon: [
+          [13, -41],
+          [21, -41],
+          [21, -33],
+          [13, -33],
+        ],
+        materialPreset: 'library:wall-marble1',
+      },
+      // East wing roof at elevation 4.05
+      {
+        polygon: [
+          [13, -41],
+          [21, -41],
+          [21, -33],
+          [13, -33],
+        ],
+        elevation: 4.05,
+        materialPreset: 'library:wall-granite1',
+      },
+      // West wing floor
+      {
+        polygon: [
+          [-21, -41],
+          [-13, -41],
+          [-13, -33],
+          [-21, -33],
+        ],
+        materialPreset: 'library:wall-marble1',
+      },
+      // West wing roof at elevation 4.05
+      {
+        polygon: [
+          [-21, -41],
+          [-13, -41],
+          [-13, -33],
+          [-21, -33],
+        ],
+        elevation: 4.05,
+        materialPreset: 'library:wall-granite1',
+      },
+
+      // ── Motor court (south of mansion, where the driveway ends) ──
       {
         polygon: [
           [-9, -32],
@@ -386,7 +467,7 @@ const SCENES: Record<StarterSceneId, StarterSceneSpec> = {
           [9, -22],
           [-9, -22],
         ],
-        materialPreset: 'concrete',
+        materialPreset: 'library:wall-granite1',
       },
       // ── Driveway path (motor court → main level) ──
       {
@@ -396,7 +477,7 @@ const SCENES: Record<StarterSceneId, StarterSceneSpec> = {
           [2.5, -13],
           [-2.5, -13],
         ],
-        materialPreset: 'tile',
+        materialPreset: 'library:wall-marble2',
       },
       // ── Main pool deck (centerpiece, huge) ──
       {
@@ -406,7 +487,7 @@ const SCENES: Record<StarterSceneId, StarterSceneSpec> = {
           [18, 11],
           [-18, 11],
         ],
-        materialPreset: 'tile',
+        materialPreset: 'library:wall-marble2',
       },
       // ── Infinity-edge main pool ──
       {
@@ -648,6 +729,54 @@ const SCENES: Record<StarterSceneId, StarterSceneSpec> = {
       { asset: 'bush', position: [19, 0, 12], scale: [0.7, 0.7, 0.7] },
       { asset: 'bush', position: [-12, 0, -34], scale: [0.6, 0.6, 0.6] },
       { asset: 'bush', position: [12, 0, -34], scale: [0.6, 0.6, 0.6] },
+
+      // ── MANSION ENTRY + WING-ROOF LANTERNS ──
+      // Two lanterns flanking the front entry
+      { asset: 'garden-lantern', position: [-4.5, 0, -31.6] },
+      { asset: 'garden-lantern', position: [4.5, 0, -31.6] },
+      // East wing roof terrace lanterns (sit ON the wing roof at y=4.05)
+      { asset: 'garden-lantern', position: [16, 4.05, -34] },
+      { asset: 'garden-lantern', position: [20, 4.05, -34] },
+      { asset: 'garden-lantern', position: [16, 4.05, -40] },
+      { asset: 'garden-lantern', position: [20, 4.05, -40] },
+      // West wing roof terrace lanterns
+      { asset: 'garden-lantern', position: [-16, 4.05, -34] },
+      { asset: 'garden-lantern', position: [-20, 4.05, -34] },
+      { asset: 'garden-lantern', position: [-16, 4.05, -40] },
+      { asset: 'garden-lantern', position: [-20, 4.05, -40] },
+      // Two planters on each wing roof
+      { asset: 'planter-box', position: [16, 4.05, -37] },
+      { asset: 'planter-box', position: [-16, 4.05, -37] },
+      // Big planter pair flanking the front porch
+      { asset: 'planter-box', position: [-7, 0, -31.6] },
+      { asset: 'planter-box', position: [7, 0, -31.6] },
+    ],
+    walls: [
+      // ── MAIN RESIDENCE — 26m × 10m, walls 6.5m tall ──
+      // South wall (faces motor court / pool)
+      { start: [-13, -32], end: [13, -32], height: 6.5, thickness: 0.3, materialPreset: 'library:wall-marble1' },
+      // North wall (back of property)
+      { start: [-13, -42], end: [13, -42], height: 6.5, thickness: 0.3, materialPreset: 'library:wall-marble1' },
+      // East wall (interior side — joined to east wing)
+      { start: [13, -32], end: [13, -33], height: 6.5, thickness: 0.3, materialPreset: 'library:wall-marble1' },
+      { start: [13, -41], end: [13, -42], height: 6.5, thickness: 0.3, materialPreset: 'library:wall-marble1' },
+      // West wall (interior side — joined to west wing)
+      { start: [-13, -32], end: [-13, -33], height: 6.5, thickness: 0.3, materialPreset: 'library:wall-marble1' },
+      { start: [-13, -41], end: [-13, -42], height: 6.5, thickness: 0.3, materialPreset: 'library:wall-marble1' },
+
+      // ── EAST WING — 8m × 8m, walls 4m tall ──
+      { start: [13, -33], end: [21, -33], height: 4, thickness: 0.3, materialPreset: 'library:wall-marble1' },
+      { start: [13, -41], end: [21, -41], height: 4, thickness: 0.3, materialPreset: 'library:wall-marble1' },
+      { start: [21, -33], end: [21, -41], height: 4, thickness: 0.3, materialPreset: 'library:wall-marble1' },
+
+      // ── WEST WING — mirror of east, 8m × 8m, walls 4m tall ──
+      { start: [-21, -33], end: [-13, -33], height: 4, thickness: 0.3, materialPreset: 'library:wall-marble1' },
+      { start: [-21, -41], end: [-13, -41], height: 4, thickness: 0.3, materialPreset: 'library:wall-marble1' },
+      { start: [-21, -33], end: [-21, -41], height: 4, thickness: 0.3, materialPreset: 'library:wall-marble1' },
+
+      // ── ENTRY PORTICO — small flanking wall pair forming an entry feature ──
+      { start: [-3.5, -31.7], end: [-3.5, -32], height: 5, thickness: 0.3, materialPreset: 'library:wall-marble1' },
+      { start: [3.5, -31.7], end: [3.5, -32], height: 5, thickness: 0.3, materialPreset: 'library:wall-marble1' },
     ],
   },
 
@@ -666,7 +795,7 @@ const SCENES: Record<StarterSceneId, StarterSceneSpec> = {
           [3, -3],
           [-3, -3],
         ],
-        materialPreset: 'wood',
+        materialPreset: 'library:wall-wood1',
       },
     ],
     items: [
@@ -703,7 +832,7 @@ const SCENES: Record<StarterSceneId, StarterSceneSpec> = {
           [7, 5],
           [-7, 5],
         ],
-        materialPreset: 'tile',
+        materialPreset: 'library:wall-marble2',
       },
       // Pool — translucent blue water surface, slightly inset
       {
@@ -781,7 +910,7 @@ const SCENES: Record<StarterSceneId, StarterSceneSpec> = {
           [-1.5, 3.5],
           [-3.5, 1.5],
         ],
-        materialPreset: 'concrete',
+        materialPreset: 'library:wall-granite1',
       },
     ],
     items: [
@@ -825,7 +954,7 @@ const SCENES: Record<StarterSceneId, StarterSceneSpec> = {
           [5, 3.5],
           [-5, 3.5],
         ],
-        materialPreset: 'marble',
+        materialPreset: 'library:wall-marble1',
       },
     ],
     items: [
@@ -865,7 +994,7 @@ const SCENES: Record<StarterSceneId, StarterSceneSpec> = {
           [5, 4],
           [-5, 4],
         ],
-        materialPreset: 'concrete',
+        materialPreset: 'library:wall-granite1',
       },
     ],
     items: [
@@ -915,7 +1044,7 @@ const SCENES: Record<StarterSceneId, StarterSceneSpec> = {
           [3, 2.5],
           [-3, 2.5],
         ],
-        materialPreset: 'tile',
+        materialPreset: 'library:wall-marble2',
       },
     ],
     items: [
@@ -963,7 +1092,7 @@ const SCENES: Record<StarterSceneId, StarterSceneSpec> = {
           [7, 6],
           [-7, 6],
         ],
-        materialPreset: 'tile',
+        materialPreset: 'library:wall-marble2',
       },
       // Pool — translucent water at slightly higher elevation so the
       // surface reads above the deck
@@ -1086,6 +1215,7 @@ export function buildStarterScene(id: StarterSceneId): SceneGraph {
 
   const slabIds = spec.slabs.map(() => makeId('slab'))
   const itemIds = spec.items.map(() => makeId('item'))
+  const wallIds = (spec.walls ?? []).map(() => makeId('wall'))
 
   const nodes: Record<string, unknown> = {}
 
@@ -1120,8 +1250,28 @@ export function buildStarterScene(id: StarterSceneId): SceneGraph {
     visible: true,
     metadata: {},
     level: 0,
-    children: [...slabIds, ...itemIds],
+    children: [...slabIds, ...itemIds, ...wallIds],
   }
+
+  ;(spec.walls ?? []).forEach((wall, i) => {
+    const wId = wallIds[i]!
+    nodes[wId] = {
+      object: 'node',
+      id: wId,
+      type: 'wall',
+      parentId: levelId,
+      visible: true,
+      metadata: {},
+      start: wall.start,
+      end: wall.end,
+      height: wall.height ?? 3,
+      thickness: wall.thickness ?? 0.2,
+      frontSide: 'unknown',
+      backSide: 'unknown',
+      children: [],
+      ...(wall.materialPreset ? { materialPreset: wall.materialPreset } : {}),
+    }
+  })
 
   spec.slabs.forEach((slab, i) => {
     const sId = slabIds[i]!
