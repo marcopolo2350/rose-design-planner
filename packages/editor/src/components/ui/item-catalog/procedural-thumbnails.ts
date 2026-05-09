@@ -110,6 +110,28 @@ export const PROCEDURAL_THUMBNAILS: Record<string, string> = {
       '<path d="M16 60 Q28 54 42 60 T70 60 T92 60" stroke="#bce3ff" stroke-width="2" fill="none" opacity="0.55"/>' +
       '<path d="M12 76 Q26 70 40 76 T68 76 T90 76" stroke="#a8d8ff" stroke-width="2" fill="none" opacity="0.4"/>',
   ),
+  'mansion-block': baseSvg(
+    [
+      { offset: '0%', color: '#0d1430' },
+      { offset: '100%', color: '#1f2a4a' },
+    ],
+    // multi-tier mansion silhouette with glowing windows
+    '<rect x="10" y="56" width="76" height="28" fill="#dcd6c8"/>' +
+      '<rect x="22" y="40" width="52" height="22" fill="#dcd6c8"/>' +
+      '<rect x="6" y="56" width="14" height="22" fill="#dcd6c8"/>' +
+      '<rect x="76" y="56" width="14" height="22" fill="#dcd6c8"/>' +
+      '<rect x="10" y="38" width="76" height="3" fill="#3a3a3a"/>' +
+      '<rect x="22" y="22" width="52" height="3" fill="#3a3a3a"/>' +
+      '<rect x="6" y="38" width="14" height="3" fill="#3a3a3a"/>' +
+      '<rect x="76" y="38" width="14" height="3" fill="#3a3a3a"/>' +
+      // glowing windows
+      '<rect x="14" y="62" width="8" height="14" fill="#ffe7a8" opacity="0.85"/>' +
+      '<rect x="26" y="62" width="14" height="14" fill="#ffe7a8" opacity="0.85"/>' +
+      '<rect x="42" y="62" width="14" height="14" fill="#ffe7a8" opacity="0.85"/>' +
+      '<rect x="58" y="62" width="14" height="14" fill="#ffe7a8" opacity="0.85"/>' +
+      '<rect x="74" y="62" width="8" height="14" fill="#ffe7a8" opacity="0.85"/>' +
+      '<rect x="28" y="46" width="40" height="12" fill="#ffe7a8" opacity="0.85"/>',
+  ),
 }
 
 /**

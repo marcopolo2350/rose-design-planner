@@ -265,6 +265,19 @@ export const CATALOG_ITEMS: AssetInput[] = [
   },
 
   {
+    id: 'mansion-block',
+    category: 'outdoor',
+    tags: ['structure', 'floor'],
+    name: 'Mansion',
+    thumbnail: '/items/mansion-block/thumbnail.webp',
+    src: 'proc://mansion-block',
+    scale: [1, 1, 1],
+    offset: [0, 0, 0],
+    rotation: [0, 0, 0],
+    dimensions: [36, 7, 14],
+  },
+
+  {
     id: 'window-double',
     category: 'window',
     tags: ['wall'],

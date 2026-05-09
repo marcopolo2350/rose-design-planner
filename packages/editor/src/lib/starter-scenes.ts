@@ -248,6 +248,18 @@ const ASSETS: Record<string, CatalogAsset> = {
     scale: [1, 1, 1],
     tags: ['structure', 'floor'],
   },
+  'mansion-block': {
+    id: 'mansion-block',
+    category: 'outdoor',
+    name: 'Mansion',
+    thumbnail: '/items/mansion-block/thumbnail.webp',
+    src: 'proc://mansion-block',
+    dimensions: [36, 7, 14],
+    offset: [0, 0, 0],
+    rotation: [0, 0, 0],
+    scale: [1, 1, 1],
+    tags: ['structure', 'floor'],
+  },
   'dining-chair': {
     id: 'dining-chair',
     category: 'furniture',
@@ -393,77 +405,13 @@ const SCENES: Record<StarterSceneId, StarterSceneSpec> = {
     tint: 'text-amber-300',
     siteHalfSize: 44,
     slabs: [
-      // ── MANSION FOOTPRINTS ──
-      // Main residence floor (gets covered by walls + roof above)
-      {
-        polygon: [
-          [-13, -42],
-          [13, -42],
-          [13, -32],
-          [-13, -32],
-        ],
-        materialPreset: 'library:wall-marble1',
-      },
-      // Main residence roof — flat slab at elevation 6.55, just above
-      // the 6.5m walls
-      {
-        polygon: [
-          [-13, -42],
-          [13, -42],
-          [13, -32],
-          [-13, -32],
-        ],
-        elevation: 6.55,
-        materialPreset: 'library:wall-granite1',
-      },
-      // East wing floor
-      {
-        polygon: [
-          [13, -41],
-          [21, -41],
-          [21, -33],
-          [13, -33],
-        ],
-        materialPreset: 'library:wall-marble1',
-      },
-      // East wing roof at elevation 4.05
-      {
-        polygon: [
-          [13, -41],
-          [21, -41],
-          [21, -33],
-          [13, -33],
-        ],
-        elevation: 4.05,
-        materialPreset: 'library:wall-granite1',
-      },
-      // West wing floor
-      {
-        polygon: [
-          [-21, -41],
-          [-13, -41],
-          [-13, -33],
-          [-21, -33],
-        ],
-        materialPreset: 'library:wall-marble1',
-      },
-      // West wing roof at elevation 4.05
-      {
-        polygon: [
-          [-21, -41],
-          [-13, -41],
-          [-13, -33],
-          [-21, -33],
-        ],
-        elevation: 4.05,
-        materialPreset: 'library:wall-granite1',
-      },
-
       // ── Motor court (south of mansion, where the driveway ends) ──
+      // Sized to fit between the mansion's south face (z=-28) and the
+      // driveway connection point (z=-22).
       {
         polygon: [
-          [-9, -32],
-          [9, -32],
+          [-9, -28],
+          [9, -28],
           [9, -22],
           [-9, -22],
         ],
@@ -639,19 +587,15 @@ const SCENES: Record<StarterSceneId, StarterSceneSpec> = {
       { asset: 'lounge-chair', position: [-10.5, 0, -5], rotationY: Math.PI / 6 },
       { asset: 'lounge-chair', position: [-13.5, 0, 4.5], rotationY: -Math.PI / 6 },
 
-      // ─── MOTOR COURT ────────────────────────────────────────────────────
-      { asset: 'tesla', position: [-3, 0, -27], rotationY: 0 },
-      { asset: 'tesla', position: [3, 0, -27], rotationY: 0 },
-      { asset: 'planter-box', position: [-7.5, 0, -23.5] },
-      { asset: 'planter-box', position: [7.5, 0, -23.5] },
-      { asset: 'planter-box', position: [-7.5, 0, -30.5] },
-      { asset: 'planter-box', position: [7.5, 0, -30.5] },
-      { asset: 'palm', position: [-10, 0, -26], scale: [0.5, 0.5, 0.5] },
-      { asset: 'palm', position: [10, 0, -26], scale: [0.5, 0.5, 0.5] },
+      // ─── MOTOR COURT (z=-22 to -28, in front of mansion's south face) ─
+      { asset: 'tesla', position: [-3, 0, -25], rotationY: 0 },
+      { asset: 'tesla', position: [3, 0, -25], rotationY: 0 },
+      { asset: 'planter-box', position: [-7.5, 0, -23] },
+      { asset: 'planter-box', position: [7.5, 0, -23] },
+      { asset: 'palm', position: [-11, 0, -25], scale: [0.5, 0.5, 0.5] },
+      { asset: 'palm', position: [11, 0, -25], scale: [0.5, 0.5, 0.5] },
       { asset: 'garden-lantern', position: [-8.5, 0, -22.5] },
       { asset: 'garden-lantern', position: [8.5, 0, -22.5] },
-      { asset: 'garden-lantern', position: [-8.5, 0, -31.5] },
-      { asset: 'garden-lantern', position: [8.5, 0, -31.5] },
 
       // ─── DRIVEWAY PATH (motor court → main level) ──────────────────────
       { asset: 'stepping-stone', position: [0, 0, -21], scale: [1.3, 1, 1.3] },
@@ -730,53 +674,34 @@ const SCENES: Record<StarterSceneId, StarterSceneSpec> = {
       { asset: 'bush', position: [-12, 0, -34], scale: [0.6, 0.6, 0.6] },
       { asset: 'bush', position: [12, 0, -34], scale: [0.6, 0.6, 0.6] },
 
-      // ── MANSION ENTRY + WING-ROOF LANTERNS ──
-      // Two lanterns flanking the front entry
-      { asset: 'garden-lantern', position: [-4.5, 0, -31.6] },
-      { asset: 'garden-lantern', position: [4.5, 0, -31.6] },
-      // East wing roof terrace lanterns (sit ON the wing roof at y=4.05)
-      { asset: 'garden-lantern', position: [16, 4.05, -34] },
-      { asset: 'garden-lantern', position: [20, 4.05, -34] },
-      { asset: 'garden-lantern', position: [16, 4.05, -40] },
-      { asset: 'garden-lantern', position: [20, 4.05, -40] },
-      // West wing roof terrace lanterns
-      { asset: 'garden-lantern', position: [-16, 4.05, -34] },
-      { asset: 'garden-lantern', position: [-20, 4.05, -34] },
-      { asset: 'garden-lantern', position: [-16, 4.05, -40] },
-      { asset: 'garden-lantern', position: [-20, 4.05, -40] },
-      // Two planters on each wing roof
-      { asset: 'planter-box', position: [16, 4.05, -37] },
-      { asset: 'planter-box', position: [-16, 4.05, -37] },
-      // Big planter pair flanking the front porch
-      { asset: 'planter-box', position: [-7, 0, -31.6] },
-      { asset: 'planter-box', position: [7, 0, -31.6] },
-    ],
-    walls: [
-      // ── MAIN RESIDENCE — 26m × 10m, walls 6.5m tall ──
-      // South wall (faces motor court / pool)
-      { start: [-13, -32], end: [13, -32], height: 6.5, thickness: 0.3, materialPreset: 'library:wall-marble1' },
-      // North wall (back of property)
-      { start: [-13, -42], end: [13, -42], height: 6.5, thickness: 0.3, materialPreset: 'library:wall-marble1' },
-      // East wall (interior side — joined to east wing)
-      { start: [13, -32], end: [13, -33], height: 6.5, thickness: 0.3, materialPreset: 'library:wall-marble1' },
-      { start: [13, -41], end: [13, -42], height: 6.5, thickness: 0.3, materialPreset: 'library:wall-marble1' },
-      // West wall (interior side — joined to west wing)
-      { start: [-13, -32], end: [-13, -33], height: 6.5, thickness: 0.3, materialPreset: 'library:wall-marble1' },
-      { start: [-13, -41], end: [-13, -42], height: 6.5, thickness: 0.3, materialPreset: 'library:wall-marble1' },
+      // ── THE MANSION ─────────────────────────────────────────────────────
+      // A modern luxury home rendered as a single procedural item that
+      // builds the main mass + setback second story + east + west wings
+      // + front-entry portico inline. The south facade has emissive
+      // glass panels that glow at dusk/evening. Positioned so the
+      // mansion's south face sits at z=-28 (just behind the motor court)
+      // and its north face at z=-42.
+      { asset: 'mansion-block', position: [0, 0, -35], dimensions: [36, 7, 14] },
 
-      // ── EAST WING — 8m × 8m, walls 4m tall ──
-      { start: [13, -33], end: [21, -33], height: 4, thickness: 0.3, materialPreset: 'library:wall-marble1' },
-      { start: [13, -41], end: [21, -41], height: 4, thickness: 0.3, materialPreset: 'library:wall-marble1' },
-      { start: [21, -33], end: [21, -41], height: 4, thickness: 0.3, materialPreset: 'library:wall-marble1' },
+      // ── ROOF DECK ITEMS (sit ON the main roof at y ≈ 7.2) ─────────────
+      // Roof terrace lanterns spread across the rear roof edge (z=-28.5)
+      { asset: 'garden-lantern', position: [-16, 7.2, -28.5] },
+      { asset: 'garden-lantern', position: [-12, 7.2, -28.5] },
+      { asset: 'garden-lantern', position: [12, 7.2, -28.5] },
+      { asset: 'garden-lantern', position: [16, 7.2, -28.5] },
+      // Roof terrace planters
+      { asset: 'planter-box', position: [-15, 7.2, -31] },
+      { asset: 'planter-box', position: [15, 7.2, -31] },
+      // Two lounge chairs on the roof deck (rear-side, looking at pool)
+      { asset: 'lounge-chair', position: [-3, 7.2, -29], rotationY: Math.PI },
+      { asset: 'lounge-chair', position: [3, 7.2, -29], rotationY: Math.PI },
 
-      // ── WEST WING — mirror of east, 8m × 8m, walls 4m tall ──
-      { start: [-21, -33], end: [-13, -33], height: 4, thickness: 0.3, materialPreset: 'library:wall-marble1' },
-      { start: [-21, -41], end: [-13, -41], height: 4, thickness: 0.3, materialPreset: 'library:wall-marble1' },
-      { start: [-21, -33], end: [-21, -41], height: 4, thickness: 0.3, materialPreset: 'library:wall-marble1' },
-
-      // ── ENTRY PORTICO — small flanking wall pair forming an entry feature ──
-      { start: [-3.5, -31.7], end: [-3.5, -32], height: 5, thickness: 0.3, materialPreset: 'library:wall-marble1' },
-      { start: [3.5, -31.7], end: [3.5, -32], height: 5, thickness: 0.3, materialPreset: 'library:wall-marble1' },
+      // ── COVERED REAR PATIO ITEMS (between mansion and pool) ──────────
+      // The south face of the mansion is at z=-28. Pool deck starts at
+      // z=-13. So z=-22 to z=-13 is "rear patio" — outdoor connection.
+      // Two architectural lanterns at the rear patio edge.
+      { asset: 'garden-lantern', position: [-14, 0, -16] },
+      { asset: 'garden-lantern', position: [14, 0, -16] },
     ],
   },
 
