@@ -614,32 +614,65 @@ function GlassPanel({
   height,
   position,
   intensityRef,
+  mullionCount = 0,
 }: {
   width: number
   height: number
   position: [number, number, number]
   intensityRef: React.MutableRefObject<{ glass: Mesh[] }>
+  /** Number of vertical dividers to render across the glass — 0 means a
+   *  single uninterrupted pane, 3 splits it into 4 panels with mullions */
+  mullionCount?: number
 }) {
+  const mullionThickness = 0.08
   return (
-    <mesh
-      position={position}
-      ref={(m) => {
-        if (m) intensityRef.current.glass.push(m)
-      }}
-      renderOrder={2}
-    >
-      <boxGeometry args={[width, height, 0.06]} />
-      <meshStandardMaterial
-        color="#a8d4ff"
-        emissive="#ffe8b8"
-        emissiveIntensity={0.05}
-        transparent
-        opacity={0.78}
-        depthWrite={false}
-        metalness={0.4}
-        roughness={0.12}
-      />
-    </mesh>
+    <group position={position}>
+      <mesh
+        ref={(m) => {
+          if (m) intensityRef.current.glass.push(m)
+        }}
+        renderOrder={2}
+      >
+        <boxGeometry args={[width, height, 0.05]} />
+        <meshStandardMaterial
+          color="#a8d4ff"
+          emissive="#ffe8b8"
+          emissiveIntensity={0.05}
+          transparent
+          opacity={0.74}
+          depthWrite={false}
+          metalness={0.45}
+          roughness={0.1}
+        />
+      </mesh>
+      {/* Vertical mullion bars cutting the glass into panes */}
+      {Array.from({ length: mullionCount }, (_, i) => {
+        const t = (i + 1) / (mullionCount + 1)
+        const x = -width / 2 + t * width
+        return (
+          <mesh key={`mullion-${i}`} position={[x, 0, 0.03]}>
+            <boxGeometry args={[mullionThickness, height, 0.06]} />
+            <meshStandardMaterial color="#1f1f1f" metalness={0.6} roughness={0.4} />
+          </mesh>
+        )
+      })}
+      {/* Horizontal mullion at mid-height for taller panels */}
+      {height > 3 ? (
+        <mesh position={[0, 0, 0.03]}>
+          <boxGeometry args={[width, mullionThickness, 0.06]} />
+          <meshStandardMaterial color="#1f1f1f" metalness={0.6} roughness={0.4} />
+        </mesh>
+      ) : null}
+      {/* Frame around the glass — top + bottom */}
+      <mesh position={[0, height / 2, 0.04]}>
+        <boxGeometry args={[width, mullionThickness, 0.07]} />
+        <meshStandardMaterial color="#1f1f1f" metalness={0.6} roughness={0.4} />
+      </mesh>
+      <mesh position={[0, -height / 2, 0.04]}>
+        <boxGeometry args={[width, mullionThickness, 0.07]} />
+        <meshStandardMaterial color="#1f1f1f" metalness={0.6} roughness={0.4} />
+      </mesh>
+    </group>
   )
 }
 
@@ -648,399 +681,664 @@ function MansionBlock({ node }: { node: ItemNode }) {
   const [w, h, d] = node.asset.dimensions
   const timeOfDay = useViewer((s) => s.timeOfDay)
 
-  // Architecture parameters
-  const wallThickness = 0.3
+  // ── ARCHITECTURE PARAMETERS ────────────────────────────────────────────
   const halfW = w / 2
   const halfD = d / 2
+  const wallThickness = 0.3
 
-  // Setback (2nd story) parameters
-  const setbackW = w * 0.78
+  // Foundation plinth (dark stone band wrapping the entire footprint)
+  const plinthH = 0.5
+  const plinthOversize = 0.4
+
+  // Roof overhang (cantilevered projection from each roof line)
+  const roofOverhang = 1.2
+  const roofThickness = 0.35
+
+  // Setback (2nd story) — sits on top of main, slightly smaller
+  const setbackW = w * 0.7
   const setbackH = h * 0.55
-  const setbackD = d * 0.7
+  const setbackD = d * 0.65
   const setbackHalfW = setbackW / 2
   const setbackHalfD = setbackD / 2
+  const setbackY0 = h + plinthH + roofThickness // base elevation of setback
 
-  // Wing parameters
-  const wingW = w * 0.32
-  const wingH = h * 0.62
-  const wingD = d
-  const wingOffsetX = halfW + wingW / 2
+  // Wings — asymmetric (east bigger than west)
+  const eastWingW = w * 0.36
+  const eastWingD = d * 1.05
+  const eastWingH = h * 0.62
+  const eastOffsetX = halfW + eastWingW / 2
 
-  // Portico parameters
-  const porticoColW = 0.35
-  const porticoColH = h * 0.95
-  const porticoSpan = 5
+  const westWingW = w * 0.28
+  const westWingD = d * 0.95
+  const westWingH = h * 0.58
+  const westOffsetX = halfW + westWingW / 2 // west wing offset (we'll negate)
 
-  // Track all glass meshes for the time-of-day ramp
-  const refs = useRef<{ glass: Mesh[] }>({ glass: [] })
-  // Reset on each render — refs collect during JSX evaluation
+  // Recessed entry — south wall has a 6m × 2m recess at the center
+  const recessW = w * 0.18
+  const recessDepth = 1.6
+
+  // Material colors
+  const marbleColor = '#dcd6c8'
+  const stoneColor = '#3a3a3a'
+  const plinthColor = '#2a2a2a'
+  const woodTrimColor = '#5d3f1e'
+  const woodPanelColor = '#7a5a32'
+
+  // Track meshes for time-of-day ramps
+  const refs = useRef<{ glass: Mesh[]; entryLight: PointLight | null }>({
+    glass: [],
+    entryLight: null,
+  })
   refs.current.glass = []
 
   useFrame((_, delta) => {
     const dt = MathUtils.clamp(delta * 4, 0, 1)
-    const target =
+    const targetGlass =
       timeOfDay === 'evening'
-        ? 1.4
+        ? 1.5
         : timeOfDay === 'dusk'
-          ? 0.95
+          ? 1.0
           : timeOfDay === 'goldenHour'
             ? 0.35
             : 0.08
     for (const m of refs.current.glass) {
       const mat = m.material as any
       if (typeof mat.emissiveIntensity === 'number') {
-        mat.emissiveIntensity = MathUtils.lerp(mat.emissiveIntensity, target, dt)
+        mat.emissiveIntensity = MathUtils.lerp(mat.emissiveIntensity, targetGlass, dt)
       }
+    }
+    if (refs.current.entryLight) {
+      const targetLight =
+        timeOfDay === 'evening'
+          ? 1.6
+          : timeOfDay === 'dusk'
+            ? 1.0
+            : timeOfDay === 'goldenHour'
+              ? 0.3
+              : 0.05
+      refs.current.entryLight.intensity = MathUtils.lerp(
+        refs.current.entryLight.intensity,
+        targetLight,
+        dt,
+      )
     }
   })
 
-  // Glass-panel widths for main south facade — three marble strips at
-  // x=±18..±14 + center, two glass panels between them.
-  const stripW = w * 0.08 // 8% of width as a strip
-  const glassOuter = (w - 2 * stripW - stripW) / 2 // two glass panels split the remaining width minus a center strip
+  // ── HELPER COMPONENTS ──────────────────────────────────────────────────
 
-  // Marble color for walls (matches library:wall-marble1 vibe)
-  const marbleColor = '#dcd6c8'
-  const stoneColor = '#3a3a3a'
-  const woodTrimColor = '#604a30'
+  /** Marble wall section with a horizontal wood trim band at given y */
+  const marbleSection = (
+    key: string,
+    args: [number, number, number],
+    position: [number, number, number],
+    woodBandY?: number,
+  ) => (
+    <group key={key}>
+      <mesh castShadow position={position} receiveShadow>
+        <boxGeometry args={args} />
+        <meshStandardMaterial color={marbleColor} metalness={0.06} roughness={0.45} />
+      </mesh>
+      {woodBandY !== undefined ? (
+        <mesh
+          position={[
+            position[0],
+            woodBandY,
+            position[2] + (args[2] > args[0] ? 0 : 0.04 * Math.sign(position[2] || 1)),
+          ]}
+        >
+          <boxGeometry args={[args[0] + 0.06, 0.18, args[2] + 0.06]} />
+          <meshStandardMaterial color={woodTrimColor} metalness={0.05} roughness={0.7} />
+        </mesh>
+      ) : null}
+    </group>
+  )
 
-  // ── BUILD ──
+  /** Cantilevered roof slab with overhang on all sides */
+  const roof = (
+    key: string,
+    rw: number,
+    rd: number,
+    yPos: number,
+    cx = 0,
+    cz = 0,
+  ) => (
+    <mesh
+      castShadow
+      key={key}
+      position={[cx, yPos + roofThickness / 2, cz]}
+      receiveShadow
+    >
+      <boxGeometry args={[rw + roofOverhang * 2, roofThickness, rd + roofOverhang * 2]} />
+      <meshStandardMaterial color={stoneColor} metalness={0.15} roughness={0.55} />
+    </mesh>
+  )
+
+  /** Cylindrical column */
+  const column = (key: string, x: number, y: number, z: number, height: number) => (
+    <mesh castShadow key={key} position={[x, y + height / 2, z]} receiveShadow>
+      <cylinderGeometry args={[0.18, 0.22, height, 16]} />
+      <meshStandardMaterial color={marbleColor} metalness={0.08} roughness={0.4} />
+    </mesh>
+  )
+
+  // ── BUILD THE MANSION ──────────────────────────────────────────────────
   return (
     <group {...handlers}>
-      {/* ── MAIN MASS ───────────────────────────────────────────────────── */}
-      {/* Floor (interior, hidden under furnishings — but reads as a stone slab if camera dips low) */}
-      <mesh position={[0, 0.05, 0]} receiveShadow>
-        <boxGeometry args={[w - wallThickness, 0.1, d - wallThickness]} />
-        <meshStandardMaterial color="#bdb6a8" metalness={0.05} roughness={0.7} />
+      {/* ┌─────────────────────────────────────────────────────────────────┐ */}
+      {/* │  FOUNDATION PLINTH — dark stone wraps the entire base          │ */}
+      {/* └─────────────────────────────────────────────────────────────────┘ */}
+      <mesh castShadow position={[0, plinthH / 2, 0]} receiveShadow>
+        <boxGeometry args={[w + plinthOversize, plinthH, d + plinthOversize]} />
+        <meshStandardMaterial color={plinthColor} metalness={0.1} roughness={0.7} />
       </mesh>
-      {/* Main flat roof — granite */}
-      <mesh castShadow position={[0, h + 0.1, 0]} receiveShadow>
-        <boxGeometry args={[w + 0.2, 0.2, d + 0.2]} />
-        <meshStandardMaterial color={stoneColor} metalness={0.12} roughness={0.55} />
-      </mesh>
-      {/* North wall (back) — solid marble */}
+      {/* East wing plinth */}
       <mesh
         castShadow
-        position={[0, h / 2, -halfD + wallThickness / 2]}
+        position={[eastOffsetX, plinthH / 2, (eastWingD - d) / 2]}
+        receiveShadow
+      >
+        <boxGeometry args={[eastWingW + plinthOversize, plinthH, eastWingD + plinthOversize]} />
+        <meshStandardMaterial color={plinthColor} metalness={0.1} roughness={0.7} />
+      </mesh>
+      {/* West wing plinth */}
+      <mesh
+        castShadow
+        position={[-westOffsetX, plinthH / 2, (westWingD - d) / 2]}
+        receiveShadow
+      >
+        <boxGeometry args={[westWingW + plinthOversize, plinthH, westWingD + plinthOversize]} />
+        <meshStandardMaterial color={plinthColor} metalness={0.1} roughness={0.7} />
+      </mesh>
+
+      {/* ┌─────────────────────────────────────────────────────────────────┐ */}
+      {/* │  MAIN MASS — ground floor (y = plinthH..plinthH+h)             │ */}
+      {/* └─────────────────────────────────────────────────────────────────┘ */}
+      {/* North wall (back) */}
+      <mesh
+        castShadow
+        position={[0, plinthH + h / 2, -halfD + wallThickness / 2]}
         receiveShadow
       >
         <boxGeometry args={[w, h, wallThickness]} />
-        <meshStandardMaterial color={marbleColor} metalness={0.05} roughness={0.5} />
+        <meshStandardMaterial color={marbleColor} metalness={0.06} roughness={0.45} />
       </mesh>
-      {/* East wall (interior side, only the parts not covered by wing) */}
+      {/* East wall (interior side, where it meets the wing) */}
       <mesh
         castShadow
-        position={[halfW - wallThickness / 2, h / 2, 0]}
+        position={[halfW - wallThickness / 2, plinthH + h / 2, 0]}
         receiveShadow
       >
         <boxGeometry args={[wallThickness, h, d]} />
-        <meshStandardMaterial color={marbleColor} metalness={0.05} roughness={0.5} />
+        <meshStandardMaterial color={marbleColor} metalness={0.06} roughness={0.45} />
       </mesh>
       {/* West wall */}
       <mesh
         castShadow
-        position={[-halfW + wallThickness / 2, h / 2, 0]}
+        position={[-halfW + wallThickness / 2, plinthH + h / 2, 0]}
         receiveShadow
       >
         <boxGeometry args={[wallThickness, h, d]} />
-        <meshStandardMaterial color={marbleColor} metalness={0.05} roughness={0.5} />
+        <meshStandardMaterial color={marbleColor} metalness={0.06} roughness={0.45} />
       </mesh>
-      {/* South wall — split into 3 marble strips with 2 glass panels between */}
-      {/* Left strip (corner) */}
-      <mesh
-        castShadow
-        position={[-halfW + stripW / 2, h / 2, halfD - wallThickness / 2]}
-      >
-        <boxGeometry args={[stripW, h, wallThickness]} />
-        <meshStandardMaterial color={marbleColor} metalness={0.05} roughness={0.5} />
-      </mesh>
-      {/* Center strip */}
-      <mesh
-        castShadow
-        position={[0, h / 2, halfD - wallThickness / 2]}
-      >
-        <boxGeometry args={[stripW, h, wallThickness]} />
-        <meshStandardMaterial color={marbleColor} metalness={0.05} roughness={0.5} />
-      </mesh>
-      {/* Right strip */}
-      <mesh
-        castShadow
-        position={[halfW - stripW / 2, h / 2, halfD - wallThickness / 2]}
-      >
-        <boxGeometry args={[stripW, h, wallThickness]} />
-        <meshStandardMaterial color={marbleColor} metalness={0.05} roughness={0.5} />
-      </mesh>
-      {/* Glass panel — left half */}
-      <GlassPanel
-        height={h - 0.6}
-        intensityRef={refs}
-        position={[
-          -halfW + stripW + glassOuter / 2,
-          h / 2,
-          halfD - wallThickness / 2,
-        ]}
-        width={glassOuter}
-      />
-      {/* Glass panel — right half */}
-      <GlassPanel
-        height={h - 0.6}
-        intensityRef={refs}
-        position={[
-          halfW - stripW - glassOuter / 2,
-          h / 2,
-          halfD - wallThickness / 2,
-        ]}
-        width={glassOuter}
-      />
-      {/* Floor slab between glass and overhang — covered patio strip */}
-      <mesh position={[0, 0.06, halfD + 0.4]} receiveShadow>
-        <boxGeometry args={[w * 0.7, 0.04, 0.8]} />
-        <meshStandardMaterial color="#aea49a" metalness={0.08} roughness={0.55} />
+      {/* North wall horizontal wood trim band */}
+      <mesh position={[0, plinthH + h * 0.55, -halfD + wallThickness / 2 + 0.04]}>
+        <boxGeometry args={[w, 0.16, 0.06]} />
+        <meshStandardMaterial color={woodTrimColor} metalness={0.05} roughness={0.7} />
       </mesh>
 
-      {/* ── SECOND STORY (set back) ─────────────────────────────────────── */}
-      {/* Floor of setback (which IS the main roof's surface, just decorative) */}
+      {/* ── SOUTH WALL with recessed entry ──────────────────────────────── */}
+      {/* The south wall has 5 vertical sections: 2 outer marble corners,
+          2 glass panels with mullions, and a recessed entry alcove in the middle */}
+      {/* Left marble corner pier */}
+      <mesh
+        castShadow
+        position={[-halfW + 1.2, plinthH + h / 2, halfD - wallThickness / 2]}
+        receiveShadow
+      >
+        <boxGeometry args={[2.4, h, wallThickness]} />
+        <meshStandardMaterial color={marbleColor} metalness={0.06} roughness={0.45} />
+      </mesh>
+      {/* Wood-clad accent strip on the left corner pier (south side) */}
+      <mesh position={[-halfW + 0.4, plinthH + h / 2, halfD - wallThickness / 2 + 0.08]}>
+        <boxGeometry args={[0.6, h - 0.4, 0.08]} />
+        <meshStandardMaterial color={woodPanelColor} metalness={0.05} roughness={0.7} />
+      </mesh>
+      {/* Right marble corner pier */}
+      <mesh
+        castShadow
+        position={[halfW - 1.2, plinthH + h / 2, halfD - wallThickness / 2]}
+        receiveShadow
+      >
+        <boxGeometry args={[2.4, h, wallThickness]} />
+        <meshStandardMaterial color={marbleColor} metalness={0.06} roughness={0.45} />
+      </mesh>
+      {/* Wood-clad strip on right corner */}
+      <mesh position={[halfW - 0.4, plinthH + h / 2, halfD - wallThickness / 2 + 0.08]}>
+        <boxGeometry args={[0.6, h - 0.4, 0.08]} />
+        <meshStandardMaterial color={woodPanelColor} metalness={0.05} roughness={0.7} />
+      </mesh>
+
+      {/* Center entry recess — 3 walls forming an alcove set back into the south facade */}
+      {/* Recess back wall (faces south) */}
+      <mesh
+        castShadow
+        position={[0, plinthH + h / 2, halfD - recessDepth - wallThickness / 2]}
+        receiveShadow
+      >
+        <boxGeometry args={[recessW, h, wallThickness]} />
+        <meshStandardMaterial color={marbleColor} metalness={0.06} roughness={0.45} />
+      </mesh>
+      {/* Recess left side wall */}
+      <mesh
+        castShadow
+        position={[-recessW / 2 + wallThickness / 2, plinthH + h / 2, halfD - recessDepth / 2]}
+        receiveShadow
+      >
+        <boxGeometry args={[wallThickness, h, recessDepth]} />
+        <meshStandardMaterial color={marbleColor} metalness={0.06} roughness={0.45} />
+      </mesh>
+      {/* Recess right side wall */}
+      <mesh
+        castShadow
+        position={[recessW / 2 - wallThickness / 2, plinthH + h / 2, halfD - recessDepth / 2]}
+        receiveShadow
+      >
+        <boxGeometry args={[wallThickness, h, recessDepth]} />
+        <meshStandardMaterial color={marbleColor} metalness={0.06} roughness={0.45} />
+      </mesh>
+      {/* Recess overhead beam (above the entry, structural) */}
+      <mesh
+        position={[0, plinthH + h - 0.2, halfD - recessDepth / 2]}
+      >
+        <boxGeometry args={[recessW + 0.2, 0.4, recessDepth + 0.2]} />
+        <meshStandardMaterial color={woodTrimColor} metalness={0.05} roughness={0.6} />
+      </mesh>
+      {/* Door — large dark glass front door inside the recess */}
+      <mesh position={[0, plinthH + (h - 0.4) / 2 + 0.2, halfD - recessDepth - wallThickness / 2 + 0.04]}>
+        <boxGeometry args={[recessW * 0.7, h - 0.6, 0.06]} />
+        <meshStandardMaterial
+          color="#1a2a3a"
+          emissive="#3a5a8a"
+          emissiveIntensity={0.04}
+          metalness={0.7}
+          roughness={0.1}
+          transparent
+          opacity={0.85}
+        />
+      </mesh>
+
+      {/* Glass panels flanking the recess */}
+      {/* Glass panel left (between left corner pier and recess) */}
+      <GlassPanel
+        height={h - 0.4}
+        intensityRef={refs}
+        mullionCount={3}
+        position={[
+          -halfW / 2 - 0.6,
+          plinthH + h / 2,
+          halfD - wallThickness / 2,
+        ]}
+        width={(halfW - 2.4) - recessW / 2 - 0.4}
+      />
+      {/* Glass panel right */}
+      <GlassPanel
+        height={h - 0.4}
+        intensityRef={refs}
+        mullionCount={3}
+        position={[
+          halfW / 2 + 0.6,
+          plinthH + h / 2,
+          halfD - wallThickness / 2,
+        ]}
+        width={(halfW - 2.4) - recessW / 2 - 0.4}
+      />
+
+      {/* ── MAIN ROOF — cantilevered overhang ──────────────────────────── */}
+      {roof('main-roof', w, d, plinthH + h)}
+
+      {/* Wood facia (warm trim) under the south overhang — characteristic
+          of modern luxury homes */}
+      <mesh
+        position={[0, plinthH + h + roofThickness / 2, halfD + roofOverhang - 0.05]}
+      >
+        <boxGeometry args={[w + roofOverhang * 1.6, roofThickness, 0.1]} />
+        <meshStandardMaterial color={woodPanelColor} metalness={0.06} roughness={0.65} />
+      </mesh>
+
+      {/* ┌─────────────────────────────────────────────────────────────────┐ */}
+      {/* │  SECOND-STORY SETBACK with cantilevered balcony                │ */}
+      {/* └─────────────────────────────────────────────────────────────────┘ */}
       {/* North wall */}
       <mesh
         castShadow
-        position={[0, h + 0.2 + setbackH / 2, -setbackHalfD + wallThickness / 2]}
+        position={[0, setbackY0 + setbackH / 2, -setbackHalfD + wallThickness / 2]}
         receiveShadow
       >
         <boxGeometry args={[setbackW, setbackH, wallThickness]} />
-        <meshStandardMaterial color={marbleColor} metalness={0.05} roughness={0.5} />
+        <meshStandardMaterial color={marbleColor} metalness={0.06} roughness={0.45} />
       </mesh>
       {/* East wall */}
       <mesh
         castShadow
-        position={[setbackHalfW - wallThickness / 2, h + 0.2 + setbackH / 2, 0]}
+        position={[setbackHalfW - wallThickness / 2, setbackY0 + setbackH / 2, 0]}
         receiveShadow
       >
         <boxGeometry args={[wallThickness, setbackH, setbackD]} />
-        <meshStandardMaterial color={marbleColor} metalness={0.05} roughness={0.5} />
+        <meshStandardMaterial color={marbleColor} metalness={0.06} roughness={0.45} />
       </mesh>
       {/* West wall */}
       <mesh
         castShadow
-        position={[-setbackHalfW + wallThickness / 2, h + 0.2 + setbackH / 2, 0]}
+        position={[-setbackHalfW + wallThickness / 2, setbackY0 + setbackH / 2, 0]}
         receiveShadow
       >
         <boxGeometry args={[wallThickness, setbackH, setbackD]} />
-        <meshStandardMaterial color={marbleColor} metalness={0.05} roughness={0.5} />
+        <meshStandardMaterial color={marbleColor} metalness={0.06} roughness={0.45} />
       </mesh>
-      {/* South wall — 2 corner strips + 1 large glass panel */}
+      {/* South face — small marble corners + 1 large mullion-divided glass */}
       <mesh
         castShadow
-        position={[-setbackHalfW + stripW / 2, h + 0.2 + setbackH / 2, setbackHalfD - wallThickness / 2]}
+        position={[-setbackHalfW + 0.6, setbackY0 + setbackH / 2, setbackHalfD - wallThickness / 2]}
       >
-        <boxGeometry args={[stripW, setbackH, wallThickness]} />
-        <meshStandardMaterial color={marbleColor} metalness={0.05} roughness={0.5} />
+        <boxGeometry args={[1.2, setbackH, wallThickness]} />
+        <meshStandardMaterial color={marbleColor} metalness={0.06} roughness={0.45} />
       </mesh>
       <mesh
         castShadow
-        position={[setbackHalfW - stripW / 2, h + 0.2 + setbackH / 2, setbackHalfD - wallThickness / 2]}
+        position={[setbackHalfW - 0.6, setbackY0 + setbackH / 2, setbackHalfD - wallThickness / 2]}
       >
-        <boxGeometry args={[stripW, setbackH, wallThickness]} />
-        <meshStandardMaterial color={marbleColor} metalness={0.05} roughness={0.5} />
+        <boxGeometry args={[1.2, setbackH, wallThickness]} />
+        <meshStandardMaterial color={marbleColor} metalness={0.06} roughness={0.45} />
       </mesh>
-      {/* Setback glass — one big panel */}
       <GlassPanel
-        height={setbackH - 0.4}
+        height={setbackH - 0.3}
         intensityRef={refs}
-        position={[0, h + 0.2 + setbackH / 2, setbackHalfD - wallThickness / 2]}
-        width={setbackW - 2 * stripW - 0.1}
+        mullionCount={4}
+        position={[0, setbackY0 + setbackH / 2, setbackHalfD - wallThickness / 2]}
+        width={setbackW - 2.6}
       />
-      {/* Setback flat roof */}
+
+      {/* Cantilevered balcony slab — projects 1.5m past the south face,
+          full setback width. This is the visual signature of modern
+          luxury — a floating tier. */}
       <mesh
         castShadow
-        position={[0, h + 0.2 + setbackH + 0.1, 0]}
+        position={[0, setbackY0 - 0.05, setbackHalfD + 0.75]}
         receiveShadow
       >
-        <boxGeometry args={[setbackW + 0.2, 0.2, setbackD + 0.2]} />
+        <boxGeometry args={[setbackW + 0.4, 0.15, 1.6]} />
         <meshStandardMaterial color={stoneColor} metalness={0.12} roughness={0.55} />
       </mesh>
+      {/* Glass balcony railing */}
+      <mesh position={[0, setbackY0 + 0.55, setbackHalfD + 1.5]}>
+        <boxGeometry args={[setbackW + 0.3, 1.1, 0.04]} />
+        <meshStandardMaterial
+          color="#a8d4ff"
+          emissive="#a8d4ff"
+          emissiveIntensity={0.04}
+          transparent
+          opacity={0.32}
+          depthWrite={false}
+          metalness={0.3}
+          roughness={0.1}
+        />
+      </mesh>
+      {/* Balcony side rails */}
+      {[-1, 1].map((side) => (
+        <mesh
+          key={`bal-side-${side}`}
+          position={[
+            (setbackW / 2 + 0.15) * side,
+            setbackY0 + 0.55,
+            setbackHalfD + 0.75,
+          ]}
+        >
+          <boxGeometry args={[0.04, 1.1, 1.5]} />
+          <meshStandardMaterial
+            color="#a8d4ff"
+            emissive="#a8d4ff"
+            emissiveIntensity={0.04}
+            transparent
+            opacity={0.32}
+            depthWrite={false}
+            metalness={0.3}
+            roughness={0.1}
+          />
+        </mesh>
+      ))}
 
-      {/* ── EAST WING ──────────────────────────────────────────────────── */}
-      {/* Floor */}
-      <mesh position={[wingOffsetX, 0.05, 0]} receiveShadow>
-        <boxGeometry args={[wingW - wallThickness, 0.1, wingD - wallThickness]} />
-        <meshStandardMaterial color="#bdb6a8" metalness={0.05} roughness={0.7} />
-      </mesh>
-      {/* East wing roof */}
-      <mesh castShadow position={[wingOffsetX, wingH + 0.1, 0]} receiveShadow>
-        <boxGeometry args={[wingW + 0.2, 0.2, wingD + 0.2]} />
-        <meshStandardMaterial color={stoneColor} metalness={0.12} roughness={0.55} />
-      </mesh>
+      {/* Setback roof with overhang */}
+      {roof('setback-roof', setbackW, setbackD, setbackY0 + setbackH)}
+
+      {/* ┌─────────────────────────────────────────────────────────────────┐ */}
+      {/* │  ROOF DECK PERGOLA — small structure on top of the setback roof │ */}
+      {/* └─────────────────────────────────────────────────────────────────┘ */}
+      {(() => {
+        const pergolaY = setbackY0 + setbackH + roofThickness
+        const pergolaW = setbackW * 0.5
+        const pergolaD = setbackD * 0.6
+        const pergolaH = 2.4
+        const cornerSize = 0.12
+        return (
+          <group>
+            {/* Four corner posts */}
+            {[
+              [-pergolaW / 2 + cornerSize / 2, -pergolaD / 2 + cornerSize / 2],
+              [pergolaW / 2 - cornerSize / 2, -pergolaD / 2 + cornerSize / 2],
+              [-pergolaW / 2 + cornerSize / 2, pergolaD / 2 - cornerSize / 2],
+              [pergolaW / 2 - cornerSize / 2, pergolaD / 2 - cornerSize / 2],
+            ].map(([px, pz], i) => (
+              <mesh
+                castShadow
+                key={`pp-${i}`}
+                position={[px!, pergolaY + pergolaH / 2, pz!]}
+              >
+                <boxGeometry args={[cornerSize, pergolaH, cornerSize]} />
+                <meshStandardMaterial color={woodTrimColor} metalness={0.05} roughness={0.65} />
+              </mesh>
+            ))}
+            {/* Top frame and 5 slats */}
+            {[-pergolaD / 2, pergolaD / 2].map((z, i) => (
+              <mesh key={`pf-${i}`} position={[0, pergolaY + pergolaH - 0.05, z]}>
+                <boxGeometry args={[pergolaW, 0.1, 0.1]} />
+                <meshStandardMaterial color={woodTrimColor} metalness={0.05} roughness={0.65} />
+              </mesh>
+            ))}
+            {Array.from({ length: 5 }, (_, i) => {
+              const t = (i + 0.5) / 5
+              const z = -pergolaD / 2 + t * pergolaD
+              return (
+                <mesh key={`ps-${i}`} position={[0, pergolaY + pergolaH - 0.15, z]}>
+                  <boxGeometry args={[pergolaW - 0.1, 0.1, 0.05]} />
+                  <meshStandardMaterial color={woodPanelColor} metalness={0.05} roughness={0.65} />
+                </mesh>
+              )
+            })}
+          </group>
+        )
+      })()}
+
+      {/* ┌─────────────────────────────────────────────────────────────────┐ */}
+      {/* │  EAST WING — bigger than west, asymmetric                       │ */}
+      {/* └─────────────────────────────────────────────────────────────────┘ */}
       {/* East wing east wall */}
       <mesh
         castShadow
-        position={[wingOffsetX + wingW / 2 - wallThickness / 2, wingH / 2, 0]}
+        position={[
+          eastOffsetX + eastWingW / 2 - wallThickness / 2,
+          plinthH + eastWingH / 2,
+          (eastWingD - d) / 2,
+        ]}
         receiveShadow
       >
-        <boxGeometry args={[wallThickness, wingH, wingD]} />
-        <meshStandardMaterial color={marbleColor} metalness={0.05} roughness={0.5} />
+        <boxGeometry args={[wallThickness, eastWingH, eastWingD]} />
+        <meshStandardMaterial color={marbleColor} metalness={0.06} roughness={0.45} />
       </mesh>
       {/* East wing north wall */}
       <mesh
         castShadow
-        position={[wingOffsetX, wingH / 2, -halfD + wallThickness / 2]}
+        position={[
+          eastOffsetX,
+          plinthH + eastWingH / 2,
+          (eastWingD - d) / 2 - eastWingD / 2 + wallThickness / 2,
+        ]}
         receiveShadow
       >
-        <boxGeometry args={[wingW, wingH, wallThickness]} />
-        <meshStandardMaterial color={marbleColor} metalness={0.05} roughness={0.5} />
+        <boxGeometry args={[eastWingW, eastWingH, wallThickness]} />
+        <meshStandardMaterial color={marbleColor} metalness={0.06} roughness={0.45} />
       </mesh>
-      {/* East wing south wall — strip + glass */}
+      {/* East wing south wall — 1 marble corner + 1 large glass */}
       <mesh
         castShadow
-        position={[wingOffsetX + wingW / 2 - stripW / 2, wingH / 2, halfD - wallThickness / 2]}
+        position={[
+          eastOffsetX + eastWingW / 2 - 0.6,
+          plinthH + eastWingH / 2,
+          (eastWingD - d) / 2 + eastWingD / 2 - wallThickness / 2,
+        ]}
       >
-        <boxGeometry args={[stripW, wingH, wallThickness]} />
-        <meshStandardMaterial color={marbleColor} metalness={0.05} roughness={0.5} />
+        <boxGeometry args={[1.2, eastWingH, wallThickness]} />
+        <meshStandardMaterial color={marbleColor} metalness={0.06} roughness={0.45} />
       </mesh>
       <GlassPanel
-        height={wingH - 0.4}
+        height={eastWingH - 0.3}
         intensityRef={refs}
+        mullionCount={3}
         position={[
-          wingOffsetX - stripW / 2,
-          wingH / 2,
-          halfD - wallThickness / 2,
+          eastOffsetX - 0.6,
+          plinthH + eastWingH / 2,
+          (eastWingD - d) / 2 + eastWingD / 2 - wallThickness / 2,
         ]}
-        width={wingW - stripW - 0.1}
+        width={eastWingW - 1.2 - 0.1}
       />
+      {/* Wood-clad accent on east wing east wall */}
+      <mesh
+        position={[
+          eastOffsetX + eastWingW / 2 - wallThickness / 2 + 0.04,
+          plinthH + eastWingH / 2,
+          (eastWingD - d) / 2,
+        ]}
+      >
+        <boxGeometry args={[0.05, eastWingH - 0.4, eastWingD - 1]} />
+        <meshStandardMaterial color={woodPanelColor} metalness={0.05} roughness={0.7} />
+      </mesh>
+      {/* East wing roof */}
+      {roof(
+        'east-roof',
+        eastWingW,
+        eastWingD,
+        plinthH + eastWingH,
+        eastOffsetX,
+        (eastWingD - d) / 2,
+      )}
 
-      {/* ── WEST WING (mirror) ──────────────────────────────────────────── */}
-      <mesh position={[-wingOffsetX, 0.05, 0]} receiveShadow>
-        <boxGeometry args={[wingW - wallThickness, 0.1, wingD - wallThickness]} />
-        <meshStandardMaterial color="#bdb6a8" metalness={0.05} roughness={0.7} />
-      </mesh>
-      <mesh castShadow position={[-wingOffsetX, wingH + 0.1, 0]} receiveShadow>
-        <boxGeometry args={[wingW + 0.2, 0.2, wingD + 0.2]} />
-        <meshStandardMaterial color={stoneColor} metalness={0.12} roughness={0.55} />
-      </mesh>
+      {/* ┌─────────────────────────────────────────────────────────────────┐ */}
+      {/* │  WEST WING — smaller, asymmetric                                │ */}
+      {/* └─────────────────────────────────────────────────────────────────┘ */}
       <mesh
         castShadow
-        position={[-wingOffsetX - wingW / 2 + wallThickness / 2, wingH / 2, 0]}
+        position={[
+          -westOffsetX - westWingW / 2 + wallThickness / 2,
+          plinthH + westWingH / 2,
+          (westWingD - d) / 2,
+        ]}
         receiveShadow
       >
-        <boxGeometry args={[wallThickness, wingH, wingD]} />
-        <meshStandardMaterial color={marbleColor} metalness={0.05} roughness={0.5} />
+        <boxGeometry args={[wallThickness, westWingH, westWingD]} />
+        <meshStandardMaterial color={marbleColor} metalness={0.06} roughness={0.45} />
       </mesh>
       <mesh
         castShadow
-        position={[-wingOffsetX, wingH / 2, -halfD + wallThickness / 2]}
+        position={[
+          -westOffsetX,
+          plinthH + westWingH / 2,
+          (westWingD - d) / 2 - westWingD / 2 + wallThickness / 2,
+        ]}
         receiveShadow
       >
-        <boxGeometry args={[wingW, wingH, wallThickness]} />
-        <meshStandardMaterial color={marbleColor} metalness={0.05} roughness={0.5} />
+        <boxGeometry args={[westWingW, westWingH, wallThickness]} />
+        <meshStandardMaterial color={marbleColor} metalness={0.06} roughness={0.45} />
       </mesh>
       <mesh
         castShadow
-        position={[-wingOffsetX - wingW / 2 + stripW / 2, wingH / 2, halfD - wallThickness / 2]}
+        position={[
+          -westOffsetX - westWingW / 2 + 0.6,
+          plinthH + westWingH / 2,
+          (westWingD - d) / 2 + westWingD / 2 - wallThickness / 2,
+        ]}
       >
-        <boxGeometry args={[stripW, wingH, wallThickness]} />
-        <meshStandardMaterial color={marbleColor} metalness={0.05} roughness={0.5} />
+        <boxGeometry args={[1.2, westWingH, wallThickness]} />
+        <meshStandardMaterial color={marbleColor} metalness={0.06} roughness={0.45} />
       </mesh>
       <GlassPanel
-        height={wingH - 0.4}
+        height={westWingH - 0.3}
         intensityRef={refs}
+        mullionCount={3}
         position={[
-          -wingOffsetX + stripW / 2,
-          wingH / 2,
-          halfD - wallThickness / 2,
+          -westOffsetX + 0.6,
+          plinthH + westWingH / 2,
+          (westWingD - d) / 2 + westWingD / 2 - wallThickness / 2,
         ]}
-        width={wingW - stripW - 0.1}
+        width={westWingW - 1.2 - 0.1}
       />
+      {roof(
+        'west-roof',
+        westWingW,
+        westWingD,
+        plinthH + westWingH,
+        -westOffsetX,
+        (westWingD - d) / 2,
+      )}
 
-      {/* ── FRONT ENTRY PORTICO ──────────────────────────────────────────── */}
-      {/* Two slim columns flanking the door, set forward 1m from the south wall */}
+      {/* ┌─────────────────────────────────────────────────────────────────┐ */}
+      {/* │  FRONT ENTRY — 4 cylindrical columns + portico roof             │ */}
+      {/* └─────────────────────────────────────────────────────────────────┘ */}
+      {/* Four cylindrical marble columns at the front edge of the entry,
+          1.2m forward of the south face */}
+      {[-3.5, -1.2, 1.2, 3.5].map((x) =>
+        column(`col-${x}`, x, plinthH, halfD + 1.2, h - 0.4),
+      )}
+      {/* Portico roof — wood-tone slab spanning between the columns and
+          the south facade, with overhang */}
       <mesh
         castShadow
-        position={[-porticoSpan / 2, porticoColH / 2, halfD + 1]}
+        position={[0, plinthH + h - 0.15, halfD + 0.6]}
         receiveShadow
       >
-        <boxGeometry args={[porticoColW, porticoColH, porticoColW]} />
-        <meshStandardMaterial color={marbleColor} metalness={0.08} roughness={0.45} />
-      </mesh>
-      <mesh
-        castShadow
-        position={[porticoSpan / 2, porticoColH / 2, halfD + 1]}
-        receiveShadow
-      >
-        <boxGeometry args={[porticoColW, porticoColH, porticoColW]} />
-        <meshStandardMaterial color={marbleColor} metalness={0.08} roughness={0.45} />
-      </mesh>
-      {/* Portico flat roof connecting the columns to the main mass */}
-      <mesh
-        castShadow
-        position={[0, porticoColH + 0.15, halfD + 0.55]}
-        receiveShadow
-      >
-        <boxGeometry args={[porticoSpan + 1, 0.3, 1.6]} />
+        <boxGeometry args={[8, 0.3, 1.6]} />
         <meshStandardMaterial color={woodTrimColor} metalness={0.05} roughness={0.6} />
       </mesh>
+      {/* Three pendant lights under the portico — emissive spheres
+          ramping with time of day */}
+      {[-2.5, 0, 2.5].map((x, i) => (
+        <mesh
+          key={`pendant-${i}`}
+          position={[x, plinthH + h - 0.5, halfD + 0.6]}
+          ref={(m) => {
+            if (m) refs.current.glass.push(m)
+          }}
+        >
+          <sphereGeometry args={[0.12, 12, 8]} />
+          <meshStandardMaterial
+            color="#fff5d6"
+            emissive="#ffd285"
+            emissiveIntensity={0.08}
+            metalness={0}
+            roughness={0.4}
+          />
+        </mesh>
+      ))}
 
-      {/* ── ROOF DECK GLASS RAILING ──────────────────────────────────────── */}
-      {/* Glass railing on the south edge of the main roof (where the
-          setback isn't covering — i.e. the strips on either side of the
-          setback) */}
-      <mesh
-        position={[(halfW + setbackHalfW) / 2, h + 0.7, halfD - 0.1]}
-      >
-        <boxGeometry args={[(w - setbackW) / 2 - 0.4, 1.0, 0.04]} />
-        <meshStandardMaterial
-          color="#a8d4ff"
-          emissive="#a8d4ff"
-          emissiveIntensity={0.04}
-          transparent
-          opacity={0.35}
-          depthWrite={false}
-          metalness={0.3}
-          roughness={0.1}
-        />
-      </mesh>
-      <mesh
-        position={[-(halfW + setbackHalfW) / 2, h + 0.7, halfD - 0.1]}
-      >
-        <boxGeometry args={[(w - setbackW) / 2 - 0.4, 1.0, 0.04]} />
-        <meshStandardMaterial
-          color="#a8d4ff"
-          emissive="#a8d4ff"
-          emissiveIntensity={0.04}
-          transparent
-          opacity={0.35}
-          depthWrite={false}
-          metalness={0.3}
-          roughness={0.1}
-        />
-      </mesh>
-
-      {/* ── EXTERIOR ARCHITECTURAL ACCENT LIGHTS ─────────────────────────── */}
-      {/* One warm light over the front entry, one over the rear pool-facing
-          facade. These are the only point lights the mansion contributes
-          to the scene's dynamic-light budget — emissive glass does the
-          heavy lifting for everything else. */}
+      {/* ┌─────────────────────────────────────────────────────────────────┐ */}
+      {/* │  ARCHITECTURAL ACCENT LIGHT                                     │ */}
+      {/* └─────────────────────────────────────────────────────────────────┘ */}
       <pointLight
         color="#ffd9a0"
         decay={2}
         distance={Math.max(w, d) * 0.35}
         intensity={0}
-        position={[0, porticoColH, halfD + 1.5]}
+        position={[0, plinthH + h - 0.3, halfD + 1]}
         ref={(l) => {
-          if (l) {
-            // ramp up at dusk/evening
-            const ramp = () => {
-              if (!l) return
-              const t = timeOfDay
-              l.intensity =
-                t === 'evening'
-                  ? 1.4
-                  : t === 'dusk'
-                    ? 0.9
-                    : t === 'goldenHour'
-                      ? 0.3
-                      : 0.05
-            }
-            ramp()
-          }
+          if (l) refs.current.entryLight = l
         }}
       />
     </group>

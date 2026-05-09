@@ -699,46 +699,172 @@ const SCENES: Record<StarterSceneId, StarterSceneSpec> = {
       // ── COVERED REAR PATIO ITEMS (between mansion and pool) ──────────
       // The south face of the mansion is at z=-28. Pool deck starts at
       // z=-13. So z=-22 to z=-13 is "rear patio" — outdoor connection.
-      // Two architectural lanterns at the rear patio edge.
       { asset: 'garden-lantern', position: [-14, 0, -16] },
       { asset: 'garden-lantern', position: [14, 0, -16] },
+
+      // ── FOUNDATION PLANTINGS along the south facade of the mansion ──
+      // Boxwood-row planters lining the base of the mansion's south wall
+      // (mansion south face at z=-28; place planters just in front at z=-27.4)
+      { asset: 'planter-box', position: [-15, 0, -27.4] },
+      { asset: 'planter-box', position: [-12, 0, -27.4] },
+      { asset: 'planter-box', position: [-9, 0, -27.4] },
+      { asset: 'planter-box', position: [9, 0, -27.4] },
+      { asset: 'planter-box', position: [12, 0, -27.4] },
+      { asset: 'planter-box', position: [15, 0, -27.4] },
+      // Bushes nestled at the wing corners
+      { asset: 'bush', position: [-25, 0, -28], scale: [0.7, 0.7, 0.7] },
+      { asset: 'bush', position: [25, 0, -28], scale: [0.7, 0.7, 0.7] },
+      { asset: 'bush', position: [-22, 0, -23], scale: [0.6, 0.6, 0.6] },
+      { asset: 'bush', position: [22, 0, -23], scale: [0.6, 0.6, 0.6] },
+
+      // ── DRIVEWAY LANDSCAPING — palm-lined approach ────────────────────
+      // The driveway path runs z=-22 to z=-13 (9m corridor x=-2.5..2.5).
+      // Line each side with palms + lanterns for the "luxury arrival" feel.
+      { asset: 'palm', position: [-4, 0, -20], scale: [0.4, 0.4, 0.4] },
+      { asset: 'palm', position: [4, 0, -20], scale: [0.4, 0.4, 0.4] },
+      { asset: 'palm', position: [-4, 0, -16], scale: [0.4, 0.4, 0.4] },
+      { asset: 'palm', position: [4, 0, -16], scale: [0.4, 0.4, 0.4] },
+      // Driveway lanterns
+      { asset: 'garden-lantern', position: [-3.5, 0, -19] },
+      { asset: 'garden-lantern', position: [3.5, 0, -17] },
+      { asset: 'garden-lantern', position: [-3.5, 0, -15] },
+      { asset: 'garden-lantern', position: [3.5, 0, -14] },
+      // Boxwood hedges along the driveway
+      { asset: 'planter-box', position: [-3.5, 0, -21] },
+      { asset: 'planter-box', position: [3.5, 0, -21] },
+      { asset: 'planter-box', position: [-3.5, 0, -13.5] },
+      { asset: 'planter-box', position: [3.5, 0, -13.5] },
+
+      // ── REAR-FACADE FOUNDATION PLANTINGS (mansion meets pool deck) ────
+      // The south facade of the mansion needs landscaping too — a soft
+      // band of bushes between the mansion and the pool deck.
+      { asset: 'bush', position: [-17, 0, -25], scale: [0.55, 0.55, 0.55] },
+      { asset: 'bush', position: [17, 0, -25], scale: [0.55, 0.55, 0.55] },
     ],
   },
 
   gardenRetreat: {
     id: 'gardenRetreat',
     label: 'Garden retreat',
-    description: 'Layered greenery framing a quiet wooden patio.',
+    description: 'A private luxury garden — pergola lounge, layered planters, stepping path, and dining under the trees.',
     mood: 'gardenRetreat',
-    siteHalfSize: 12,
+    siteHalfSize: 16,
     slabs: [
-      // Wooden patio toward the back of the property
+      // Main wooden lounge patio (back/north)
       {
         polygon: [
-          [-3, -7],
-          [3, -7],
-          [3, -3],
-          [-3, -3],
+          [-4, -8],
+          [4, -8],
+          [4, -3],
+          [-4, -3],
         ],
         materialPreset: 'library:wall-wood1',
       },
+      // Marble dining patio (south, smaller)
+      {
+        polygon: [
+          [-3, 4],
+          [3, 4],
+          [3, 8],
+          [-3, 8],
+        ],
+        materialPreset: 'library:wall-marble2',
+      },
+      // Stone paving stripe linking the two patios (path through the garden)
+      {
+        polygon: [
+          [-1, -3],
+          [1, -3],
+          [1, 4],
+          [-1, 4],
+        ],
+        materialPreset: 'library:wall-granite1',
+      },
     ],
     items: [
-      // Trees framing the back corners
-      { asset: 'tree', position: [-9, 0, -9] },
-      { asset: 'tree', position: [9, 0, -9] },
-      // Fir trees mid-back for layered depth
-      { asset: 'fir-tree', position: [-7, 0, -10], scale: [1.2, 1.2, 1.2] },
-      { asset: 'fir-tree', position: [7, 0, -10], scale: [1.2, 1.2, 1.2] },
-      // Bushes along the patio edge — soft green border
-      { asset: 'bush', position: [-5, 0, -3], scale: [0.7, 0.7, 0.7] },
-      { asset: 'bush', position: [5, 0, -3], scale: [0.7, 0.7, 0.7] },
-      { asset: 'bush', position: [-2, 0, -8], scale: [0.6, 0.6, 0.6] },
-      { asset: 'bush', position: [2, 0, -8], scale: [0.6, 0.6, 0.6] },
-      // A lounge moment on the patio
-      { asset: 'lounge-chair', position: [-1.2, 0, -5], rotationY: 0 },
-      { asset: 'lounge-chair', position: [1.2, 0, -5], rotationY: 0 },
-      { asset: 'coffee-table', position: [0, 0, -4], scale: [0.6, 0.6, 0.6] },
+      // ── PERGOLA OVER THE LOUNGE PATIO ───────────────────────────────────
+      { asset: 'pergola', position: [0, 0, -5.5] },
+      // Lounge furniture under the pergola
+      { asset: 'sofa', position: [0, 0, -5.5], rotationY: 0, scale: [0.95, 0.95, 0.95] },
+      { asset: 'coffee-table', position: [0, 0, -4.2], scale: [0.7, 0.7, 0.7] },
+      { asset: 'lounge-chair', position: [-2.6, 0, -5], rotationY: -Math.PI / 2.2 },
+      { asset: 'lounge-chair', position: [2.6, 0, -5], rotationY: Math.PI / 2.2 },
+
+      // ── DINING MOMENT (south marble patio) ──────────────────────────────
+      { asset: 'dining-table', position: [0, 0, 6], rotationY: Math.PI / 2 },
+      { asset: 'dining-chair', position: [-1.6, 0, 6], rotationY: Math.PI / 2 },
+      { asset: 'dining-chair', position: [1.6, 0, 6], rotationY: -Math.PI / 2 },
+      { asset: 'dining-chair', position: [0, 0, 4.8], rotationY: 0 },
+      { asset: 'dining-chair', position: [0, 0, 7.2], rotationY: Math.PI },
+      { asset: 'patio-umbrella', position: [0, 0, 6.2] },
+
+      // ── STEPPING-STONE PATH connecting the two patios ──────────────────
+      { asset: 'stepping-stone', position: [0, 0, -2.4], scale: [1.2, 1, 1.2] },
+      { asset: 'stepping-stone', position: [0, 0, -1.4], scale: [1.2, 1, 1.2] },
+      { asset: 'stepping-stone', position: [0, 0, -0.4], scale: [1.2, 1, 1.2] },
+      { asset: 'stepping-stone', position: [0, 0, 0.6], scale: [1.2, 1, 1.2] },
+      { asset: 'stepping-stone', position: [0, 0, 1.6], scale: [1.2, 1, 1.2] },
+      { asset: 'stepping-stone', position: [0, 0, 2.6], scale: [1.2, 1, 1.2] },
+
+      // ── LANTERNS framing the path and patios ────────────────────────────
+      { asset: 'garden-lantern', position: [-1.5, 0, -1] },
+      { asset: 'garden-lantern', position: [1.5, 0, 0.5] },
+      { asset: 'garden-lantern', position: [-1.5, 0, 2] },
+      { asset: 'garden-lantern', position: [1.5, 0, 3.5] },
+      // Lounge patio corner lanterns
+      { asset: 'garden-lantern', position: [-4.3, 0, -7.5] },
+      { asset: 'garden-lantern', position: [4.3, 0, -7.5] },
+      { asset: 'garden-lantern', position: [-4.3, 0, -3.3] },
+      { asset: 'garden-lantern', position: [4.3, 0, -3.3] },
+      // Dining patio corner lanterns
+      { asset: 'garden-lantern', position: [-3.3, 0, 3.7] },
+      { asset: 'garden-lantern', position: [3.3, 0, 3.7] },
+      { asset: 'garden-lantern', position: [-3.3, 0, 8.3] },
+      { asset: 'garden-lantern', position: [3.3, 0, 8.3] },
+
+      // ── LAYERED PLANTERS at varied positions ────────────────────────────
+      // Around lounge pergola
+      { asset: 'planter-box', position: [-4.5, 0, -5.5] },
+      { asset: 'planter-box', position: [4.5, 0, -5.5] },
+      { asset: 'planter-box', position: [-3, 0, -2] },
+      { asset: 'planter-box', position: [3, 0, -2] },
+      // Along the path
+      { asset: 'planter-box', position: [-2.4, 0, 0] },
+      { asset: 'planter-box', position: [2.4, 0, 0] },
+      // Around dining patio
+      { asset: 'planter-box', position: [-3.5, 0, 5] },
+      { asset: 'planter-box', position: [3.5, 0, 5] },
+      { asset: 'planter-box', position: [-3.5, 0, 7.5] },
+      { asset: 'planter-box', position: [3.5, 0, 7.5] },
+
+      // ── DENSE LANDSCAPING (bushes + trees) ──────────────────────────────
+      // Trees framing the property — multi-layer depth
+      { asset: 'tree', position: [-12, 0, -12], scale: [0.7, 0.7, 0.7] },
+      { asset: 'tree', position: [12, 0, -12], scale: [0.7, 0.7, 0.7] },
+      { asset: 'tree', position: [-13, 0, 0], scale: [0.6, 0.6, 0.6] },
+      { asset: 'tree', position: [13, 0, 0], scale: [0.6, 0.6, 0.6] },
+      { asset: 'tree', position: [-13, 0, 11], scale: [0.55, 0.55, 0.55] },
+      { asset: 'tree', position: [13, 0, 11], scale: [0.55, 0.55, 0.55] },
+      // Fir trees for evergreen depth at the back
+      { asset: 'fir-tree', position: [-9, 0, -13], scale: [1.4, 1.4, 1.4] },
+      { asset: 'fir-tree', position: [9, 0, -13], scale: [1.4, 1.4, 1.4] },
+      { asset: 'fir-tree', position: [0, 0, -14], scale: [1.6, 1.6, 1.6] },
+      // Bushes — many, varied sizes for that "lush garden" density
+      { asset: 'bush', position: [-7, 0, -8], scale: [0.85, 0.85, 0.85] },
+      { asset: 'bush', position: [7, 0, -8], scale: [0.85, 0.85, 0.85] },
+      { asset: 'bush', position: [-9, 0, -4], scale: [0.7, 0.7, 0.7] },
+      { asset: 'bush', position: [9, 0, -4], scale: [0.7, 0.7, 0.7] },
+      { asset: 'bush', position: [-10, 0, 4], scale: [0.65, 0.65, 0.65] },
+      { asset: 'bush', position: [10, 0, 4], scale: [0.65, 0.65, 0.65] },
+      { asset: 'bush', position: [-7, 0, 9], scale: [0.6, 0.6, 0.6] },
+      { asset: 'bush', position: [7, 0, 9], scale: [0.6, 0.6, 0.6] },
+      { asset: 'bush', position: [-5, 0, 10], scale: [0.55, 0.55, 0.55] },
+      { asset: 'bush', position: [5, 0, 10], scale: [0.55, 0.55, 0.55] },
+      // A few low-fence segments suggesting a garden border
+      { asset: 'planter-box', position: [-12, 0, -7] },
+      { asset: 'planter-box', position: [12, 0, -7] },
+      { asset: 'planter-box', position: [-12, 0, 2] },
+      { asset: 'planter-box', position: [12, 0, 2] },
     ],
   },
 
