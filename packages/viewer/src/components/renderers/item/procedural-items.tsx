@@ -295,12 +295,30 @@ function Pergola({ node }: { node: ItemNode }) {
       if (!b) continue
       const m = b.material as any
       if (typeof m.emissiveIntensity === 'number') {
-        m.emissiveIntensity = MathUtils.lerp(m.emissiveIntensity, target * 1.6 + 0.04, dt)
+        m.emissiveIntensity = MathUtils.lerp(m.emissiveIntensity, target * 1.8 + 0.04, dt)
       }
     }
-    for (const l of lightsRef.current) {
-      if (!l) continue
-      l.intensity = MathUtils.lerp(l.intensity, target * 0.45, dt)
+    // Center light is the brightest, two accent corners are softer
+    if (lightsRef.current[0]) {
+      lightsRef.current[0].intensity = MathUtils.lerp(
+        lightsRef.current[0].intensity,
+        target * 1.2,
+        dt,
+      )
+    }
+    if (lightsRef.current[1]) {
+      lightsRef.current[1].intensity = MathUtils.lerp(
+        lightsRef.current[1].intensity,
+        target * 0.5,
+        dt,
+      )
+    }
+    if (lightsRef.current[2]) {
+      lightsRef.current[2].intensity = MathUtils.lerp(
+        lightsRef.current[2].intensity,
+        target * 0.5,
+        dt,
+      )
     }
   })
 
@@ -359,45 +377,67 @@ function Pergola({ node }: { node: ItemNode }) {
           <boxGeometry args={[w - postSize, slatHeight, slatThickness]} />
         </mesh>
       ))}
-      {/* String lights along both long beams — bistro-style row of bulbs */}
+      {/* String lights along both long beams — bistro-style row of bulbs.
+          All bulbs are emissive-only; a SINGLE warm point light at the
+          pergola's center is the actual illumination contribution. This
+          keeps the WebGPU active-light budget low so heavy scenes still
+          render reliably. */}
       {[halfD - postSize / 2, -halfD + postSize / 2].map((z) =>
         stringBulbs.map((b, i) => {
           const idx = stringBulbs.indexOf(b) + (z > 0 ? 0 : stringBulbCount)
           return (
-            <group key={`bulb-${z.toFixed(2)}-${i}`} position={[b.x, h - beamSize - 0.02, z]}>
-              <mesh
-                ref={(m) => {
-                  if (m) bulbsRef.current[idx] = m
-                }}
-              >
-                <sphereGeometry args={[0.045, 8, 6]} />
-                <meshStandardMaterial
-                  color="#fff5d6"
-                  emissive="#ffd285"
-                  emissiveIntensity={0}
-                  metalness={0}
-                  roughness={0.5}
-                />
-              </mesh>
-              {/* Only put point lights on every-other bulb to keep light
-                  count manageable — Three.js forward renderer handles
-                  ~16 dynamic lights gracefully. 14 bulbs × 2 sides = 28
-                  bulbs but only 7 lights. */}
-              {i % 2 === 0 && z > 0 ? (
-                <pointLight
-                  ref={(l) => {
-                    if (l) lightsRef.current[i / 2] = l
-                  }}
-                  color="#ffd9a0"
-                  decay={2}
-                  distance={3.5}
-                  intensity={0}
-                />
-              ) : null}
-            </group>
+            <mesh
+              key={`bulb-${z.toFixed(2)}-${i}`}
+              position={[b.x, h - beamSize - 0.02, z]}
+              ref={(m) => {
+                if (m) bulbsRef.current[idx] = m
+              }}
+            >
+              <sphereGeometry args={[0.045, 8, 6]} />
+              <meshStandardMaterial
+                color="#fff5d6"
+                emissive="#ffd285"
+                emissiveIntensity={0}
+                metalness={0}
+                roughness={0.5}
+              />
+            </mesh>
           )
         }),
       )}
+      {/* One central warm point light under the pergola — replaces the
+          per-bulb light grid that ate the WebGPU light budget */}
+      <pointLight
+        ref={(l) => {
+          if (l) lightsRef.current[0] = l
+        }}
+        color="#ffd9a0"
+        decay={2}
+        distance={Math.max(w, d) * 1.1}
+        intensity={0}
+        position={[0, h - beamSize, 0]}
+      />
+      {/* Two corner accent lights for evening warmth */}
+      <pointLight
+        ref={(l) => {
+          if (l) lightsRef.current[1] = l
+        }}
+        color="#ffd9a0"
+        decay={2}
+        distance={2.6}
+        intensity={0}
+        position={[halfW * 0.6, h - beamSize, halfD * 0.6]}
+      />
+      <pointLight
+        ref={(l) => {
+          if (l) lightsRef.current[2] = l
+        }}
+        color="#ffd9a0"
+        decay={2}
+        distance={2.6}
+        intensity={0}
+        position={[-halfW * 0.6, h - beamSize, -halfD * 0.6]}
+      />
     </group>
   )
 }
@@ -643,11 +683,18 @@ function PoolCoping({ node }: { node: ItemNode }) {
 
 // ─── Garden Lantern ────────────────────────────────────────────────────────
 
+// Garden lantern: emissive-only by default. The bulb glows at dusk/evening
+// via emissiveIntensity ramping with time of day, but it does NOT carry a
+// per-instance point light. With scenes shipping 30+ lanterns, attaching a
+// real point light to each one pushes the WebGPU forward shader past its
+// active-light budget and the heavy hero scenes (Luxury Nighttime, Ultimate
+// Estate) refuse to render. Atmospheric warm light comes from the
+// time-of-day palette's hemisphere/fill/rim lights and from the few
+// instances that DO carry point lights (firepit, pergola string lights).
 function GardenLantern({ node }: { node: ItemNode }) {
   const handlers = useNodeEvents(node, 'item')
   const [, h] = node.asset.dimensions
   const lampRef = useRef<Mesh>(null!)
-  const lightRef = useRef<PointLight>(null!)
   const timeOfDay = useViewer((s) => s.timeOfDay)
 
   useFrame((_, delta) => {
@@ -660,13 +707,10 @@ function GardenLantern({ node }: { node: ItemNode }) {
           : timeOfDay === 'goldenHour'
             ? 0.18
             : 0
-    if (lightRef.current) {
-      lightRef.current.intensity = MathUtils.lerp(lightRef.current.intensity, target, dt)
-    }
     if (lampRef.current) {
       ;(lampRef.current.material as any).emissiveIntensity = MathUtils.lerp(
         (lampRef.current.material as any).emissiveIntensity ?? 0,
-        target * 1.8 + 0.05,
+        target * 2.4 + 0.05,
         dt,
       )
     }
@@ -680,7 +724,7 @@ function GardenLantern({ node }: { node: ItemNode }) {
         <cylinderGeometry args={[0.018, 0.018, stemHeight, 8]} />
         <meshStandardMaterial color="#1a1a1a" metalness={0.85} roughness={0.35} />
       </mesh>
-      {/* Lamp head */}
+      {/* Lamp head — emissive bulb, brighter to compensate for no point light */}
       <mesh ref={lampRef} position={[0, stemHeight + 0.06, 0]}>
         <sphereGeometry args={[0.075, 12, 8]} />
         <meshStandardMaterial
@@ -691,15 +735,6 @@ function GardenLantern({ node }: { node: ItemNode }) {
           roughness={0.4}
         />
       </mesh>
-      {/* Tiny path-glow point light */}
-      <pointLight
-        ref={lightRef}
-        color="#ffd9a0"
-        decay={2}
-        distance={3.5}
-        intensity={0}
-        position={[0, stemHeight + 0.06, 0]}
-      />
     </group>
   )
 }
