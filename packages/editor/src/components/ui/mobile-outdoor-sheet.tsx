@@ -317,7 +317,7 @@ function SectionStarters({ onClose }: { onClose: () => void }) {
   )
 
   return (
-    <Section icon="lucide:layout-template" title="Starter scenes">
+    <Section icon="lucide:layout-template" title="Start from Starter">
       <button
         className="mb-2 flex w-full items-center gap-2 rounded-lg border border-white/8 bg-white/4 px-3 py-2.5 text-left text-white transition-colors hover:bg-white/8"
         onClick={() => {
@@ -327,7 +327,7 @@ function SectionStarters({ onClose }: { onClose: () => void }) {
         type="button"
       >
         <IconifyIcon className="text-white/70" height={14} icon="lucide:wand-2" width={14} />
-        <span className="font-medium text-[13px]">Open vibe picker…</span>
+        <span className="font-medium text-[13px]">Open full picker…</span>
       </button>
       <div className="grid grid-cols-1 gap-2">
         {STARTER_SCENE_ORDER.map((id) => {
