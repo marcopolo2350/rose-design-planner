@@ -646,6 +646,100 @@ function PlanterBox({ node }: { node: ItemNode }) {
                 )
               })
             : null}
+
+          {/* BETWEEN-CLUMP FILLER — small irregular shapes nestled between
+              main clumps to break up the rhythm of repeated spheres. Each
+              one is small, low, and positioned so it spans the gap. */}
+          {clumpCount >= 4
+            ? Array.from({ length: clumpCount - 1 }, (_, i) => {
+                const t = (i + 0.5) / clumpCount
+                const offset = (t - 0.5) * (longLen - clumpRadius * 0.6)
+                const p1 = ((i * 1.547 + longLen * 0.293) % 1 + 1) % 1
+                const p2 = ((i * 0.823 + longLen * 0.587) % 1 + 1) % 1
+                // Skip ~30% of fillers for irregular spacing
+                if (p1 > 0.7) return null
+                const lateral = (p2 - 0.5) * shortLen * 0.25
+                const cx = longAxis === 'x' ? offset : lateral
+                const cz = longAxis === 'z' ? offset : lateral
+                return (
+                  <mesh
+                    castShadow
+                    key={`hedge-fill-${i}`}
+                    position={[cx, boxHeight + clumpRadius * (0.55 + p1 * 0.15), cz]}
+                  >
+                    <sphereGeometry args={[clumpRadius * (0.42 + p2 * 0.15), 8, 6]} />
+                    <meshStandardMaterial
+                      color={greens[(i + 1 + Math.floor(p1 * 7)) % greens.length]}
+                      metalness={0}
+                      roughness={1}
+                    />
+                  </mesh>
+                )
+              })
+            : null}
+
+          {/* BASE-OF-HEDGE GRASS TUFTS — small ornamental-grass clumps
+              at the base of the hedge breaking the planter-meets-ground
+              line. Slightly different green than the hedge itself. */}
+          {clumpCount >= 3
+            ? Array.from({ length: Math.max(3, Math.floor(clumpCount * 0.6)) }, (_, i) => {
+                const grassCount = Math.max(3, Math.floor(clumpCount * 0.6))
+                const t = (i + 0.5) / grassCount
+                const offset = (t - 0.5) * longLen * 0.92
+                const side = i % 2 === 0 ? 1 : -1
+                const p1 = ((i * 1.319 + longLen * 0.721) % 1 + 1) % 1
+                const p2 = ((i * 2.103 + longLen * 0.131) % 1 + 1) % 1
+                // Skip ~25% for irregular density
+                if (p1 > 0.75) return null
+                const cx =
+                  longAxis === 'x'
+                    ? offset
+                    : side * shortLen * (0.5 + p1 * 0.15)
+                const cz =
+                  longAxis === 'z'
+                    ? offset
+                    : side * shortLen * (0.5 + p1 * 0.15)
+                const grassR = clumpRadius * (0.18 + p2 * 0.12)
+                // Render 2-3 small overlapping spheres per tuft for a fluffy look
+                return (
+                  <group
+                    key={`hedge-grass-${i}`}
+                    position={[cx, boxHeight + grassR * 0.5, cz]}
+                  >
+                    <mesh castShadow>
+                      <sphereGeometry args={[grassR, 6, 5]} />
+                      <meshStandardMaterial
+                        color="#7da256"
+                        metalness={0}
+                        roughness={1}
+                      />
+                    </mesh>
+                    <mesh
+                      castShadow
+                      position={[grassR * 0.4, grassR * 0.3, grassR * 0.2]}
+                    >
+                      <sphereGeometry args={[grassR * 0.7, 5, 4]} />
+                      <meshStandardMaterial
+                        color="#90b86a"
+                        metalness={0}
+                        roughness={1}
+                      />
+                    </mesh>
+                    <mesh
+                      castShadow
+                      position={[-grassR * 0.35, grassR * 0.2, -grassR * 0.25]}
+                    >
+                      <sphereGeometry args={[grassR * 0.65, 5, 4]} />
+                      <meshStandardMaterial
+                        color="#6f9648"
+                        metalness={0}
+                        roughness={1}
+                      />
+                    </mesh>
+                  </group>
+                )
+              })
+            : null}
         </>
       ) : (
         <>
@@ -1647,6 +1741,148 @@ function MansionBlock({ node }: { node: ItemNode }) {
 
         return (
           <group name="mansion-interiors">
+            {/* ─── ROOM-DIVIDER WALLS — partial walls between lounge,
+                kitchen, recess and the wings. Reads as "rooms separated"
+                through the glass without building real interiors. ─── */}
+            {/* Lounge ↔ Recess wall */}
+            <mesh
+              position={[
+                -recessW / 2 - 0.6,
+                plinthH + h / 2,
+                intZ - 0.2,
+              ]}
+            >
+              <boxGeometry args={[0.18, h - 0.4, 1.4]} />
+              <meshStandardMaterial color="#1a1a1a" metalness={0.15} roughness={0.7} />
+            </mesh>
+            {/* Kitchen ↔ Recess wall */}
+            <mesh
+              position={[
+                recessW / 2 + 0.6,
+                plinthH + h / 2,
+                intZ - 0.2,
+              ]}
+            >
+              <boxGeometry args={[0.18, h - 0.4, 1.4]} />
+              <meshStandardMaterial color="#1a1a1a" metalness={0.15} roughness={0.7} />
+            </mesh>
+
+            {/* ─── REAR-ROOM DEEP GLOW LAYER — emissive plane set behind
+                the room cards, ~3.5m deep into the mansion volume. Gives
+                the illusion of "another room beyond" through narrow gaps,
+                doorway slivers, and around the silhouette furniture. ─── */}
+            {(() => {
+              const deepZ = halfD - wallThickness - 4.0
+              return (
+                <>
+                  {/* Lounge deep glow (warm, suggests adjacent dining/hall) */}
+                  <mesh
+                    position={[loungeX - 0.4, plinthH + h / 2, deepZ]}
+                    ref={(m) => {
+                      if (m) refs.current.glass.push(m)
+                    }}
+                  >
+                    <boxGeometry args={[loungeRoomW * 0.7, h - 0.6, 0.04]} />
+                    <meshStandardMaterial
+                      color="#3a2010"
+                      emissive="#ffa05a"
+                      emissiveIntensity={0.05}
+                      metalness={0}
+                      roughness={0.85}
+                    />
+                  </mesh>
+                  {/* Kitchen deep glow (slightly cooler, suggests pantry) */}
+                  <mesh
+                    position={[kitchenX + 0.3, plinthH + h / 2, deepZ]}
+                    ref={(m) => {
+                      if (m) refs.current.glass.push(m)
+                    }}
+                  >
+                    <boxGeometry args={[kitchenRoomW * 0.7, h - 0.6, 0.04]} />
+                    <meshStandardMaterial
+                      color="#2a1a14"
+                      emissive="#ffa566"
+                      emissiveIntensity={0.04}
+                      metalness={0}
+                      roughness={0.85}
+                    />
+                  </mesh>
+                </>
+              )
+            })()}
+
+            {/* ─── DOORWAY SILHOUETTES — narrow tall openings cut into
+                each room-card with a brighter rear-glow showing through.
+                Reads as "visible doorway leading deeper into the home." */}
+            {(() => {
+              const doorH = h * 0.7
+              const doorW = 0.85
+              const doorZ = halfD - wallThickness - 0.4
+              return (
+                <>
+                  {/* Lounge doorway (right side of room) */}
+                  <group position={[loungeX + loungeRoomW * 0.32, plinthH + doorH / 2, doorZ - 1.2]}>
+                    {/* Door frame — dark vertical strips on either side */}
+                    {[-1, 1].map((s) => (
+                      <mesh key={`lounge-doorframe-${s}`} position={[(doorW / 2 + 0.04) * s, 0, 0]}>
+                        <boxGeometry args={[0.08, doorH, 0.18]} />
+                        <meshStandardMaterial color="#1a1a1a" metalness={0.2} roughness={0.6} />
+                      </mesh>
+                    ))}
+                    {/* Top of frame */}
+                    <mesh position={[0, doorH / 2 + 0.04, 0]}>
+                      <boxGeometry args={[doorW + 0.16, 0.08, 0.18]} />
+                      <meshStandardMaterial color="#1a1a1a" metalness={0.2} roughness={0.6} />
+                    </mesh>
+                    {/* Glow plane in the doorway opening — brighter than
+                        the room glow to suggest "lit room beyond" */}
+                    <mesh
+                      ref={(m) => {
+                        if (m) refs.current.glass.push(m)
+                      }}
+                    >
+                      <boxGeometry args={[doorW, doorH, 0.04]} />
+                      <meshStandardMaterial
+                        color="#5a3a1a"
+                        emissive="#ffd285"
+                        emissiveIntensity={0.08}
+                        metalness={0}
+                        roughness={0.7}
+                      />
+                    </mesh>
+                  </group>
+
+                  {/* Kitchen doorway (left side of room) */}
+                  <group position={[kitchenX - kitchenRoomW * 0.32, plinthH + doorH / 2, doorZ - 1.2]}>
+                    {[-1, 1].map((s) => (
+                      <mesh key={`kitchen-doorframe-${s}`} position={[(doorW / 2 + 0.04) * s, 0, 0]}>
+                        <boxGeometry args={[0.08, doorH, 0.18]} />
+                        <meshStandardMaterial color="#1a1a1a" metalness={0.2} roughness={0.6} />
+                      </mesh>
+                    ))}
+                    <mesh position={[0, doorH / 2 + 0.04, 0]}>
+                      <boxGeometry args={[doorW + 0.16, 0.08, 0.18]} />
+                      <meshStandardMaterial color="#1a1a1a" metalness={0.2} roughness={0.6} />
+                    </mesh>
+                    <mesh
+                      ref={(m) => {
+                        if (m) refs.current.glass.push(m)
+                      }}
+                    >
+                      <boxGeometry args={[doorW, doorH, 0.04]} />
+                      <meshStandardMaterial
+                        color="#5a3a1a"
+                        emissive="#ffd285"
+                        emissiveIntensity={0.08}
+                        metalness={0}
+                        roughness={0.7}
+                      />
+                    </mesh>
+                  </group>
+                </>
+              )
+            })()}
+
             {/* ─── LOUNGE (left south room) ─────────────────────────── */}
             {/* Back-wall room glow */}
             <RoomCard
@@ -2748,106 +2984,627 @@ function GardenLantern({ node }: { node: ItemNode }) {
   )
 }
 
-// ─── Pool Towel — folded white towel pile ──────────────────────────────────
+// ─── Champagne Bucket — silver bucket on a stand with bottle peeking out ──
 //
-// Two stacked rounded boxes representing a folded towel pile. Tiny decor
-// for poolside dressing — reads as "occupied lounge" without modeling
-// individual towels. Uses asset.dimensions so size scales naturally.
-function PoolTowel({ node }: { node: ItemNode }) {
+// Hospitality flagship — reads as "this is a luxury property" at a
+// glance. The bucket is a tapered cylinder with a thin rim, ice
+// suggested by light bumps, and a champagne-bottle silhouette rising
+// out of the top with a foil neck and gold cage hint.
+function ChampagneBucket({ node }: { node: ItemNode }) {
+  const handlers = useNodeEvents(node, 'item')
+  const [, h] = node.asset.dimensions
+  const stemH = h * 0.18
+  const bucketBottomR = h * 0.18
+  const bucketTopR = h * 0.24
+  const bucketH = h * 0.42
+  const bottleH = h * 0.6
+  const bottleR = h * 0.08
+  return (
+    <group {...handlers}>
+      {/* Stand base */}
+      <mesh castShadow position={[0, 0.005, 0]} receiveShadow>
+        <cylinderGeometry args={[bucketTopR * 0.55, bucketTopR * 0.7, 0.01, 14]} />
+        <meshStandardMaterial color="#a07a4a" metalness={0.85} roughness={0.2} />
+      </mesh>
+      {/* Stand pole */}
+      <mesh position={[0, stemH / 2 + 0.005, 0]}>
+        <cylinderGeometry args={[0.012, 0.012, stemH, 8]} />
+        <meshStandardMaterial color="#a07a4a" metalness={0.85} roughness={0.2} />
+      </mesh>
+      {/* Bucket — tapered silver cylinder */}
+      <mesh
+        castShadow
+        position={[0, stemH + bucketH / 2 + 0.005, 0]}
+        receiveShadow
+      >
+        <cylinderGeometry
+          args={[bucketTopR, bucketBottomR, bucketH, 16]}
+        />
+        <meshStandardMaterial
+          color="#dfdfdf"
+          metalness={0.85}
+          roughness={0.18}
+        />
+      </mesh>
+      {/* Bucket rim — slightly thicker band at the top */}
+      <mesh position={[0, stemH + bucketH + 0.005, 0]}>
+        <cylinderGeometry args={[bucketTopR + 0.008, bucketTopR + 0.008, 0.018, 16]} />
+        <meshStandardMaterial color="#c9c9c9" metalness={0.85} roughness={0.15} />
+      </mesh>
+      {/* Bucket handles — two D-rings on opposite sides */}
+      {[-1, 1].map((s) => (
+        <mesh
+          key={`handle-${s}`}
+          position={[bucketTopR * s + 0.01 * s, stemH + bucketH * 0.85, 0]}
+          rotation={[Math.PI / 2, 0, 0]}
+        >
+          <torusGeometry args={[0.025, 0.005, 6, 12, Math.PI]} />
+          <meshStandardMaterial color="#c9c9c9" metalness={0.85} roughness={0.18} />
+        </mesh>
+      ))}
+      {/* Ice suggestion — a few small white spheres at the top of the bucket */}
+      {[
+        [bucketTopR * 0.5, 0],
+        [-bucketTopR * 0.4, bucketTopR * 0.3],
+        [bucketTopR * 0.1, -bucketTopR * 0.4],
+        [-bucketTopR * 0.1, -bucketTopR * 0.1],
+      ].map(([ix, iz], i) => (
+        <mesh
+          key={`ice-${i}`}
+          position={[ix!, stemH + bucketH - 0.01, iz!]}
+        >
+          <sphereGeometry args={[0.03 + i * 0.003, 6, 5]} />
+          <meshStandardMaterial color="#f0f8fc" metalness={0.2} roughness={0.5} />
+        </mesh>
+      ))}
+      {/* Champagne bottle rising from the bucket */}
+      <group position={[0, stemH + bucketH + 0.02, 0]}>
+        {/* Bottle body */}
+        <mesh castShadow>
+          <cylinderGeometry args={[bottleR, bottleR * 1.1, bottleH * 0.55, 14]} />
+          <meshStandardMaterial
+            color="#1a3a3a"
+            metalness={0.4}
+            roughness={0.18}
+            transparent
+            opacity={0.94}
+          />
+        </mesh>
+        {/* Bottle shoulder */}
+        <mesh position={[0, bottleH * 0.35, 0]}>
+          <cylinderGeometry args={[bottleR * 0.55, bottleR, bottleH * 0.16, 14]} />
+          <meshStandardMaterial
+            color="#1a3a3a"
+            metalness={0.4}
+            roughness={0.18}
+            transparent
+            opacity={0.94}
+          />
+        </mesh>
+        {/* Bottle neck */}
+        <mesh castShadow position={[0, bottleH * 0.6, 0]}>
+          <cylinderGeometry args={[bottleR * 0.55, bottleR * 0.55, bottleH * 0.32, 12]} />
+          <meshStandardMaterial color="#1a3a3a" metalness={0.4} roughness={0.18} />
+        </mesh>
+        {/* Gold foil cap */}
+        <mesh position={[0, bottleH * 0.79, 0]}>
+          <cylinderGeometry args={[bottleR * 0.62, bottleR * 0.62, bottleH * 0.14, 12]} />
+          <meshStandardMaterial color="#c9a850" metalness={0.75} roughness={0.25} />
+        </mesh>
+        {/* Wire cage hint — small ring at the top */}
+        <mesh position={[0, bottleH * 0.84, 0]}>
+          <torusGeometry args={[bottleR * 0.6, 0.005, 4, 12]} />
+          <meshStandardMaterial color="#a8946a" metalness={0.85} roughness={0.25} />
+        </mesh>
+      </group>
+    </group>
+  )
+}
+
+// ─── Throw Blanket — folded throw draped over a chair-arm position ────────
+//
+// Casual luxury moment — a soft folded throw that reads as "draped over
+// the back of a sofa or chair." Two layered planes with a slight curl
+// at the front edge.
+function ThrowBlanket({ node }: { node: ItemNode }) {
   const handlers = useNodeEvents(node, 'item')
   const [w, h, d] = node.asset.dimensions
   return (
     <group {...handlers}>
-      {/* Bottom towel — wider, slightly creased shadow line */}
-      <mesh castShadow position={[0, h * 0.18, 0]} receiveShadow>
-        <boxGeometry args={[w, h * 0.36, d]} />
-        <meshStandardMaterial color="#f5efe3" metalness={0.02} roughness={0.85} />
+      {/* Main body — wide flat slab with a slight tilt */}
+      <mesh
+        castShadow
+        position={[0, h * 0.5, 0]}
+        rotation={[Math.PI * 0.04, 0, 0]}
+        receiveShadow
+      >
+        <boxGeometry args={[w, h * 0.3, d]} />
+        <meshStandardMaterial color="#9a8a72" metalness={0.05} roughness={0.85} />
       </mesh>
-      <mesh position={[0, h * 0.36, 0]}>
-        <boxGeometry args={[w + 0.005, 0.012, d + 0.005]} />
-        <meshStandardMaterial color="#d4ccbb" metalness={0.02} roughness={0.85} />
+      {/* Front fold flap — slightly drooping */}
+      <mesh
+        castShadow
+        position={[0, h * 0.32, d * 0.45]}
+        rotation={[-Math.PI * 0.18, 0, 0]}
+      >
+        <boxGeometry args={[w, h * 0.36, d * 0.5]} />
+        <meshStandardMaterial color="#8a7a66" metalness={0.05} roughness={0.88} />
       </mesh>
-      {/* Top towel — slightly inset, different tone */}
-      <mesh castShadow position={[0, h * 0.6, 0]} receiveShadow>
-        <boxGeometry args={[w * 0.94, h * 0.36, d * 0.94]} />
-        <meshStandardMaterial color="#fbf6ec" metalness={0.02} roughness={0.85} />
-      </mesh>
-      {/* Top crease */}
-      <mesh position={[0, h * 0.78, 0]}>
-        <boxGeometry args={[w * 0.94, 0.01, d * 0.94]} />
-        <meshStandardMaterial color="#dad2bf" metalness={0.02} roughness={0.85} />
+      {/* Edge fringe band — narrow contrast strip */}
+      <mesh position={[0, h * 0.65, 0]}>
+        <boxGeometry args={[w + 0.005, 0.01, d + 0.005]} />
+        <meshStandardMaterial color="#7a6a52" metalness={0.05} roughness={0.92} />
       </mesh>
     </group>
   )
 }
 
-// ─── Drinks Tray — bottle + 2 glasses on a tray ───────────────────────────
+// ─── Candle Cluster — three pillar candles of varied heights ──────────────
 //
-// Small luxury hospitality moment for coffee tables and bars.
+// Tiny dining/bar centerpiece. Three candles on a small round tray with
+// emissive flame tips that ramp at evening.
+function CandleCluster({ node }: { node: ItemNode }) {
+  const handlers = useNodeEvents(node, 'item')
+  const [w, h] = node.asset.dimensions
+  const flameRefs = useRef<Mesh[]>([])
+  const timeOfDay = useViewer((s) => s.timeOfDay)
+
+  useFrame((_, delta) => {
+    const dt = MathUtils.clamp(delta * 5, 0, 1)
+    const target =
+      timeOfDay === 'evening'
+        ? 1.4
+        : timeOfDay === 'dusk'
+          ? 0.85
+          : timeOfDay === 'goldenHour'
+            ? 0.25
+            : 0
+    for (const f of flameRefs.current) {
+      if (!f) continue
+      const m = f.material as any
+      if (typeof m.emissiveIntensity === 'number') {
+        m.emissiveIntensity = MathUtils.lerp(m.emissiveIntensity, target * 1.5 + 0.05, dt)
+      }
+    }
+  })
+
+  // Candles arranged in a triangle on a small tray
+  const candles = [
+    { x: 0, z: -w * 0.15, height: h * 0.85, r: 0.04 },
+    { x: w * 0.18, z: w * 0.1, height: h * 0.55, r: 0.045 },
+    { x: -w * 0.18, z: w * 0.1, height: h * 0.65, r: 0.04 },
+  ]
+
+  return (
+    <group {...handlers}>
+      {/* Small round tray base — brass */}
+      <mesh castShadow position={[0, 0.008, 0]} receiveShadow>
+        <cylinderGeometry args={[w * 0.4, w * 0.4, 0.015, 16]} />
+        <meshStandardMaterial color="#b8966a" metalness={0.7} roughness={0.32} />
+      </mesh>
+      {/* Tray rim */}
+      <mesh position={[0, 0.018, 0]}>
+        <torusGeometry args={[w * 0.4, 0.008, 8, 20]} />
+        <meshStandardMaterial color="#a07a4a" metalness={0.85} roughness={0.22} />
+      </mesh>
+      {candles.map((c, i) => (
+        <group key={`candle-${i}`} position={[c.x, 0.02, c.z]}>
+          {/* Wax pillar — pale ivory */}
+          <mesh castShadow position={[0, c.height / 2, 0]} receiveShadow>
+            <cylinderGeometry args={[c.r, c.r, c.height, 12]} />
+            <meshStandardMaterial color="#f5f0e0" metalness={0.05} roughness={0.7} />
+          </mesh>
+          {/* Wick base */}
+          <mesh position={[0, c.height + 0.005, 0]}>
+            <cylinderGeometry args={[0.005, 0.005, 0.025, 6]} />
+            <meshStandardMaterial color="#1a1a1a" metalness={0} roughness={0.8} />
+          </mesh>
+          {/* Flame — small emissive cone */}
+          <mesh
+            position={[0, c.height + 0.05, 0]}
+            ref={(m) => {
+              if (m) flameRefs.current[i] = m
+            }}
+          >
+            <coneGeometry args={[0.012, 0.05, 8]} />
+            <meshStandardMaterial
+              color="#fff5d6"
+              emissive="#ffb050"
+              emissiveIntensity={0.05}
+              metalness={0}
+              roughness={0.4}
+            />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  )
+}
+
+// ─── Pool Towel — folded white towel pile ──────────────────────────────────
+//
+// Spa-quality folded towel pile — three towels stacked with offset folds,
+// dark crease bands at every fold line, slightly varied tones, and a
+// subtle drape rolled towel on top. Reads as "luxury resort towels" at
+// medium distance without cloth simulation.
+function PoolTowel({ node }: { node: ItemNode }) {
+  const handlers = useNodeEvents(node, 'item')
+  const [w, h, d] = node.asset.dimensions
+
+  // Three different towel tones — subtle variance avoids reading as "stack
+  // of identical boxes." All are luxury-resort whites with slightly
+  // different undertones.
+  const towels = [
+    { tone: '#f5efe3', crease: '#cdc4b1' }, // bottom — warm cream
+    { tone: '#fbf6ec', crease: '#d8d0bb' }, // middle — ivory
+    { tone: '#fafafa', crease: '#d4d4d4' }, // top — pure white
+  ]
+  const towelH = h * 0.22
+  const folded = (
+    <>
+      {towels.map((t, i) => {
+        // Each towel is slightly inset from the one below — sells "stacked"
+        const inset = i * 0.02
+        const yBase = i * towelH
+        // Subtle width variance per towel (±2 %) so the stack edges aren't
+        // perfectly aligned
+        const wVar = w * (1 - inset) * (1 + (i % 2 === 0 ? 0.01 : -0.015))
+        const dVar = d * (1 - inset) * (1 - (i % 2 === 0 ? 0.005 : 0.02))
+        return (
+          <group key={`towel-${i}`}>
+            {/* Towel body */}
+            <mesh
+              castShadow
+              position={[i % 2 === 0 ? 0 : w * 0.012, yBase + towelH / 2, 0]}
+              receiveShadow
+            >
+              <boxGeometry args={[wVar, towelH, dVar]} />
+              <meshStandardMaterial
+                color={t.tone}
+                metalness={0.02}
+                roughness={0.92}
+              />
+            </mesh>
+            {/* Top crease band — subtle dark line at the fold */}
+            <mesh position={[i % 2 === 0 ? 0 : w * 0.012, yBase + towelH - 0.005, 0]}>
+              <boxGeometry args={[wVar + 0.005, 0.01, dVar + 0.005]} />
+              <meshStandardMaterial
+                color={t.crease}
+                metalness={0.02}
+                roughness={0.95}
+              />
+            </mesh>
+            {/* Front fold edge — narrow strip on the front face suggesting
+                a rolled-under hem (the visible "fold seam") */}
+            <mesh position={[i % 2 === 0 ? 0 : w * 0.012, yBase + towelH * 0.55, dVar / 2 + 0.003]}>
+              <boxGeometry args={[wVar * 0.95, towelH * 0.5, 0.012]} />
+              <meshStandardMaterial
+                color={t.crease}
+                metalness={0.02}
+                roughness={0.95}
+              />
+            </mesh>
+            {/* Side fold edges — thin vertical strips on the left/right
+                front corners suggesting hand-folded edges */}
+            {[-1, 1].map((s) => (
+              <mesh
+                key={`towel-side-${i}-${s}`}
+                position={[
+                  (i % 2 === 0 ? 0 : w * 0.012) + (wVar / 2 - 0.005) * s,
+                  yBase + towelH * 0.55,
+                  dVar / 2 - 0.005,
+                ]}
+              >
+                <boxGeometry args={[0.018, towelH * 0.92, 0.018]} />
+                <meshStandardMaterial
+                  color={t.crease}
+                  metalness={0.02}
+                  roughness={0.95}
+                />
+              </mesh>
+            ))}
+          </group>
+        )
+      })}
+    </>
+  )
+
+  // Rolled towel on top — small cylinder lying horizontally, suggests
+  // "spare rolled towel." Adds a vertical accent that breaks the
+  // geometric stack.
+  const rollR = Math.min(towelH * 0.55, d * 0.28)
+  const rollLen = w * 0.55
+  const rollY = towels.length * towelH + rollR
+
+  return (
+    <group {...handlers}>
+      {folded}
+      {/* Rolled towel — cylinder lying on top of the stack */}
+      <group position={[w * 0.18, rollY, 0]} rotation={[0, 0, Math.PI / 2]}>
+        <mesh castShadow receiveShadow>
+          <cylinderGeometry args={[rollR, rollR, rollLen, 14]} />
+          <meshStandardMaterial color="#fafafa" metalness={0.02} roughness={0.92} />
+        </mesh>
+        {/* Roll seam — thin spiral hint on the cylinder */}
+        <mesh position={[0, 0, 0]} rotation={[0, Math.PI / 5, 0]}>
+          <cylinderGeometry args={[rollR + 0.002, rollR + 0.002, rollLen * 0.06, 14]} />
+          <meshStandardMaterial color="#d4d4d4" metalness={0.02} roughness={0.95} />
+        </mesh>
+      </group>
+    </group>
+  )
+}
+
+// ─── Drinks Tray — bottle + 2 stemmed glasses on a luxury tray ────────────
+//
+// Hospitality staging moment. The bottle has a body + tapered shoulder +
+// neck + cap, the glasses have a proper stem + curved bowl + base disk
+// with subtle liquid tint, and the tray has a brass-rimmed walnut base
+// with a recessed center. Each glass and bottle includes a separate
+// "liquid" mesh so the contents read as filled to a level rather than
+// hollow.
 function DrinksTray({ node }: { node: ItemNode }) {
   const handlers = useNodeEvents(node, 'item')
   const [w, h, d] = node.asset.dimensions
+
+  // Tray geometry parameters
+  const trayH = 0.04
+  const trayInset = 0.02 // recessed inner panel below the rim
+  const rimH = 0.05
+  const rimT = 0.035
+
+  // Bottle parameters — tall slender wine bottle silhouette
+  const bottleY0 = trayH + 0.005 // sits on the tray floor
+  const bottleBodyR = h * 0.085
+  const bottleBodyH = h * 0.5
+  const bottleShoulderH = h * 0.12
+  const bottleNeckR = h * 0.038
+  const bottleNeckH = h * 0.18
+  const bottleCapH = h * 0.04
+
+  // Glass parameters — proper wine-glass profile
+  const glassStemH = h * 0.32
+  const glassBowlH = h * 0.26
+  const glassBowlR = h * 0.13
+  const glassBaseR = h * 0.11
+
+  // Wine color (deep red — reads as luxury at any time of day)
+  const wineColor = '#3a0a16'
+
   return (
     <group {...handlers}>
-      {/* Tray base — dark walnut */}
-      <mesh castShadow position={[0, 0.025, 0]} receiveShadow>
-        <boxGeometry args={[w, 0.05, d]} />
+      {/* ── TRAY ─────────────────────────────────────────────────────── */}
+      {/* Walnut base panel */}
+      <mesh castShadow position={[0, trayH / 2, 0]} receiveShadow>
+        <boxGeometry args={[w, trayH, d]} />
         <meshStandardMaterial color="#2a1a0e" metalness={0.15} roughness={0.65} />
       </mesh>
-      {/* Bronze tray rim */}
+      {/* Recessed center panel — slightly darker, sells "well-made tray" */}
+      <mesh position={[0, trayH + 0.001, 0]}>
+        <boxGeometry args={[w - rimT * 2, 0.005, d - rimT * 2]} />
+        <meshStandardMaterial color="#1a0c06" metalness={0.18} roughness={0.7} />
+      </mesh>
+      {/* Brass rim (4 sides) */}
       {[-1, 1].map((s) => (
-        <mesh key={`tr-x-${s}`} position={[(w / 2 - 0.02) * s, 0.06, 0]}>
-          <boxGeometry args={[0.04, 0.06, d]} />
-          <meshStandardMaterial color="#a98654" metalness={0.6} roughness={0.32} />
+        <mesh key={`tr-x-${s}`} position={[(w / 2 - rimT / 2) * s, trayH / 2 + rimH / 2, 0]}>
+          <boxGeometry args={[rimT, rimH, d]} />
+          <meshStandardMaterial color="#b8966a" metalness={0.7} roughness={0.28} />
         </mesh>
       ))}
       {[-1, 1].map((s) => (
-        <mesh key={`tr-z-${s}`} position={[0, 0.06, (d / 2 - 0.02) * s]}>
-          <boxGeometry args={[w, 0.06, 0.04]} />
-          <meshStandardMaterial color="#a98654" metalness={0.6} roughness={0.32} />
+        <mesh key={`tr-z-${s}`} position={[0, trayH / 2 + rimH / 2, (d / 2 - rimT / 2) * s]}>
+          <boxGeometry args={[w, rimH, rimT]} />
+          <meshStandardMaterial color="#b8966a" metalness={0.7} roughness={0.28} />
         </mesh>
       ))}
-      {/* Bottle — tall slender cylinder */}
-      <mesh castShadow position={[w * 0.25, 0.05 + h * 0.45, 0]}>
-        <cylinderGeometry args={[h * 0.08, h * 0.1, h * 0.85, 12]} />
-        <meshStandardMaterial
-          color="#1a3a1a"
-          metalness={0.2}
-          roughness={0.45}
-          transparent
-          opacity={0.92}
-        />
-      </mesh>
-      {/* Bottle neck */}
-      <mesh position={[w * 0.25, 0.05 + h * 0.92, 0]}>
-        <cylinderGeometry args={[h * 0.04, h * 0.05, h * 0.18, 10]} />
-        <meshStandardMaterial color="#1a3a1a" metalness={0.2} roughness={0.45} />
-      </mesh>
-      {/* Two stemmed glasses on the other side of the tray */}
+      {/* Brass corner caps for extra detail */}
+      {[
+        [-1, -1],
+        [1, -1],
+        [-1, 1],
+        [1, 1],
+      ].map(([sx, sz], i) => (
+        <mesh
+          key={`tr-corner-${i}`}
+          position={[(w / 2 - 0.02) * sx!, trayH / 2 + rimH + 0.01, (d / 2 - 0.02) * sz!]}
+        >
+          <cylinderGeometry args={[0.018, 0.018, 0.015, 8]} />
+          <meshStandardMaterial color="#a07a4a" metalness={0.85} roughness={0.2} />
+        </mesh>
+      ))}
+
+      {/* ── BOTTLE — green wine bottle profile ─────────────────────── */}
+      <group position={[w * 0.25, bottleY0, 0]}>
+        {/* Body — main cylindrical mass */}
+        <mesh castShadow>
+          <cylinderGeometry
+            args={[bottleBodyR, bottleBodyR * 1.05, bottleBodyH, 16]}
+          />
+          <meshStandardMaterial
+            color="#1a3a1a"
+            emissive="#0a1f0a"
+            emissiveIntensity={0.06}
+            metalness={0.35}
+            roughness={0.18}
+            transparent
+            opacity={0.94}
+          />
+        </mesh>
+        {/* Shoulder — tapered cone narrowing to the neck */}
+        <mesh position={[0, bottleBodyH / 2 + bottleShoulderH / 2, 0]}>
+          <cylinderGeometry
+            args={[bottleNeckR, bottleBodyR, bottleShoulderH, 16]}
+          />
+          <meshStandardMaterial
+            color="#1a3a1a"
+            metalness={0.35}
+            roughness={0.18}
+            transparent
+            opacity={0.94}
+          />
+        </mesh>
+        {/* Neck */}
+        <mesh
+          castShadow
+          position={[0, bottleBodyH / 2 + bottleShoulderH + bottleNeckH / 2, 0]}
+        >
+          <cylinderGeometry args={[bottleNeckR, bottleNeckR, bottleNeckH, 12]} />
+          <meshStandardMaterial
+            color="#1a3a1a"
+            metalness={0.35}
+            roughness={0.18}
+            transparent
+            opacity={0.94}
+          />
+        </mesh>
+        {/* Foil cap on the neck */}
+        <mesh
+          position={[
+            0,
+            bottleBodyH / 2 + bottleShoulderH + bottleNeckH - bottleCapH / 2,
+            0,
+          ]}
+        >
+          <cylinderGeometry args={[bottleNeckR + 0.003, bottleNeckR + 0.003, bottleCapH, 12]} />
+          <meshStandardMaterial color="#5a0a14" metalness={0.55} roughness={0.4} />
+        </mesh>
+        {/* Wine label — small dark rectangle wrapping the body */}
+        <mesh position={[0, 0.05, bottleBodyR + 0.001]}>
+          <boxGeometry args={[bottleBodyR * 1.1, bottleBodyH * 0.45, 0.003]} />
+          <meshStandardMaterial color="#1a0a06" metalness={0.2} roughness={0.7} />
+        </mesh>
+        {/* Label gold accent stripe */}
+        <mesh position={[0, 0.13, bottleBodyR + 0.0015]}>
+          <boxGeometry args={[bottleBodyR * 1.05, 0.012, 0.002]} />
+          <meshStandardMaterial color="#b8966a" metalness={0.7} roughness={0.3} />
+        </mesh>
+      </group>
+
+      {/* ── TWO STEMMED GLASSES ─────────────────────────────────────── */}
       {[-0.18, 0.18].map((sz) => (
-        <group key={`glass-${sz}`} position={[-w * 0.25, 0, sz]}>
-          {/* Stem */}
-          <mesh position={[0, 0.05 + h * 0.18, 0]}>
-            <cylinderGeometry args={[0.012, 0.012, h * 0.36, 6]} />
-            <meshStandardMaterial color="#dcd6c8" metalness={0.4} roughness={0.15} />
-          </mesh>
-          {/* Bowl */}
-          <mesh position={[0, 0.05 + h * 0.42, 0]}>
-            <cylinderGeometry args={[h * 0.12, h * 0.07, h * 0.22, 12]} />
+        <group key={`glass-${sz}`} position={[-w * 0.22, trayH + 0.003, sz]}>
+          {/* Base disk */}
+          <mesh>
+            <cylinderGeometry args={[glassBaseR, glassBaseR, 0.005, 14]} />
             <meshStandardMaterial
-              color="#dcd6c8"
+              color="#f5fbff"
+              metalness={0.4}
+              roughness={0.08}
+              transparent
+              opacity={0.6}
+            />
+          </mesh>
+          {/* Stem — thin tapered cylinder */}
+          <mesh position={[0, glassStemH / 2 + 0.003, 0]}>
+            <cylinderGeometry
+              args={[0.011, 0.013, glassStemH, 8]}
+            />
+            <meshStandardMaterial
+              color="#f5fbff"
               metalness={0.45}
-              roughness={0.1}
+              roughness={0.06}
               transparent
               opacity={0.55}
             />
           </mesh>
-          {/* Base disk */}
-          <mesh position={[0, 0.05 + 0.005, 0]}>
-            <cylinderGeometry args={[h * 0.1, h * 0.1, 0.01, 12]} />
-            <meshStandardMaterial color="#dcd6c8" metalness={0.45} roughness={0.15} />
+          {/* Bowl — wider tulip shape, narrower at top */}
+          <mesh
+            position={[
+              0,
+              glassStemH + 0.005 + glassBowlH * 0.45,
+              0,
+            ]}
+          >
+            <cylinderGeometry
+              args={[glassBowlR * 0.85, glassBowlR * 0.55, glassBowlH, 14]}
+            />
+            <meshStandardMaterial
+              color="#f5fbff"
+              metalness={0.5}
+              roughness={0.05}
+              transparent
+              opacity={0.45}
+            />
+          </mesh>
+          {/* Bowl rim — narrows further at the very top */}
+          <mesh
+            position={[
+              0,
+              glassStemH + 0.005 + glassBowlH * 0.95,
+              0,
+            ]}
+          >
+            <cylinderGeometry
+              args={[glassBowlR * 0.7, glassBowlR * 0.78, glassBowlH * 0.15, 14]}
+            />
+            <meshStandardMaterial
+              color="#f5fbff"
+              metalness={0.5}
+              roughness={0.05}
+              transparent
+              opacity={0.45}
+            />
+          </mesh>
+          {/* Wine fill — opaque liquid sitting in the lower 60% of the bowl */}
+          <mesh
+            position={[
+              0,
+              glassStemH + 0.005 + glassBowlH * 0.32,
+              0,
+            ]}
+          >
+            <cylinderGeometry
+              args={[glassBowlR * 0.7, glassBowlR * 0.5, glassBowlH * 0.55, 14]}
+            />
+            <meshStandardMaterial
+              color={wineColor}
+              metalness={0.18}
+              roughness={0.25}
+              transparent
+              opacity={0.9}
+            />
+          </mesh>
+          {/* Wine surface highlight — very thin disk at the top of the
+              liquid suggesting a meniscus */}
+          <mesh
+            position={[
+              0,
+              glassStemH + 0.005 + glassBowlH * 0.59,
+              0,
+            ]}
+          >
+            <cylinderGeometry
+              args={[glassBowlR * 0.7, glassBowlR * 0.7, 0.003, 14]}
+            />
+            <meshStandardMaterial
+              color="#5a1422"
+              emissive="#3a0612"
+              emissiveIntensity={0.08}
+              metalness={0.45}
+              roughness={0.18}
+            />
           </mesh>
         </group>
+      ))}
+
+      {/* ── SMALL DECORATIVE ACCENT — tiny olive/garnish bowl ───────── */}
+      <mesh position={[w * 0.15, trayH + 0.012, d * 0.3]}>
+        <cylinderGeometry args={[0.045, 0.04, 0.025, 14]} />
+        <meshStandardMaterial color="#1a1a1a" metalness={0.4} roughness={0.45} />
+      </mesh>
+      {/* Olive contents — three tiny dark spheres */}
+      {[
+        [0.01, 0.005],
+        [-0.01, 0.005],
+        [0, -0.01],
+      ].map(([ox, oz], i) => (
+        <mesh
+          key={`olive-${i}`}
+          position={[w * 0.15 + ox!, trayH + 0.028, d * 0.3 + oz!]}
+        >
+          <sphereGeometry args={[0.012, 8, 6]} />
+          <meshStandardMaterial color="#3a4a18" metalness={0.2} roughness={0.5} />
+        </mesh>
       ))}
     </group>
   )
@@ -2870,6 +3627,9 @@ const PROCEDURAL_REGISTRY: Record<
   'mansion-block': MansionBlock,
   'pool-towel': PoolTowel,
   'drinks-tray': DrinksTray,
+  'champagne-bucket': ChampagneBucket,
+  'throw-blanket': ThrowBlanket,
+  'candle-cluster': CandleCluster,
 }
 
 export const PROCEDURAL_ITEM_IDS = Object.keys(PROCEDURAL_REGISTRY)

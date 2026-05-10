@@ -284,6 +284,42 @@ const ASSETS: Record<string, CatalogAsset> = {
     scale: [1, 1, 1],
     tags: ['leisure', 'floor', 'decor'],
   },
+  'champagne-bucket': {
+    id: 'champagne-bucket',
+    category: 'outdoor',
+    name: 'Champagne Bucket',
+    thumbnail: '/items/champagne-bucket/thumbnail.webp',
+    src: 'proc://champagne-bucket',
+    dimensions: [0.4, 1.0, 0.4],
+    offset: [0, 0, 0],
+    rotation: [0, 0, 0],
+    scale: [1, 1, 1],
+    tags: ['leisure', 'floor', 'decor'],
+  },
+  'throw-blanket': {
+    id: 'throw-blanket',
+    category: 'outdoor',
+    name: 'Throw Blanket',
+    thumbnail: '/items/throw-blanket/thumbnail.webp',
+    src: 'proc://throw-blanket',
+    dimensions: [0.7, 0.18, 0.5],
+    offset: [0, 0, 0],
+    rotation: [0, 0, 0],
+    scale: [1, 1, 1],
+    tags: ['leisure', 'floor', 'decor'],
+  },
+  'candle-cluster': {
+    id: 'candle-cluster',
+    category: 'outdoor',
+    name: 'Candle Cluster',
+    thumbnail: '/items/candle-cluster/thumbnail.webp',
+    src: 'proc://candle-cluster',
+    dimensions: [0.4, 0.45, 0.4],
+    offset: [0, 0, 0],
+    rotation: [0, 0, 0],
+    scale: [1, 1, 1],
+    tags: ['leisure', 'floor', 'decor', 'lighting'],
+  },
   'dining-chair': {
     id: 'dining-chair',
     category: 'furniture',
@@ -1125,6 +1161,35 @@ const SCENES: Record<StarterSceneId, StarterSceneSpec> = {
       { asset: 'bush', position: [25, 0, 17], scale: [0.55, 0.55, 0.55] },
       { asset: 'bush', position: [25, 0, 19], scale: [0.5, 0.5, 0.5] },
       { asset: 'garden-lantern', position: [25, 0, 18] },
+
+      // ─── MICRO-LUXURY POLISH PASS ─────────────────────────────────────
+
+      // ── CHAMPAGNE BUCKETS (hospitality flagship) ──────────────────────
+      // Poolside (between sunbeds), grand-dining-table side, roof deck
+      { asset: 'champagne-bucket', position: [0, 0, -7.5] },
+      { asset: 'champagne-bucket', position: [-13.5, 0, 5.5] }, // dining
+      { asset: 'champagne-bucket', position: [3, 7.2, -29.5] }, // roof deck
+
+      // ── THROW BLANKETS (casual luxury softness) ───────────────────────
+      // Draped over pergola sofa + roof-deck sofa + pavilion sofa
+      { asset: 'throw-blanket', position: [13, 0.45, 0.6], rotationY: -Math.PI / 2 }, // east pergola sofa
+      { asset: 'throw-blanket', position: [-1.6, 7.6, -31] }, // roof deck sofa
+      { asset: 'throw-blanket', position: [-1.4, 0.45, 34], rotationY: Math.PI }, // back pavilion sofa
+
+      // ── CANDLE CLUSTERS (evening warmth — flames ramp at evening) ─────
+      // Dining table + firepit side tables + roof deck + meditation circle
+      { asset: 'candle-cluster', position: [-14, 0.85, 5] }, // dining table
+      { asset: 'candle-cluster', position: [13, 0.45, 1.6] }, // east pergola coffee table
+      { asset: 'candle-cluster', position: [-0.5, 7.4, -29.5] }, // roof deck table
+      { asset: 'candle-cluster', position: [0, 0.05, -38.5] }, // meditation firepit center
+      { asset: 'candle-cluster', position: [0, 0.15, 32.6] }, // back pavilion table
+      { asset: 'candle-cluster', position: [-14, 0, 4.8], scale: [0.7, 0.7, 0.7] }, // dining secondary
+      { asset: 'candle-cluster', position: [-14, 0, 7.2], scale: [0.7, 0.7, 0.7] }, // dining secondary
+
+      // ── EXTRA POOL TOWELS (rolled style at rotated angle) ─────────────
+      // A different orientation for visual variety alongside the existing piles
+      { asset: 'pool-towel', position: [-8.5, 0, -7.5], rotationY: Math.PI / 2, scale: [0.85, 0.85, 0.85] },
+      { asset: 'pool-towel', position: [8.5, 0, 7.5], rotationY: -Math.PI / 2, scale: [0.85, 0.85, 0.85] },
     ],
   },
 
@@ -1417,6 +1482,17 @@ const SCENES: Record<StarterSceneId, StarterSceneSpec> = {
       { asset: 'pool-towel', position: [0, 0.8, 7.2], scale: [0.4, 0.3, 0.4] },
       // Drinks tray on the dining table
       { asset: 'drinks-tray', position: [0, 0.85, 6] },
+
+      // ─── MICRO-LUXURY POLISH PASS ─────────────────────────────────────
+      // Candle clusters at the dining table + lounge coffee table +
+      // firepit nook center
+      { asset: 'candle-cluster', position: [0, 0.85, 5.5] },
+      { asset: 'candle-cluster', position: [0, 0.45, -4.2] },
+      { asset: 'candle-cluster', position: [-5, 0.05, 1] }, // firepit nook center
+      // Throw blanket over the lounge sofa
+      { asset: 'throw-blanket', position: [-1, 0.45, -5.5], rotationY: Math.PI / 2, scale: [0.85, 0.85, 0.85] },
+      // Champagne bucket beside the dining table
+      { asset: 'champagne-bucket', position: [-3.5, 0, 6], scale: [0.85, 0.85, 0.85] },
     ],
   },
 

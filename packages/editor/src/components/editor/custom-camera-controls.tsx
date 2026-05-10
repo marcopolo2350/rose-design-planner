@@ -400,14 +400,58 @@ export const CustomCameraControls = () => {
   const showcaseMode = useViewer((s) => s.showcaseMode)
   const showcaseAutoplay = useViewer((s) => s.showcaseAutoplay)
   const previousShowcaseRef = useRef(showcaseMode)
+
+  // Cinematic shot list — each entry frames the scene from a different
+  // angle/distance with a duration. The autoplay loop walks through these
+  // in order, calling setLookAt with smooth=true so camera-controls tweens
+  // between shots. Within each shot a subtle azimuth drift adds motion
+  // without the "constantly spinning" feel.
+  //
+  // Coordinates are RELATIVE to the captured pivot:
+  //  polar     0 = top-down, π/2 = horizontal, π = looking up
+  //  azDelta   azimuth offset from the showcase entry azimuth
+  //  rFactor   radius multiplier vs the showcase entry radius
+  //  yLift     additional Y offset added to the target (frames upper
+  //            tiers of the scene without changing pivot)
+  //  duration  hold time in seconds before advancing to the next shot
+  //  drift     per-second azimuth drift while in this shot (radians)
+  const SHOTS = useMemo(
+    () => [
+      // 1. Hero wide — establishing pull-back, slightly elevated
+      { polar: 0.55, azDelta: 0.0, rFactor: 1.4, yLift: 4, duration: 9, drift: 0.025 },
+      // 2. Slow descent + push-in toward the entry/center
+      { polar: 0.85, azDelta: 0.45, rFactor: 0.78, yLift: 1, duration: 11, drift: 0.018 },
+      // 3. Low pool skim — drops below eye-level, dollys past the water
+      { polar: 1.18, azDelta: 0.95, rFactor: 0.62, yLift: -2, duration: 9, drift: 0.05 },
+      // 4. Rooftop reveal — rises high to show the rooflines + turret
+      { polar: 0.34, azDelta: 1.55, rFactor: 0.92, yLift: 10, duration: 10, drift: 0.022 },
+      // 5. Aerial pull-back — wide bird's-eye, top-down feel
+      { polar: 0.42, azDelta: 2.1, rFactor: 1.7, yLift: 14, duration: 8, drift: 0.015 },
+      // 6. Off-axis hero settle — comes back down for a final beauty shot
+      { polar: 0.62, azDelta: 2.7, rFactor: 1.05, yLift: 3, duration: 11, drift: 0.03 },
+    ],
+    [],
+  )
+
+  // Pivot + initial framing captured at the moment Showcase Mode is enabled.
+  // null when not in showcase.
+  const showcasePivot = useRef<{
+    target: Vector3
+    radius: number
+    azimuth: number
+  } | null>(null)
+  // Index of the current shot in SHOTS, or -1 if not auto-cycling.
+  const showcaseShotIdx = useRef(-1)
+  // Time elapsed in the current shot.
+  const showcaseShotElapsed = useRef(0)
+
   useEffect(() => {
     if (!controls.current) return
     const wasShowcase = previousShowcaseRef.current
     previousShowcaseRef.current = showcaseMode
 
     if (showcaseMode && !wasShowcase) {
-      // Capture the current target so the orbit pivots around what the
-      // user is actually looking at, not the world origin.
+      // Capture the current framing as the showcase pivot.
       const target = new Vector3()
       const position = new Vector3()
       controls.current.getTarget(target)
@@ -417,7 +461,16 @@ export const CustomCameraControls = () => {
       const startAzimuth = controls.current.azimuthAngle
       const heroPolar = Math.max(0.32, Math.min(controls.current.polarAngle, 1.05))
 
-      // Step 1: ease into a slightly elevated, off-axis hero angle.
+      showcasePivot.current = {
+        target: target.clone(),
+        radius,
+        azimuth: startAzimuth,
+      }
+      showcaseShotIdx.current = -1
+      showcaseShotElapsed.current = 0
+
+      // Step 1: ease into a slightly elevated off-axis hero angle (same
+      // gentle reveal as before — sells "the world is being presented").
       const heroAzimuth = startAzimuth + 0.6
       const heroX = target.x + Math.sin(heroAzimuth) * Math.sin(heroPolar) * radius
       const heroY = target.y + Math.cos(heroPolar) * radius
@@ -432,18 +485,71 @@ export const CustomCameraControls = () => {
         target.z,
         true,
       )
+    } else if (!showcaseMode && wasShowcase) {
+      showcasePivot.current = null
+      showcaseShotIdx.current = -1
     }
   }, [showcaseMode])
 
-  // Showcase autoplay: slow continuous orbit when both showcase mode AND
-  // autoplay are enabled. ~0.035 rad/sec ≈ a full revolution in ~3 min,
-  // slow enough to feel cinematic, not nauseating. Pauses while the user
-  // is dragging the camera so it doesn't fight them.
+  // Cinematic Showcase Autoplay — walks through SHOTS in order, easing
+  // between them via setLookAt with smooth=true. Within each shot, applies
+  // a tiny per-frame azimuth drift so the camera never sits still.
+  // Pauses while the user is dragging.
   useFrame((_, delta) => {
     if (!(showcaseMode && showcaseAutoplay && controls.current)) return
     if (useViewer.getState().cameraDragging) return
-    // azimuthAngle increases over time → camera dollies around the target
-    controls.current.azimuthAngle += 0.035 * delta
+    const pivot = showcasePivot.current
+    if (!pivot) return
+    if (SHOTS.length === 0) return
+
+    // First-frame initialization: kick off shot 0.
+    if (showcaseShotIdx.current === -1) {
+      showcaseShotIdx.current = 0
+      showcaseShotElapsed.current = 0
+      const shot = SHOTS[0]!
+      const az = pivot.azimuth + shot.azDelta
+      const r = pivot.radius * shot.rFactor
+      const px = pivot.target.x + Math.sin(az) * Math.sin(shot.polar) * r
+      const py = pivot.target.y + shot.yLift + Math.cos(shot.polar) * r
+      const pz = pivot.target.z + Math.cos(az) * Math.sin(shot.polar) * r
+      controls.current.setLookAt(
+        px,
+        py,
+        pz,
+        pivot.target.x,
+        pivot.target.y + shot.yLift * 0.4,
+        pivot.target.z,
+        true,
+      )
+      return
+    }
+
+    showcaseShotElapsed.current += delta
+    const currentShot = SHOTS[showcaseShotIdx.current]!
+
+    // Subtle drift while inside the shot — feels alive without orbiting.
+    controls.current.azimuthAngle += currentShot.drift * delta
+
+    if (showcaseShotElapsed.current >= currentShot.duration) {
+      // Advance to the next shot.
+      showcaseShotIdx.current = (showcaseShotIdx.current + 1) % SHOTS.length
+      showcaseShotElapsed.current = 0
+      const next = SHOTS[showcaseShotIdx.current]!
+      const az = pivot.azimuth + next.azDelta
+      const r = pivot.radius * next.rFactor
+      const px = pivot.target.x + Math.sin(az) * Math.sin(next.polar) * r
+      const py = pivot.target.y + next.yLift + Math.cos(next.polar) * r
+      const pz = pivot.target.z + Math.cos(az) * Math.sin(next.polar) * r
+      controls.current.setLookAt(
+        px,
+        py,
+        pz,
+        pivot.target.x,
+        pivot.target.y + next.yLift * 0.4,
+        pivot.target.z,
+        true,
+      )
+    }
   })
 
   if (walkthroughMode) {
