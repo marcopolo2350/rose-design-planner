@@ -405,6 +405,44 @@ const SCENES: Record<StarterSceneId, StarterSceneSpec> = {
     tint: 'text-amber-300',
     siteHalfSize: 44,
     slabs: [
+      // ── BASE LAWN — covers the whole property as manicured turf so no
+      //    area reads as bare ground. Built zones are slabbed on top with
+      //    elevation = 0.05 by default, which sits above this lawn (0.02). ──
+      {
+        polygon: [
+          [-42, -42],
+          [42, -42],
+          [42, 38],
+          [-42, 38],
+        ],
+        elevation: 0.02,
+        material: {
+          properties: {
+            color: '#4f7a3a',
+            roughness: 1,
+            metalness: 0,
+          },
+        },
+      },
+      // ── Reflecting pool at motor court center — luxury hotel signature ──
+      {
+        polygon: [
+          [-3, -26.5],
+          [3, -26.5],
+          [3, -23.5],
+          [-3, -23.5],
+        ],
+        elevation: 0.06,
+        material: {
+          properties: {
+            color: '#1a4f6d',
+            roughness: 0.1,
+            metalness: 0.6,
+            opacity: 0.9,
+            transparent: true,
+          },
+        },
+      },
       // ── Motor court (south of mansion, where the driveway ends) ──
       // Sized to fit between the mansion's south face (z=-28) and the
       // driveway connection point (z=-22).
@@ -740,6 +778,227 @@ const SCENES: Record<StarterSceneId, StarterSceneSpec> = {
       // band of bushes between the mansion and the pool deck.
       { asset: 'bush', position: [-17, 0, -25], scale: [0.55, 0.55, 0.55] },
       { asset: 'bush', position: [17, 0, -25], scale: [0.55, 0.55, 0.55] },
+
+      // ─── LUXURY UPGRADE PASS ──────────────────────────────────────────
+      // Everything below is the art-direction upgrade. Each block adds
+      // landscaping density, zone transitions, lighting drama, or
+      // furnished living moments.
+
+      // ── PROPERTY-PERIMETER HEDGE ROWS (privacy buffer + visual frame) ──
+      // Long stretched planter-boxes render as continuous boxwood hedges
+      // because PlanterBox detects aspect-ratio > 1.6 and tiles foliage.
+      // West perimeter — three segments (skipping where palms break the line)
+      { asset: 'planter-box', position: [-30, 0, -32], dimensions: [1, 0.85, 6] },
+      { asset: 'planter-box', position: [-30, 0, -22], dimensions: [1, 0.85, 6] },
+      { asset: 'planter-box', position: [-30, 0, -12], dimensions: [1, 0.85, 6] },
+      { asset: 'planter-box', position: [-30, 0, 5], dimensions: [1, 0.85, 8] },
+      { asset: 'planter-box', position: [-30, 0, 26], dimensions: [1, 0.85, 8] },
+      // East perimeter
+      { asset: 'planter-box', position: [30, 0, -32], dimensions: [1, 0.85, 6] },
+      { asset: 'planter-box', position: [30, 0, -22], dimensions: [1, 0.85, 6] },
+      { asset: 'planter-box', position: [30, 0, -12], dimensions: [1, 0.85, 6] },
+      { asset: 'planter-box', position: [30, 0, 5], dimensions: [1, 0.85, 8] },
+      { asset: 'planter-box', position: [30, 0, 26], dimensions: [1, 0.85, 8] },
+      // South perimeter (back of property, beyond mansion)
+      { asset: 'planter-box', position: [-22, 0, -42], dimensions: [12, 0.85, 1] },
+      { asset: 'planter-box', position: [-8, 0, -42], dimensions: [12, 0.85, 1] },
+      { asset: 'planter-box', position: [8, 0, -42], dimensions: [12, 0.85, 1] },
+      { asset: 'planter-box', position: [22, 0, -42], dimensions: [12, 0.85, 1] },
+      // North perimeter (back of property, beyond sport courts)
+      { asset: 'planter-box', position: [-22, 0, 30], dimensions: [12, 0.85, 1] },
+      { asset: 'planter-box', position: [-8, 0, 30], dimensions: [12, 0.85, 1] },
+      { asset: 'planter-box', position: [8, 0, 30], dimensions: [12, 0.85, 1] },
+      { asset: 'planter-box', position: [22, 0, 30], dimensions: [12, 0.85, 1] },
+
+      // ── DRIVEWAY HEDGE ROWS (luxury arrival corridor) ──────────────────
+      { asset: 'planter-box', position: [-3.6, 0, -17.5], dimensions: [0.8, 0.85, 7] },
+      { asset: 'planter-box', position: [3.6, 0, -17.5], dimensions: [0.8, 0.85, 7] },
+
+      // ── MOTOR-COURT REFLECTING-POOL SURROUND ───────────────────────────
+      // Stone coping ring around the entry water feature
+      { asset: 'pool-coping', position: [0, 0, -25], dimensions: [6.4, 0.08, 3.4] },
+      // Twin urns flanking the reflecting pool
+      { asset: 'planter-box', position: [-4, 0, -25], scale: [0.85, 1.1, 0.85] },
+      { asset: 'planter-box', position: [4, 0, -25], scale: [0.85, 1.1, 0.85] },
+      // Welcome lanterns at reflecting-pool corners
+      { asset: 'garden-lantern', position: [-3.4, 0, -23.2] },
+      { asset: 'garden-lantern', position: [3.4, 0, -23.2] },
+      { asset: 'garden-lantern', position: [-3.4, 0, -26.8] },
+      { asset: 'garden-lantern', position: [3.4, 0, -26.8] },
+
+      // ── DENSE LANDSCAPING — bush clusters at zone seams ────────────────
+      // Pool deck NE corner cluster
+      { asset: 'bush', position: [16.5, 0, -11.5], scale: [0.7, 0.7, 0.7] },
+      { asset: 'bush', position: [17.5, 0, -10.5], scale: [0.55, 0.55, 0.55] },
+      { asset: 'bush', position: [18.5, 0, -12], scale: [0.5, 0.5, 0.5] },
+      // Pool deck NW corner cluster
+      { asset: 'bush', position: [-16.5, 0, -11.5], scale: [0.7, 0.7, 0.7] },
+      { asset: 'bush', position: [-17.5, 0, -10.5], scale: [0.55, 0.55, 0.55] },
+      { asset: 'bush', position: [-18.5, 0, -12], scale: [0.5, 0.5, 0.5] },
+      // Pool deck SE corner cluster
+      { asset: 'bush', position: [16.5, 0, 12], scale: [0.7, 0.7, 0.7] },
+      { asset: 'bush', position: [18, 0, 11], scale: [0.55, 0.55, 0.55] },
+      { asset: 'bush', position: [19, 0, 12.5], scale: [0.5, 0.5, 0.5] },
+      // Pool deck SW corner cluster
+      { asset: 'bush', position: [-16.5, 0, 12], scale: [0.7, 0.7, 0.7] },
+      { asset: 'bush', position: [-18, 0, 11], scale: [0.55, 0.55, 0.55] },
+      { asset: 'bush', position: [-19, 0, 12.5], scale: [0.5, 0.5, 0.5] },
+      // Tennis court sidelines
+      { asset: 'bush', position: [-10.5, 0, 17], scale: [0.55, 0.55, 0.55] },
+      { asset: 'bush', position: [10.5, 0, 17], scale: [0.55, 0.55, 0.55] },
+      { asset: 'bush', position: [-10.5, 0, 23], scale: [0.5, 0.5, 0.5] },
+      { asset: 'bush', position: [10.5, 0, 23], scale: [0.5, 0.5, 0.5] },
+      // Putting green frame
+      { asset: 'bush', position: [-23, 0, 16], scale: [0.55, 0.55, 0.55] },
+      { asset: 'bush', position: [-23, 0, 20], scale: [0.5, 0.5, 0.5] },
+      // Basketball court frame
+      { asset: 'bush', position: [23, 0, 16], scale: [0.55, 0.55, 0.55] },
+      { asset: 'bush', position: [23, 0, 20], scale: [0.5, 0.5, 0.5] },
+      // South side (between motor court and pool deck) — frame the zone
+      { asset: 'bush', position: [-13, 0, -19], scale: [0.55, 0.55, 0.55] },
+      { asset: 'bush', position: [13, 0, -19], scale: [0.55, 0.55, 0.55] },
+      { asset: 'bush', position: [-13, 0, -16], scale: [0.5, 0.5, 0.5] },
+      { asset: 'bush', position: [13, 0, -16], scale: [0.5, 0.5, 0.5] },
+
+      // ── ORNAMENTAL TREES adding mid-canopy depth ──────────────────────
+      { asset: 'tree', position: [-25, 0, -15], scale: [0.7, 0.7, 0.7] },
+      { asset: 'tree', position: [25, 0, -15], scale: [0.7, 0.7, 0.7] },
+      { asset: 'tree', position: [-25, 0, 8], scale: [0.65, 0.65, 0.65] },
+      { asset: 'tree', position: [25, 0, 8], scale: [0.65, 0.65, 0.65] },
+      { asset: 'tree', position: [-26, 0, 24], scale: [0.6, 0.6, 0.6] },
+      { asset: 'tree', position: [26, 0, 24], scale: [0.6, 0.6, 0.6] },
+      // Far-back trees
+      { asset: 'tree', position: [-18, 0, -39], scale: [0.55, 0.55, 0.55] },
+      { asset: 'tree', position: [18, 0, -39], scale: [0.55, 0.55, 0.55] },
+      { asset: 'tree', position: [-15, 0, 35], scale: [0.55, 0.55, 0.55] },
+      { asset: 'tree', position: [15, 0, 35], scale: [0.55, 0.55, 0.55] },
+      // Driveway entry trees
+      { asset: 'tree', position: [-9, 0, -32], scale: [0.55, 0.55, 0.55] },
+      { asset: 'tree', position: [9, 0, -32], scale: [0.55, 0.55, 0.55] },
+
+      // ── ADDITIONAL PALMS — denser ring, varied scales ─────────────────
+      { asset: 'palm', position: [-32, 0, -28], scale: [0.55, 0.55, 0.55] },
+      { asset: 'palm', position: [32, 0, -28], scale: [0.55, 0.55, 0.55] },
+      { asset: 'palm', position: [-36, 0, -20], scale: [0.5, 0.5, 0.5] },
+      { asset: 'palm', position: [36, 0, -20], scale: [0.5, 0.5, 0.5] },
+      { asset: 'palm', position: [-36, 0, 12], scale: [0.48, 0.48, 0.48] },
+      { asset: 'palm', position: [36, 0, 12], scale: [0.48, 0.48, 0.48] },
+      { asset: 'palm', position: [-36, 0, 24], scale: [0.46, 0.46, 0.46] },
+      { asset: 'palm', position: [36, 0, 24], scale: [0.46, 0.46, 0.46] },
+      // Motor court approach palms
+      { asset: 'palm', position: [-7, 0, -29.5], scale: [0.42, 0.42, 0.42] },
+      { asset: 'palm', position: [7, 0, -29.5], scale: [0.42, 0.42, 0.42] },
+
+      // ── STEPPING-STONE PATHS connecting zones ──────────────────────────
+      // Pool deck → Tennis court connector (north-south through the lawn)
+      { asset: 'stepping-stone', position: [0, 0, 11.7], scale: [1.4, 1, 1.4] },
+      { asset: 'stepping-stone', position: [0, 0, 12.5], scale: [1.4, 1, 1.4] },
+      { asset: 'stepping-stone', position: [0, 0, 13.2], scale: [1.4, 1, 1.4] },
+      // Pool deck → Putting green connector (west through the lawn)
+      { asset: 'stepping-stone', position: [-19, 0, 13], scale: [1.2, 1, 1.2] },
+      { asset: 'stepping-stone', position: [-21, 0, 13], scale: [1.2, 1, 1.2] },
+      // Pool deck → Basketball court connector (east through the lawn)
+      { asset: 'stepping-stone', position: [19, 0, 13], scale: [1.2, 1, 1.2] },
+      { asset: 'stepping-stone', position: [21, 0, 13], scale: [1.2, 1, 1.2] },
+
+      // ── LAWN-SIDE PERIMETER LANTERNS — soft glow at property edges ─────
+      // West perimeter
+      { asset: 'garden-lantern', position: [-29, 0, -36] },
+      { asset: 'garden-lantern', position: [-29, 0, -28] },
+      { asset: 'garden-lantern', position: [-29, 0, -19] },
+      { asset: 'garden-lantern', position: [-29, 0, -8] },
+      { asset: 'garden-lantern', position: [-29, 0, 1] },
+      { asset: 'garden-lantern', position: [-29, 0, 11] },
+      { asset: 'garden-lantern', position: [-29, 0, 22] },
+      { asset: 'garden-lantern', position: [-29, 0, 30] },
+      // East perimeter
+      { asset: 'garden-lantern', position: [29, 0, -36] },
+      { asset: 'garden-lantern', position: [29, 0, -28] },
+      { asset: 'garden-lantern', position: [29, 0, -19] },
+      { asset: 'garden-lantern', position: [29, 0, -8] },
+      { asset: 'garden-lantern', position: [29, 0, 1] },
+      { asset: 'garden-lantern', position: [29, 0, 11] },
+      { asset: 'garden-lantern', position: [29, 0, 22] },
+      { asset: 'garden-lantern', position: [29, 0, 30] },
+      // South back (behind mansion)
+      { asset: 'garden-lantern', position: [-15, 0, -41] },
+      { asset: 'garden-lantern', position: [-5, 0, -41] },
+      { asset: 'garden-lantern', position: [5, 0, -41] },
+      { asset: 'garden-lantern', position: [15, 0, -41] },
+      // North back (behind courts)
+      { asset: 'garden-lantern', position: [-15, 0, 33] },
+      { asset: 'garden-lantern', position: [-5, 0, 33] },
+      { asset: 'garden-lantern', position: [5, 0, 33] },
+      { asset: 'garden-lantern', position: [15, 0, 33] },
+
+      // ── KITCHEN BAR STOOLS (small lounge chairs scaled down) ──────────
+      // The outdoor kitchen island sits at [-15.5, 0, -8] facing south.
+      // Bar stools line the south side facing the chefs.
+      { asset: 'lounge-chair', position: [-16.5, 0, -7.1], rotationY: 0, scale: [0.4, 0.6, 0.4] },
+      { asset: 'lounge-chair', position: [-15.5, 0, -7.1], rotationY: 0, scale: [0.4, 0.6, 0.4] },
+      { asset: 'lounge-chair', position: [-14.5, 0, -7.1], rotationY: 0, scale: [0.4, 0.6, 0.4] },
+      // Side prep planters with herbs
+      { asset: 'planter-box', position: [-16.7, 0, -9.3], scale: [0.6, 0.7, 0.6] },
+      { asset: 'planter-box', position: [-14.3, 0, -9.3], scale: [0.6, 0.7, 0.6] },
+
+      // ── FIREPIT EXPANSION — more chairs, planter ring, extra warmth ───
+      // Add 2 more chairs to make a 6-chair conversation circle
+      { asset: 'lounge-chair', position: [12.6, 0, -10.0], rotationY: -Math.PI / 4 },
+      { asset: 'lounge-chair', position: [15.4, 0, -10.0], rotationY: Math.PI / 4 },
+      // Side tables
+      { asset: 'coffee-table', position: [16.5, 0, -8], scale: [0.4, 0.4, 0.4] },
+      { asset: 'coffee-table', position: [11.5, 0, -8], scale: [0.4, 0.4, 0.4] },
+      // Planter ring around the firepit
+      { asset: 'planter-box', position: [10, 0, -7], scale: [0.7, 0.7, 0.7] },
+      { asset: 'planter-box', position: [18, 0, -7], scale: [0.7, 0.7, 0.7] },
+
+      // ── PERGOLA LOUNGE EXPANSION (east end) ───────────────────────────
+      // Side-table + extra chair to make the lounge feel populated
+      { asset: 'coffee-table', position: [13, 0, -1.6], scale: [0.5, 0.5, 0.5] },
+      { asset: 'lounge-chair', position: [11, 0, 0], rotationY: Math.PI / 2, scale: [0.85, 0.85, 0.85] },
+      { asset: 'lounge-chair', position: [15, 0, 0], rotationY: -Math.PI / 2, scale: [0.85, 0.85, 0.85] },
+      { asset: 'planter-box', position: [13, 0, -2.4], scale: [0.7, 0.85, 0.7] },
+
+      // ── ROOF DECK FURNITURE — sky lounge moment ────────────────────────
+      // Roof deck is at y ≈ 7.2; mansion is at z=-35 so roof spans z=-42..-28
+      // Existing roof items: 2 lounge chairs at z=-29, lanterns at z=-28.5,
+      // planters at z=-31. Add a coffee table + a sofa group at the front.
+      { asset: 'coffee-table', position: [0, 7.2, -29.5], scale: [0.7, 0.7, 0.7] },
+      { asset: 'sofa', position: [0, 7.2, -31], rotationY: 0, scale: [0.85, 0.85, 0.85] },
+      { asset: 'planter-box', position: [-8, 7.2, -29] },
+      { asset: 'planter-box', position: [8, 7.2, -29] },
+      { asset: 'garden-lantern', position: [-6, 7.2, -29.5] },
+      { asset: 'garden-lantern', position: [6, 7.2, -29.5] },
+
+      // ── COURTYARD RECESSED LIGHTING — emissive lanterns flanking entry ──
+      { asset: 'garden-lantern', position: [-1.5, 0, -27.6] },
+      { asset: 'garden-lantern', position: [1.5, 0, -27.6] },
+      { asset: 'garden-lantern', position: [-2.5, 0, -22.3] },
+      { asset: 'garden-lantern', position: [2.5, 0, -22.3] },
+
+      // ── SPA-SIDE PLANTERS ──────────────────────────────────────────────
+      // Frame the hot tub with planters and a single lantern accent
+      { asset: 'planter-box', position: [-13, 0, -4], scale: [0.7, 0.85, 0.7] },
+      { asset: 'planter-box', position: [-13, 0, 4], scale: [0.7, 0.85, 0.7] },
+      { asset: 'garden-lantern', position: [-13.5, 0, 0] },
+
+      // ── DRIVEWAY-EDGE PERIMETER LANTERNS — arrival glow ───────────────
+      { asset: 'garden-lantern', position: [-4.2, 0, -27] },
+      { asset: 'garden-lantern', position: [4.2, 0, -27] },
+
+      // ── SIDE-YARD SOFTENING — bushes between mansion wings & perimeter ─
+      { asset: 'bush', position: [-26, 0, -34], scale: [0.6, 0.6, 0.6] },
+      { asset: 'bush', position: [26, 0, -34], scale: [0.6, 0.6, 0.6] },
+      { asset: 'bush', position: [-25, 0, -36], scale: [0.5, 0.5, 0.5] },
+      { asset: 'bush', position: [25, 0, -36], scale: [0.5, 0.5, 0.5] },
+      { asset: 'bush', position: [-21, 0, -38], scale: [0.55, 0.55, 0.55] },
+      { asset: 'bush', position: [21, 0, -38], scale: [0.55, 0.55, 0.55] },
+
+      // ── BACK-LAWN ORNAMENT — dense planted clusters between courts ────
+      { asset: 'bush', position: [0, 0, 27.5], scale: [0.6, 0.6, 0.6] },
+      { asset: 'bush', position: [-1.5, 0, 28.5], scale: [0.5, 0.5, 0.5] },
+      { asset: 'bush', position: [1.5, 0, 28.5], scale: [0.5, 0.5, 0.5] },
+      { asset: 'tree', position: [0, 0, 30], scale: [0.55, 0.55, 0.55] },
     ],
   },
 
@@ -750,6 +1009,24 @@ const SCENES: Record<StarterSceneId, StarterSceneSpec> = {
     mood: 'gardenRetreat',
     siteHalfSize: 16,
     slabs: [
+      // Base lawn — manicured turf covering the whole property so no
+      // bare-ground reads. Built zones layer above on default 0.05 elevation.
+      {
+        polygon: [
+          [-15, -15],
+          [15, -15],
+          [15, 15],
+          [-15, 15],
+        ],
+        elevation: 0.02,
+        material: {
+          properties: {
+            color: '#4f7a3a',
+            roughness: 1,
+            metalness: 0,
+          },
+        },
+      },
       // Main wooden lounge patio (back/north)
       {
         polygon: [
@@ -777,6 +1054,38 @@ const SCENES: Record<StarterSceneId, StarterSceneSpec> = {
           [1, -3],
           [1, 4],
           [-1, 4],
+        ],
+        materialPreset: 'library:wall-granite1',
+      },
+      // ── REFLECTING POOL — small water feature midway along the path ──
+      // A koi-pond moment. Sits inset to the east of the path between the
+      // two patios — gives the garden a contemplative center.
+      {
+        polygon: [
+          [1.6, -1.5],
+          [4.5, -1.5],
+          [4.5, 2.5],
+          [1.6, 2.5],
+        ],
+        elevation: 0.06,
+        material: {
+          properties: {
+            color: '#1e4a36',
+            roughness: 0.1,
+            metalness: 0.55,
+            opacity: 0.92,
+            transparent: true,
+          },
+        },
+      },
+      // ── COZY FIREPIT NOOK — tucked into the west side ──
+      // Small marble paver platform for an intimate fire moment.
+      {
+        polygon: [
+          [-7, -1],
+          [-3, -1],
+          [-3, 3],
+          [-7, 3],
         ],
         materialPreset: 'library:wall-granite1',
       },
@@ -865,6 +1174,108 @@ const SCENES: Record<StarterSceneId, StarterSceneSpec> = {
       { asset: 'planter-box', position: [12, 0, -7] },
       { asset: 'planter-box', position: [-12, 0, 2] },
       { asset: 'planter-box', position: [12, 0, 2] },
+
+      // ─── LUXURY UPGRADE PASS ──────────────────────────────────────────
+
+      // ── REFLECTING POOL DRESSING — coping + water-edge planting ───────
+      { asset: 'pool-coping', position: [3.05, 0, 0.5], dimensions: [3.1, 0.06, 4.2] },
+      // Lily-pad / planted ring around the koi pond (planters at the corners)
+      { asset: 'planter-box', position: [4.7, 0, -1.4], scale: [0.5, 0.7, 0.5] },
+      { asset: 'planter-box', position: [4.7, 0, 2.4], scale: [0.5, 0.7, 0.5] },
+      { asset: 'planter-box', position: [1.7, 0, -1.7], scale: [0.5, 0.7, 0.5] },
+      { asset: 'planter-box', position: [1.7, 0, 2.7], scale: [0.5, 0.7, 0.5] },
+      // A pair of small lanterns on the pond's east edge
+      { asset: 'garden-lantern', position: [4.8, 0, 0] },
+      { asset: 'garden-lantern', position: [4.8, 0, 1] },
+
+      // ── INTIMATE FIREPIT NOOK (west marble platform) ───────────────────
+      { asset: 'firepit', position: [-5, 0, 1] },
+      { asset: 'lounge-chair', position: [-3.5, 0, 0.5], rotationY: -Math.PI / 2 },
+      { asset: 'lounge-chair', position: [-6.5, 0, 0.5], rotationY: Math.PI / 2 },
+      { asset: 'lounge-chair', position: [-5, 0, 2.4], rotationY: Math.PI },
+      // Frame the nook with planters
+      { asset: 'planter-box', position: [-7.3, 0, 0], scale: [0.7, 0.85, 0.7] },
+      { asset: 'planter-box', position: [-7.3, 0, 2.5], scale: [0.7, 0.85, 0.7] },
+      { asset: 'planter-box', position: [-2.7, 0, -1.3], scale: [0.6, 0.8, 0.6] },
+      // Soft warm lanterns flanking the firepit nook
+      { asset: 'garden-lantern', position: [-7.3, 0, 1.2] },
+      { asset: 'garden-lantern', position: [-2.7, 0, 1.2] },
+
+      // ── HEDGE ENCLOSURE — privacy wall around the whole garden ────────
+      // Long stretched planter-boxes render as continuous boxwood hedges
+      // (PlanterBox detects aspect-ratio > 1.6 and tiles foliage).
+      // North hedge (back of property)
+      { asset: 'planter-box', position: [-7.5, 0, -14], dimensions: [9, 0.85, 0.8] },
+      { asset: 'planter-box', position: [3, 0, -14], dimensions: [10, 0.85, 0.8] },
+      // South hedge
+      { asset: 'planter-box', position: [-9, 0, 13], dimensions: [11, 0.85, 0.8] },
+      { asset: 'planter-box', position: [4.5, 0, 13], dimensions: [9, 0.85, 0.8] },
+      // East hedge
+      { asset: 'planter-box', position: [13.5, 0, -7], dimensions: [0.8, 0.85, 12] },
+      { asset: 'planter-box', position: [13.5, 0, 7], dimensions: [0.8, 0.85, 10] },
+      // West hedge
+      { asset: 'planter-box', position: [-13.5, 0, -7], dimensions: [0.8, 0.85, 12] },
+      { asset: 'planter-box', position: [-13.5, 0, 7], dimensions: [0.8, 0.85, 10] },
+
+      // ── PATH-EDGE LANDSCAPING — denser bushes lining the walk ─────────
+      { asset: 'bush', position: [-2, 0, -2.4], scale: [0.45, 0.45, 0.45] },
+      { asset: 'bush', position: [-1.6, 0, 1], scale: [0.4, 0.4, 0.4] },
+      { asset: 'bush', position: [-1.6, 0, 3], scale: [0.4, 0.4, 0.4] },
+      { asset: 'bush', position: [1.4, 0, -2.5], scale: [0.45, 0.45, 0.45] },
+
+      // ── SECOND-LAYER PLANTING — varied trees + shrub clusters ────────
+      // Closer-in ornamental layer between hedge wall and patios
+      { asset: 'tree', position: [-11, 0, -4], scale: [0.55, 0.55, 0.55] },
+      { asset: 'tree', position: [11, 0, -4], scale: [0.55, 0.55, 0.55] },
+      { asset: 'tree', position: [-11, 0, 7], scale: [0.5, 0.5, 0.5] },
+      { asset: 'tree', position: [11, 0, 7], scale: [0.5, 0.5, 0.5] },
+      // Background firs for evergreen depth
+      { asset: 'fir-tree', position: [-12, 0, 11], scale: [1.3, 1.3, 1.3] },
+      { asset: 'fir-tree', position: [12, 0, 11], scale: [1.3, 1.3, 1.3] },
+      // Dense bush clusters at hedge corners
+      { asset: 'bush', position: [-12, 0, -10], scale: [0.7, 0.7, 0.7] },
+      { asset: 'bush', position: [-10, 0, -11.5], scale: [0.55, 0.55, 0.55] },
+      { asset: 'bush', position: [12, 0, -10], scale: [0.7, 0.7, 0.7] },
+      { asset: 'bush', position: [10, 0, -11.5], scale: [0.55, 0.55, 0.55] },
+      { asset: 'bush', position: [-12, 0, 10], scale: [0.6, 0.6, 0.6] },
+      { asset: 'bush', position: [12, 0, 10], scale: [0.6, 0.6, 0.6] },
+      // Mid-layer bushes between trees
+      { asset: 'bush', position: [-9, 0, 1], scale: [0.55, 0.55, 0.55] },
+      { asset: 'bush', position: [9, 0, 1], scale: [0.55, 0.55, 0.55] },
+      { asset: 'bush', position: [-9, 0, 6], scale: [0.5, 0.5, 0.5] },
+      { asset: 'bush', position: [9, 0, 6], scale: [0.5, 0.5, 0.5] },
+
+      // ── EAST GARDEN PATH — flagstones to the reflecting pool ──────────
+      { asset: 'stepping-stone', position: [1.4, 0, -3.5], scale: [1.1, 1, 1.1] },
+      { asset: 'stepping-stone', position: [2.0, 0, -3.0], scale: [1.1, 1, 1.1] },
+      { asset: 'stepping-stone', position: [2.6, 0, -2.5], scale: [1.1, 1, 1.1] },
+
+      // ── WEST GARDEN PATH — flagstones to the firepit nook ─────────────
+      { asset: 'stepping-stone', position: [-1.4, 0, -2.4], scale: [1.1, 1, 1.1] },
+      { asset: 'stepping-stone', position: [-2.0, 0, -1.8], scale: [1.1, 1, 1.1] },
+      { asset: 'stepping-stone', position: [-2.6, 0, -1.2], scale: [1.1, 1, 1.1] },
+
+      // ── PERIMETER LANTERNS — glow ring at hedge level ─────────────────
+      { asset: 'garden-lantern', position: [-12.5, 0, -10] },
+      { asset: 'garden-lantern', position: [-12.5, 0, -2] },
+      { asset: 'garden-lantern', position: [-12.5, 0, 6] },
+      { asset: 'garden-lantern', position: [-12.5, 0, 11] },
+      { asset: 'garden-lantern', position: [12.5, 0, -10] },
+      { asset: 'garden-lantern', position: [12.5, 0, -2] },
+      { asset: 'garden-lantern', position: [12.5, 0, 6] },
+      { asset: 'garden-lantern', position: [12.5, 0, 11] },
+      { asset: 'garden-lantern', position: [-8, 0, -13] },
+      { asset: 'garden-lantern', position: [0, 0, -13] },
+      { asset: 'garden-lantern', position: [8, 0, -13] },
+      { asset: 'garden-lantern', position: [-8, 0, 12] },
+      { asset: 'garden-lantern', position: [0, 0, 12] },
+      { asset: 'garden-lantern', position: [8, 0, 12] },
+
+      // ── ENTRY ARCH planter pair — frame the south entrance ────────────
+      { asset: 'planter-box', position: [-3.5, 0, 9.5], scale: [0.8, 1.1, 0.8] },
+      { asset: 'planter-box', position: [3.5, 0, 9.5], scale: [0.8, 1.1, 0.8] },
+      { asset: 'palm', position: [-5, 0, 10], scale: [0.32, 0.32, 0.32] },
+      { asset: 'palm', position: [5, 0, 10], scale: [0.32, 0.32, 0.32] },
     ],
   },
 
