@@ -351,21 +351,34 @@ export const SelectionManager = () => {
   // Force "default" hover (no red delete highlight) while presenting —
   // Showcase Mode, Walkthrough, or First-Person. The user is exploring
   // their finished design, not destroying it.
+  //
+  // CRITICAL: setHoverHighlightMode always calls Zustand's `set` which
+  // notifies subscribers even if the new value matches the old. A naive
+  // subscribe-and-call pattern would loop forever: any state change →
+  // update() → setHoverHighlightMode(same) → notify → update() → ...
+  // We must guard with an equality check so the loop terminates the
+  // first iteration.
   useEffect(() => {
     const update = () => {
       const v = useViewer.getState()
       const e = useEditor.getState()
       const presenting = v.showcaseMode || v.walkthroughMode || e.isFirstPersonMode
-      setHoverHighlightMode(mode === 'delete' && !presenting ? 'delete' : 'default')
+      const target = mode === 'delete' && !presenting ? 'delete' : 'default'
+      if (v.hoverHighlightMode !== target) {
+        setHoverHighlightMode(target)
+      }
     }
     update()
-    // Subscribe to viewer/editor state so we react if presentation modes change
+    // Subscribe to viewer/editor state so we react if presentation modes change.
+    // The equality guard above prevents infinite re-entry.
     const unsubV = useViewer.subscribe(update)
     const unsubE = useEditor.subscribe(update)
     return () => {
       unsubV()
       unsubE()
-      setHoverHighlightMode('default')
+      if (useViewer.getState().hoverHighlightMode !== 'default') {
+        setHoverHighlightMode('default')
+      }
     }
   }, [mode, setHoverHighlightMode])
 
