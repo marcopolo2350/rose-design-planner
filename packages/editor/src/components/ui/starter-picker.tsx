@@ -90,9 +90,9 @@ export function StarterPicker() {
         </button>
 
         <div className="mb-5">
-          <h2 className="font-semibold text-white text-xl">Pick a backyard vibe</h2>
+          <h2 className="font-semibold text-white text-xl">Start from a designed space</h2>
           <p className="mt-1 text-sm text-white/60">
-            Start from a designed space — you can rearrange anything.
+            Each is an editable copy — load it, rearrange anything, then save your version.
           </p>
         </div>
 
@@ -122,7 +122,7 @@ export function StarterPicker() {
                               : ''
             return (
               <button
-                aria-label={`Load starter scene: ${summary.label}`}
+                aria-label={`Start from: ${summary.label}`}
                 className={cn(
                   'group relative flex flex-col items-start gap-2 overflow-hidden rounded-xl border border-white/10 bg-neutral-900 p-4 text-left transition-all',
                   'hover:border-white/25 hover:bg-neutral-800/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30',

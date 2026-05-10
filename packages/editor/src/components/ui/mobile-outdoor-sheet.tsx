@@ -10,9 +10,16 @@ import {
   TIME_OF_DAY_ORDER,
   useViewer,
 } from '@pascal-app/viewer'
+import { useScene } from '@pascal-app/core'
 import { Sparkles } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { useIsMobile } from '../../hooks/use-mobile'
+import {
+  getCurrentProjectId,
+  getProject,
+  saveCurrentScene,
+  setCurrentProjectId,
+} from '../../lib/projects'
 import { applySceneGraphToEditor } from '../../lib/scene'
 import {
   buildStarterScene,
@@ -20,6 +27,7 @@ import {
   getStarterSceneSummary,
   STARTER_SCENE_ORDER,
 } from '../../lib/starter-scenes'
+import { showToast } from '../../lib/use-toast'
 import { cn } from '../../lib/utils'
 import useEditor from '../../store/use-editor'
 
@@ -83,6 +91,7 @@ function OutdoorSheet({ onClose }: { onClose: () => void }) {
           <h2 className="font-semibold text-base text-white">Outdoor experience</h2>
         </div>
 
+        <SectionProjects onClose={onClose} />
         <SectionMood onClose={onClose} />
         <SectionTimeOfDay />
         <SectionCameras onClose={onClose} />
@@ -91,6 +100,92 @@ function OutdoorSheet({ onClose }: { onClose: () => void }) {
         <SectionTutorial onClose={onClose} />
       </div>
     </div>
+  )
+}
+
+function SectionProjects({ onClose }: { onClose: () => void }) {
+  const setProjectsDialogOpen = useEditor((s) => s.setProjectsDialogOpen)
+
+  const handleSave = () => {
+    const scene = useScene.getState()
+    const sceneGraph = { nodes: scene.nodes, rootNodeIds: scene.rootNodeIds } as any
+    if (Object.keys(scene.nodes).length === 0) {
+      showToast('Nothing to save — load a starter or place items first', 'error')
+      return
+    }
+    const currentId = getCurrentProjectId()
+    const currentName = currentId ? getProject(currentId)?.name : null
+    const defaultName = currentName || `Project ${new Date().toLocaleDateString()}`
+    const name = typeof window !== 'undefined' ? window.prompt('Name your project:', defaultName) : null
+    if (name === null) return
+    try {
+      const saved = saveCurrentScene(sceneGraph, {
+        forceNewName: !currentId ? name : undefined,
+        defaultName: name,
+      })
+      showToast(`Saved as "${saved.name}"`, 'success')
+    } catch {
+      showToast('Could not save', 'error')
+    }
+    onClose()
+  }
+
+  const handleNew = () => {
+    if (typeof window !== 'undefined' && !window.confirm('Start a new project? Current scene will be cleared.')) return
+    applySceneGraphToEditor(null, { resetToSelect: true })
+    setCurrentProjectId(null)
+    showToast('New project started', 'success')
+    onClose()
+  }
+
+  const handleReset = () => {
+    if (typeof window !== 'undefined' && !window.confirm('Reset the current scene? Unsaved changes will be lost.')) return
+    applySceneGraphToEditor(null, { resetToSelect: true })
+    setCurrentProjectId(null)
+    showToast('Scene reset', 'default')
+    onClose()
+  }
+
+  return (
+    <Section icon="lucide:folder" title="Projects">
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          className="flex items-center gap-2 rounded-lg border border-emerald-400/30 bg-emerald-500/12 px-3 py-2.5 text-left text-emerald-100 transition-colors hover:bg-emerald-500/22"
+          onClick={handleSave}
+          type="button"
+        >
+          <IconifyIcon height={14} icon="lucide:save" width={14} />
+          <span className="font-medium text-[13px]">Save Progress</span>
+        </button>
+        <button
+          className="flex items-center gap-2 rounded-lg border border-sky-400/30 bg-sky-500/12 px-3 py-2.5 text-left text-sky-100 transition-colors hover:bg-sky-500/22"
+          onClick={() => {
+            setProjectsDialogOpen(true)
+            onClose()
+          }}
+          type="button"
+        >
+          <IconifyIcon height={14} icon="lucide:folder-open" width={14} />
+          <span className="font-medium text-[13px]">My Projects</span>
+        </button>
+        <button
+          className="flex items-center gap-2 rounded-lg border border-white/8 bg-white/4 px-3 py-2.5 text-left text-white transition-colors hover:bg-white/8"
+          onClick={handleNew}
+          type="button"
+        >
+          <IconifyIcon className="text-amber-300" height={14} icon="lucide:file-plus" width={14} />
+          <span className="font-medium text-[13px]">New Project</span>
+        </button>
+        <button
+          className="flex items-center gap-2 rounded-lg border border-white/8 bg-white/4 px-3 py-2.5 text-left text-white transition-colors hover:bg-white/8"
+          onClick={handleReset}
+          type="button"
+        >
+          <IconifyIcon className="text-red-300" height={14} icon="lucide:eraser" width={14} />
+          <span className="font-medium text-[13px]">Reset Scene</span>
+        </button>
+      </div>
+    </Section>
   )
 }
 
@@ -205,13 +300,17 @@ function SectionStarters({ onClose }: { onClose: () => void }) {
 
   const apply = useCallback(
     (id: (typeof STARTER_SCENE_ORDER)[number]) => {
+      const summary = getStarterSceneSummary(id)
       applySceneGraphToEditor(buildStarterScene(id), { resetToSelect: true })
+      // Starter is a fresh editable copy — break any existing project pointer
+      setCurrentProjectId(null)
       const atmosphere = getStarterSceneAtmosphere(id)
       const mood = atmosphere.mood ? MOODS[atmosphere.mood] : null
       const tod = mood?.timeOfDay ?? atmosphere.timeOfDay
       const cam = mood?.cameraPreset ?? atmosphere.cameraPreset
       if (tod) setTimeOfDay(tod)
       if (cam) setTimeout(() => requestCameraPreset(cam), 350)
+      showToast(`Started from "${summary.label}" — edit and save when ready`, 'success')
       onClose()
     },
     [setTimeOfDay, requestCameraPreset, onClose],

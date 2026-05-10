@@ -172,6 +172,10 @@ type EditorState = {
   // resolves on first run; reopenable from a Help button any time.
   isTutorialOpen: boolean
   setTutorialOpen: (open: boolean) => void
+  // "My Projects" dialog — manages the user's saved-project list
+  // (load / rename / delete). Local-storage only.
+  isProjectsDialogOpen: boolean
+  setProjectsDialogOpen: (open: boolean) => void
 }
 
 export type PersistedEditorUiState = Pick<
@@ -580,6 +584,8 @@ const useEditor = create<EditorState>()(
       setStarterPickerOpen: (open) => set({ isStarterPickerOpen: open }),
       isTutorialOpen: false,
       setTutorialOpen: (open) => set({ isTutorialOpen: open }),
+      isProjectsDialogOpen: false,
+      setProjectsDialogOpen: (open) => set({ isProjectsDialogOpen: open }),
     }),
     {
       name: 'pascal-editor-ui-preferences',

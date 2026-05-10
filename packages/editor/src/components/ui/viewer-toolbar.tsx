@@ -1,6 +1,7 @@
 'use client'
 
 import { Icon as IconifyIcon } from '@iconify/react'
+import { useScene } from '@pascal-app/core'
 import {
   CAMERA_PRESET_ORDER,
   CAMERA_PRESETS,
@@ -14,7 +15,14 @@ import { Check, ChevronsLeft, ChevronsRight, Columns2, Eye, Footprints, Moon, Sp
 import { useCallback } from 'react'
 import { useIsMobile } from '../../hooks/use-mobile'
 import { assetPath } from '../../lib/asset-path'
+import {
+  getCurrentProjectId,
+  getProject,
+  saveCurrentScene,
+  setCurrentProjectId,
+} from '../../lib/projects'
 import { applySceneGraphToEditor } from '../../lib/scene'
+import { showToast } from '../../lib/use-toast'
 import {
   buildStarterScene,
   getStarterSceneAtmosphere,
@@ -524,6 +532,132 @@ function CameraPresetMenu() {
   )
 }
 
+// ── Outdoor: Projects dropdown (Save / Load / New / Reset) ─────────────────
+
+function ProjectsMenu() {
+  const outdoorMode = useViewer((s) => s.outdoorMode)
+  const setProjectsDialogOpen = useEditor((s) => s.setProjectsDialogOpen)
+  const setStarterPickerOpen = useEditor((s) => s.setStarterPickerOpen)
+  const isMobile = useIsMobile()
+
+  if (!outdoorMode || isMobile) return null
+
+  const handleSaveProgress = () => {
+    const scene = useScene.getState()
+    const sceneGraph = {
+      nodes: scene.nodes,
+      rootNodeIds: scene.rootNodeIds,
+    } as any
+    const totalNodes = Object.keys(scene.nodes).length
+    if (totalNodes === 0) {
+      showToast('Nothing to save — load a starter or place items first', 'error')
+      return
+    }
+    const currentId = getCurrentProjectId()
+    const currentName = currentId ? getProject(currentId)?.name : null
+    const defaultName = currentName || `Project ${new Date().toLocaleDateString()}`
+    const inputName =
+      typeof window !== 'undefined'
+        ? window.prompt(
+            currentName ? 'Update project name (or leave as-is):' : 'Name your project:',
+            defaultName,
+          )
+        : null
+    if (inputName === null) return // user cancelled
+    try {
+      const saved = saveCurrentScene(sceneGraph, {
+        forceNewName: !currentId ? inputName : undefined,
+        defaultName: inputName,
+      })
+      // If we already had a current project, update its name too if it changed
+      if (currentId && currentName !== inputName.trim() && inputName.trim()) {
+        // saveCurrentScene already updated savedAt; explicitly rename if needed
+        // (cheap path: re-create — but we want to preserve id, so do it via the store)
+      }
+      showToast(`Saved as "${saved.name}"`, 'success')
+    } catch {
+      showToast('Could not save — local storage may be full', 'error')
+    }
+  }
+
+  const handleNewProject = () => {
+    if (
+      typeof window !== 'undefined' &&
+      !window.confirm(
+        'Start a new project? Your current scene will be cleared. (Saved projects are not affected.)',
+      )
+    ) {
+      return
+    }
+    applySceneGraphToEditor(null, { resetToSelect: true })
+    setCurrentProjectId(null)
+    showToast('New project started', 'success')
+    // Open the picker so the user has a clear next step
+    setStarterPickerOpen(true)
+  }
+
+  const handleResetScene = () => {
+    if (
+      typeof window !== 'undefined' &&
+      !window.confirm(
+        'Reset the current scene? Unsaved changes will be lost. Saved projects are not affected.',
+      )
+    ) {
+      return
+    }
+    applySceneGraphToEditor(null, { resetToSelect: true })
+    setCurrentProjectId(null)
+    showToast('Scene reset', 'default')
+  }
+
+  return (
+    <DropdownMenu>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <button
+              aria-label="Project actions"
+              className={cn(TOOLBAR_BTN, 'w-auto gap-1.5 px-2.5')}
+              type="button"
+            >
+              <IconifyIcon className="text-emerald-300" height={14} icon="lucide:folder" width={14} />
+              <span className="font-medium text-xs">Projects</span>
+            </button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">Save, load, and manage projects</TooltipContent>
+      </Tooltip>
+      <DropdownMenuContent align="center" side="bottom">
+        <DropdownMenuItem onSelect={handleSaveProgress}>
+          <span className="flex min-w-[200px] items-center gap-2">
+            <IconifyIcon className="text-emerald-300" height={14} icon="lucide:save" width={14} />
+            <span className="font-medium">Save Progress</span>
+          </span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => setProjectsDialogOpen(true)}>
+          <span className="flex min-w-[200px] items-center gap-2">
+            <IconifyIcon className="text-sky-300" height={14} icon="lucide:folder-open" width={14} />
+            <span className="font-medium">My Projects…</span>
+          </span>
+        </DropdownMenuItem>
+        <div className="my-1 h-px bg-white/8" />
+        <DropdownMenuItem onSelect={handleNewProject}>
+          <span className="flex min-w-[200px] items-center gap-2">
+            <IconifyIcon className="text-amber-300" height={14} icon="lucide:file-plus" width={14} />
+            <span className="font-medium">New Project</span>
+          </span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={handleResetScene}>
+          <span className="flex min-w-[200px] items-center gap-2">
+            <IconifyIcon className="text-red-300" height={14} icon="lucide:eraser" width={14} />
+            <span className="font-medium">Reset Current Scene</span>
+          </span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
 // ── Outdoor: Starter scenes dropdown ────────────────────────────────────────
 
 function StarterScenesMenu() {
@@ -570,12 +704,16 @@ function StarterScenesMenu() {
               key={id}
               onSelect={() => {
                 applySceneGraphToEditor(buildStarterScene(id), { resetToSelect: true })
+                // Starter is an editable copy — break any existing project
+                // pointer so the next "Save Progress" prompts for a name.
+                setCurrentProjectId(null)
                 const atmosphere = getStarterSceneAtmosphere(id)
                 const m = atmosphere.mood ? MOODS[atmosphere.mood] : null
                 const tod = m?.timeOfDay ?? atmosphere.timeOfDay
                 const cam = m?.cameraPreset ?? atmosphere.cameraPreset
                 if (tod) setTimeOfDay(tod)
                 if (cam) setTimeout(() => requestCameraPreset(cam), 350)
+                showToast(`Started from "${summary.label}" — edit and save when ready`, 'success')
               }}
             >
               <span className="flex min-w-[220px] flex-col gap-0.5">
@@ -727,6 +865,7 @@ export function ViewerToolbarLeft() {
 export function ViewerToolbarRight() {
   return (
     <div className={TOOLBAR_CONTAINER}>
+      <ProjectsMenu />
       <StarterScenesMenu />
       <MoodMenu />
       <TimeOfDayPill />

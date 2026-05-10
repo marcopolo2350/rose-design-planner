@@ -40,8 +40,10 @@ import { ErrorBoundary } from '../ui/primitives/error-boundary'
 import { MobileOutdoorSheet } from '../ui/mobile-outdoor-sheet'
 import { useSidebarStore } from '../ui/primitives/sidebar'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/primitives/tooltip'
+import { ProjectsDialog } from '../ui/projects-dialog'
 import { SceneLoader } from '../ui/scene-loader'
 import { StarterPicker, StarterPickerAutoOpener } from '../ui/starter-picker'
+import { ToastTray } from '../ui/toast-tray'
 import { TutorialAutoOpener, TutorialOverlay } from '../ui/tutorial-overlay'
 import { AppSidebar } from '../ui/sidebar/app-sidebar'
 import type { ExtraPanel } from '../ui/sidebar/icon-rail'
@@ -927,6 +929,8 @@ export default function Editor({
             <TutorialAutoOpener />
             <TutorialOverlay />
             <MobileOutdoorSheet />
+            <ProjectsDialog />
+            <ToastTray />
           </>
         )}
       </PresetsProvider>
