@@ -260,6 +260,30 @@ const ASSETS: Record<string, CatalogAsset> = {
     scale: [1, 1, 1],
     tags: ['structure', 'floor'],
   },
+  'pool-towel': {
+    id: 'pool-towel',
+    category: 'outdoor',
+    name: 'Pool Towels',
+    thumbnail: '/items/pool-towel/thumbnail.webp',
+    src: 'proc://pool-towel',
+    dimensions: [0.45, 0.18, 0.32],
+    offset: [0, 0, 0],
+    rotation: [0, 0, 0],
+    scale: [1, 1, 1],
+    tags: ['leisure', 'floor', 'decor'],
+  },
+  'drinks-tray': {
+    id: 'drinks-tray',
+    category: 'outdoor',
+    name: 'Drinks Tray',
+    thumbnail: '/items/drinks-tray/thumbnail.webp',
+    src: 'proc://drinks-tray',
+    dimensions: [0.55, 0.32, 0.4],
+    offset: [0, 0, 0],
+    rotation: [0, 0, 0],
+    scale: [1, 1, 1],
+    tags: ['leisure', 'floor', 'decor'],
+  },
   'dining-chair': {
     id: 'dining-chair',
     category: 'furniture',
@@ -817,6 +841,8 @@ const SCENES: Record<StarterSceneId, StarterSceneSpec> = {
       // ── MOTOR-COURT REFLECTING-POOL SURROUND ───────────────────────────
       // Stone coping ring around the entry water feature
       { asset: 'pool-coping', position: [0, 0, -25], dimensions: [6.4, 0.08, 3.4] },
+      // Animated TSL shimmer overlay — reads as light dancing on the water
+      { asset: 'pool-shimmer', position: [0, 0.07, -25], dimensions: [5.6, 0.02, 2.6] },
       // Twin urns flanking the reflecting pool
       { asset: 'planter-box', position: [-4, 0, -25], scale: [0.85, 1.1, 0.85] },
       { asset: 'planter-box', position: [4, 0, -25], scale: [0.85, 1.1, 0.85] },
@@ -999,6 +1025,106 @@ const SCENES: Record<StarterSceneId, StarterSceneSpec> = {
       { asset: 'bush', position: [-1.5, 0, 28.5], scale: [0.5, 0.5, 0.5] },
       { asset: 'bush', position: [1.5, 0, 28.5], scale: [0.5, 0.5, 0.5] },
       { asset: 'tree', position: [0, 0, 30], scale: [0.55, 0.55, 0.55] },
+
+      // ─── FINAL POLISH PASS ────────────────────────────────────────────
+      // Subtle decor + distant destinations — what the user wants at this
+      // stage: human luxury life signs and full-property completion.
+
+      // ── HUMAN LUXURY DECOR ────────────────────────────────────────────
+      // Folded towel piles at every sunbed grouping
+      { asset: 'pool-towel', position: [-6, 0, -7.5], rotationY: 0 },
+      { asset: 'pool-towel', position: [-2, 0, -7.5], rotationY: 0 },
+      { asset: 'pool-towel', position: [2, 0, -7.5], rotationY: 0 },
+      { asset: 'pool-towel', position: [6, 0, -7.5], rotationY: 0 },
+      { asset: 'pool-towel', position: [-6, 0, 7.5], rotationY: Math.PI },
+      { asset: 'pool-towel', position: [-2, 0, 7.5], rotationY: Math.PI },
+      { asset: 'pool-towel', position: [2, 0, 7.5], rotationY: Math.PI },
+      { asset: 'pool-towel', position: [6, 0, 7.5], rotationY: Math.PI },
+      // Drinks trays — set on coffee tables across the property
+      { asset: 'drinks-tray', position: [13, 0.18, 1.6] }, // east pergola lounge
+      { asset: 'drinks-tray', position: [16.5, 0.12, -8] }, // firepit side table
+      { asset: 'drinks-tray', position: [11.5, 0.12, -8] }, // firepit other side table
+      { asset: 'drinks-tray', position: [13, 0.15, -1.6] }, // pergola side table
+      { asset: 'drinks-tray', position: [0, 7.4, -29.5] }, // roof deck coffee table
+      // Place settings hint via a small pool-towel at each dining seat
+      { asset: 'pool-towel', position: [-15.7, 0.8, 5], scale: [0.4, 0.3, 0.4] },
+      { asset: 'pool-towel', position: [-12.3, 0.8, 5], scale: [0.4, 0.3, 0.4] },
+      { asset: 'pool-towel', position: [-15, 0.8, 4], scale: [0.4, 0.3, 0.4] },
+      { asset: 'pool-towel', position: [-13, 0.8, 4], scale: [0.4, 0.3, 0.4] },
+      { asset: 'pool-towel', position: [-15, 0.8, 6], scale: [0.4, 0.3, 0.4] },
+      { asset: 'pool-towel', position: [-13, 0.8, 6], scale: [0.4, 0.3, 0.4] },
+
+      // ── DISTANT PROPERTY DESTINATIONS — back-of-property moments ──────
+
+      // SOUTH BACK — meditation garden behind the mansion (z < -42 was
+      // perimeter hedge; this fills the inner zone z=-38..-42)
+      { asset: 'firepit', position: [0, 0, -39] },
+      { asset: 'lounge-chair', position: [-2, 0, -38], rotationY: -Math.PI / 6 },
+      { asset: 'lounge-chair', position: [2, 0, -38], rotationY: Math.PI / 6 },
+      { asset: 'lounge-chair', position: [-2.5, 0, -40], rotationY: Math.PI - Math.PI / 6 },
+      { asset: 'lounge-chair', position: [2.5, 0, -40], rotationY: Math.PI + Math.PI / 6 },
+      { asset: 'planter-box', position: [-3.5, 0, -39.5], scale: [0.7, 0.85, 0.7] },
+      { asset: 'planter-box', position: [3.5, 0, -39.5], scale: [0.7, 0.85, 0.7] },
+      { asset: 'drinks-tray', position: [-4.5, 0.05, -38.5] },
+      { asset: 'drinks-tray', position: [4.5, 0.05, -38.5] },
+      // Stone path from the rear-house back porch out to the meditation circle
+      { asset: 'stepping-stone', position: [0, 0, -36], scale: [1.3, 1, 1.3] },
+      { asset: 'stepping-stone', position: [0, 0, -37.5], scale: [1.3, 1, 1.3] },
+      // Specimen trees framing the back garden circle
+      { asset: 'tree', position: [-7, 0, -39], scale: [0.55, 0.55, 0.55] },
+      { asset: 'tree', position: [7, 0, -39], scale: [0.55, 0.55, 0.55] },
+      { asset: 'fir-tree', position: [-9, 0, -41], scale: [1.2, 1.2, 1.2] },
+      { asset: 'fir-tree', position: [9, 0, -41], scale: [1.2, 1.2, 1.2] },
+      // Lanterns ringing the back garden circle
+      { asset: 'garden-lantern', position: [-3, 0, -36.5] },
+      { asset: 'garden-lantern', position: [3, 0, -36.5] },
+      { asset: 'garden-lantern', position: [-5, 0, -39] },
+      { asset: 'garden-lantern', position: [5, 0, -39] },
+
+      // NORTH BACK — pavilion lounge behind the courts
+      // Add a small pavilion / pergola moment far back at z=33
+      { asset: 'pergola', position: [0, 0, 34] },
+      { asset: 'sofa', position: [0, 0, 34], rotationY: Math.PI, scale: [0.95, 0.95, 0.95] },
+      { asset: 'coffee-table', position: [0, 0, 32.6], scale: [0.7, 0.7, 0.7] },
+      { asset: 'lounge-chair', position: [-2.6, 0, 33.5], rotationY: -Math.PI / 2 },
+      { asset: 'lounge-chair', position: [2.6, 0, 33.5], rotationY: Math.PI / 2 },
+      { asset: 'drinks-tray', position: [0, 0.15, 32.6] },
+      // Frame the pavilion with planters + lanterns
+      { asset: 'planter-box', position: [-3, 0, 33.5], scale: [0.7, 0.85, 0.7] },
+      { asset: 'planter-box', position: [3, 0, 33.5], scale: [0.7, 0.85, 0.7] },
+      { asset: 'planter-box', position: [-2.5, 0, 32], scale: [0.6, 0.85, 0.6] },
+      { asset: 'planter-box', position: [2.5, 0, 32], scale: [0.6, 0.85, 0.6] },
+      { asset: 'garden-lantern', position: [-3.5, 0, 35.5] },
+      { asset: 'garden-lantern', position: [3.5, 0, 35.5] },
+      // Specimen trees framing the back pavilion
+      { asset: 'tree', position: [-6, 0, 35], scale: [0.6, 0.6, 0.6] },
+      { asset: 'tree', position: [6, 0, 35], scale: [0.6, 0.6, 0.6] },
+
+      // SOUTHWEST CORNER — small specimen-tree garden
+      { asset: 'tree', position: [-30, 0, -35], scale: [0.7, 0.7, 0.7] },
+      { asset: 'tree', position: [-32, 0, -32], scale: [0.6, 0.6, 0.6] },
+      { asset: 'bush', position: [-30, 0, -33], scale: [0.65, 0.65, 0.65] },
+      { asset: 'bush', position: [-31, 0, -34], scale: [0.55, 0.55, 0.55] },
+      { asset: 'garden-lantern', position: [-31, 0, -33.5] },
+
+      // SOUTHEAST CORNER — same mirror
+      { asset: 'tree', position: [30, 0, -35], scale: [0.7, 0.7, 0.7] },
+      { asset: 'tree', position: [32, 0, -32], scale: [0.6, 0.6, 0.6] },
+      { asset: 'bush', position: [30, 0, -33], scale: [0.65, 0.65, 0.65] },
+      { asset: 'bush', position: [31, 0, -34], scale: [0.55, 0.55, 0.55] },
+      { asset: 'garden-lantern', position: [31, 0, -33.5] },
+
+      // WEST SIDE GARDEN — between perimeter hedge and the putting green
+      { asset: 'tree', position: [-26, 0, 18], scale: [0.55, 0.55, 0.55] },
+      { asset: 'bush', position: [-25, 0, 17], scale: [0.55, 0.55, 0.55] },
+      { asset: 'bush', position: [-25, 0, 19], scale: [0.5, 0.5, 0.5] },
+      { asset: 'garden-lantern', position: [-25, 0, 18] },
+
+      // EAST SIDE GARDEN — between perimeter hedge and the basketball court
+      { asset: 'tree', position: [26, 0, 18], scale: [0.55, 0.55, 0.55] },
+      { asset: 'bush', position: [25, 0, 17], scale: [0.55, 0.55, 0.55] },
+      { asset: 'bush', position: [25, 0, 19], scale: [0.5, 0.5, 0.5] },
+      { asset: 'garden-lantern', position: [25, 0, 18] },
     ],
   },
 
@@ -1179,6 +1305,8 @@ const SCENES: Record<StarterSceneId, StarterSceneSpec> = {
 
       // ── REFLECTING POOL DRESSING — coping + water-edge planting ───────
       { asset: 'pool-coping', position: [3.05, 0, 0.5], dimensions: [3.1, 0.06, 4.2] },
+      // Subtle TSL shimmer over the koi pond — soft animated highlights
+      { asset: 'pool-shimmer', position: [3.05, 0.07, 0.5], dimensions: [2.5, 0.02, 3.6] },
       // Lily-pad / planted ring around the koi pond (planters at the corners)
       { asset: 'planter-box', position: [4.7, 0, -1.4], scale: [0.5, 0.7, 0.5] },
       { asset: 'planter-box', position: [4.7, 0, 2.4], scale: [0.5, 0.7, 0.5] },
@@ -1276,6 +1404,19 @@ const SCENES: Record<StarterSceneId, StarterSceneSpec> = {
       { asset: 'planter-box', position: [3.5, 0, 9.5], scale: [0.8, 1.1, 0.8] },
       { asset: 'palm', position: [-5, 0, 10], scale: [0.32, 0.32, 0.32] },
       { asset: 'palm', position: [5, 0, 10], scale: [0.32, 0.32, 0.32] },
+
+      // ─── HUMAN LUXURY DECOR ────────────────────────────────────────────
+      // Drinks tray on the lounge coffee table — hospitality moment
+      { asset: 'drinks-tray', position: [0, 0.25, -4.2] },
+      // Folded towel at one end of the lounge sofa (suggests bath/spa nearby)
+      { asset: 'pool-towel', position: [-1.4, 0, -5.2], scale: [0.8, 0.8, 0.8] },
+      // Place-setting hint: small folded napkins on the dining seats
+      { asset: 'pool-towel', position: [-1.6, 0.8, 6], scale: [0.4, 0.3, 0.4] },
+      { asset: 'pool-towel', position: [1.6, 0.8, 6], scale: [0.4, 0.3, 0.4] },
+      { asset: 'pool-towel', position: [0, 0.8, 4.8], scale: [0.4, 0.3, 0.4] },
+      { asset: 'pool-towel', position: [0, 0.8, 7.2], scale: [0.4, 0.3, 0.4] },
+      // Drinks tray on the dining table
+      { asset: 'drinks-tray', position: [0, 0.85, 6] },
     ],
   },
 

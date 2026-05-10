@@ -552,21 +552,31 @@ function PlanterBox({ node }: { node: ItemNode }) {
       </mesh>
       {isHedgeRow ? (
         <>
-          {/* Continuous hedge — N overlapping clumps along the long axis */}
+          {/* Continuous hedge — N overlapping clumps along the long axis.
+              Each clump has independent jitter on radius, height, lateral
+              offset and color so the silhouette never reads as a regular
+              row of spheres. Deterministic pseudo-random per (i, longLen)
+              so hedges are stable across re-renders. */}
           {Array.from({ length: clumpCount }, (_, i) => {
             const t = clumpCount === 1 ? 0.5 : i / (clumpCount - 1)
             const offset = (t - 0.5) * (longLen - clumpRadius * 0.6)
-            const cx = longAxis === 'x' ? offset : 0
-            const cz = longAxis === 'z' ? offset : 0
-            // Subtle scale + color jitter for hand-clipped texture
-            const phase = (i * 1.13 + offset * 0.27) % 1
-            const r = clumpRadius * (0.92 + phase * 0.18)
-            const colorIdx = (i + Math.floor(phase * 7)) % greens.length
+            // Three independent pseudo-random phases per clump
+            const p1 = ((i * 1.137 + longLen * 0.071) % 1 + 1) % 1
+            const p2 = ((i * 0.683 + longLen * 0.213) % 1 + 1) % 1
+            const p3 = ((i * 1.911 + longLen * 0.107) % 1 + 1) % 1
+            // Lateral wobble (perp to the hedge axis)
+            const wobble = (p2 - 0.5) * shortLen * 0.18
+            const cx = longAxis === 'x' ? offset : wobble
+            const cz = longAxis === 'z' ? offset : wobble
+            // Radius + height variation
+            const r = clumpRadius * (0.86 + p1 * 0.32)
+            const yLift = (p3 - 0.5) * clumpRadius * 0.22
+            const colorIdx = (i + Math.floor(p1 * 7) + Math.floor(p3 * 3)) % greens.length
             return (
               <mesh
                 castShadow
                 key={`hedge-${i}`}
-                position={[cx, boxHeight + r * 0.78, cz]}
+                position={[cx, boxHeight + r * 0.78 + yLift, cz]}
                 receiveShadow
               >
                 <sphereGeometry args={[r, 12, 9]} />
@@ -574,22 +584,61 @@ function PlanterBox({ node }: { node: ItemNode }) {
               </mesh>
             )
           })}
-          {/* A few small accent clumps for top-of-hedge breakup */}
+          {/* TOP-OF-HEDGE TUFTS — small accent clumps at varied heights
+              break up the silhouette so the hedge reads organic, not
+              like a row of identical balls. Density scales with length. */}
           {clumpCount >= 3
-            ? Array.from({ length: Math.floor(clumpCount / 2) }, (_, i) => {
-                const t = (i + 1) / (Math.floor(clumpCount / 2) + 1)
-                const offset = (t - 0.5) * longLen * 0.85
-                const cx = longAxis === 'x' ? offset : (i % 2 === 0 ? 0.1 : -0.1) * shortLen
-                const cz = longAxis === 'z' ? offset : (i % 2 === 0 ? 0.1 : -0.1) * shortLen
+            ? Array.from({ length: Math.max(2, Math.floor(clumpCount * 0.7)) }, (_, i) => {
+                const tuftCount = Math.max(2, Math.floor(clumpCount * 0.7))
+                const t = (i + 1) / (tuftCount + 1)
+                const p1 = ((i * 2.317 + longLen * 0.193) % 1 + 1) % 1
+                const p2 = ((i * 1.787 + longLen * 0.319) % 1 + 1) % 1
+                const offset = (t - 0.5) * longLen * 0.92 + (p1 - 0.5) * clumpRadius * 0.4
+                const lateralJitter = (p2 - 0.5) * shortLen * 0.35
+                const cx = longAxis === 'x' ? offset : lateralJitter
+                const cz = longAxis === 'z' ? offset : lateralJitter
+                const tuftR = clumpRadius * (0.32 + p1 * 0.22)
+                const yLift = clumpRadius * (0.95 + p2 * 0.32)
                 return (
                   <mesh
                     castShadow
-                    key={`hedge-acc-${i}`}
-                    position={[cx, boxHeight + clumpRadius * 1.05, cz]}
+                    key={`hedge-tuft-${i}`}
+                    position={[cx, boxHeight + yLift, cz]}
                   >
-                    <sphereGeometry args={[clumpRadius * 0.45, 8, 7]} />
+                    <sphereGeometry args={[tuftR, 8, 6]} />
                     <meshStandardMaterial
-                      color={greens[(i + 2) % greens.length]}
+                      color={greens[(i + 2 + Math.floor(p1 * 5)) % greens.length]}
+                      metalness={0}
+                      roughness={1}
+                    />
+                  </mesh>
+                )
+              })
+            : null}
+          {/* SIDE TUFTS — tiny clumps spilling over the planter edge so
+              the box doesn't read as a hard rectangle */}
+          {clumpCount >= 2
+            ? Array.from({ length: Math.max(2, Math.floor(clumpCount * 0.5)) }, (_, i) => {
+                const sideCount = Math.max(2, Math.floor(clumpCount * 0.5))
+                const t = (i + 0.5) / sideCount
+                const offset = (t - 0.5) * longLen * 0.85
+                const side = i % 2 === 0 ? 1 : -1
+                const p1 = ((i * 0.917 + longLen * 0.413) % 1 + 1) % 1
+                const cx = longAxis === 'x' ? offset : side * shortLen * (0.45 + p1 * 0.1)
+                const cz = longAxis === 'z' ? offset : side * shortLen * (0.45 + p1 * 0.1)
+                return (
+                  <mesh
+                    castShadow
+                    key={`hedge-side-${i}`}
+                    position={[
+                      longAxis === 'x' ? cx : cx,
+                      boxHeight + clumpRadius * (0.4 + p1 * 0.2),
+                      longAxis === 'z' ? cz : cz,
+                    ]}
+                  >
+                    <sphereGeometry args={[clumpRadius * (0.3 + p1 * 0.18), 7, 6]} />
+                    <meshStandardMaterial
+                      color={greens[(i + 4) % greens.length]}
                       metalness={0}
                       roughness={1}
                     />
@@ -1136,43 +1185,112 @@ function MansionBlock({ node }: { node: ItemNode }) {
         <boxGeometry args={[setbackW + 0.4, 0.15, 1.6]} />
         <meshStandardMaterial color={stoneColor} metalness={0.12} roughness={0.55} />
       </mesh>
-      {/* Glass balcony railing */}
-      <mesh position={[0, setbackY0 + 0.55, setbackHalfD + 1.5]}>
-        <boxGeometry args={[setbackW + 0.3, 1.1, 0.04]} />
-        <meshStandardMaterial
-          color="#a8d4ff"
-          emissive="#a8d4ff"
-          emissiveIntensity={0.04}
-          transparent
-          opacity={0.32}
-          depthWrite={false}
-          metalness={0.3}
-          roughness={0.1}
-        />
-      </mesh>
-      {/* Balcony side rails */}
-      {[-1, 1].map((side) => (
-        <mesh
-          key={`bal-side-${side}`}
-          position={[
-            (setbackW / 2 + 0.15) * side,
-            setbackY0 + 0.55,
-            setbackHalfD + 0.75,
-          ]}
-        >
-          <boxGeometry args={[0.04, 1.1, 1.5]} />
-          <meshStandardMaterial
-            color="#a8d4ff"
-            emissive="#a8d4ff"
-            emissiveIntensity={0.04}
-            transparent
-            opacity={0.32}
-            depthWrite={false}
-            metalness={0.3}
-            roughness={0.1}
-          />
-        </mesh>
-      ))}
+      {/* Setback balcony — rich architectural rail (top cap + posts +
+          glass infill + bottom trim). Front + both sides. */}
+      {(() => {
+        const setBalY = setbackY0
+        const setBalRailH = 1.05
+        const railTopH = 0.06
+        const railBottomH = 0.05
+        const postW = 0.05
+        const baseProps = { color: '#a98654', metalness: 0.6, roughness: 0.32 }
+
+        // Front rail (along the balcony's south edge)
+        const frontZ = setbackHalfD + 1.5
+        const frontW = setbackW + 0.3
+        const frontPostCount = Math.max(4, Math.round(frontW / 0.85))
+
+        // Side rails
+        const sBackZ = setbackHalfD + 0.02
+        const sFrontZ = frontZ - 0.04
+        const sideLen = Math.abs(sFrontZ - sBackZ)
+        const sCenterZ = (sBackZ + sFrontZ) / 2
+        const sidePostCount = Math.max(2, Math.round(sideLen / 0.85))
+
+        return (
+          <group>
+            {/* FRONT RAIL */}
+            <mesh position={[0, setBalY + setBalRailH + railTopH / 2 + 0.05, frontZ]}>
+              <boxGeometry args={[frontW, railTopH, 0.08]} />
+              <meshStandardMaterial {...baseProps} />
+            </mesh>
+            <mesh position={[0, setBalY + railBottomH / 2 + 0.07, frontZ]}>
+              <boxGeometry args={[frontW, railBottomH, 0.08]} />
+              <meshStandardMaterial {...baseProps} />
+            </mesh>
+            <mesh position={[0, setBalY + setBalRailH / 2 + 0.1, frontZ]}>
+              <boxGeometry args={[frontW - postW * 2, setBalRailH - 0.16, 0.03]} />
+              <meshStandardMaterial
+                color="#cce4ff"
+                transparent
+                opacity={0.28}
+                depthWrite={false}
+                metalness={0.35}
+                roughness={0.08}
+              />
+            </mesh>
+            {Array.from({ length: frontPostCount }, (_, i) => {
+              const t = i / (frontPostCount - 1)
+              const px = -frontW / 2 + t * frontW
+              return (
+                <mesh
+                  key={`set-bal-fp-${i}`}
+                  position={[px, setBalY + setBalRailH / 2 + 0.1, frontZ]}
+                >
+                  <boxGeometry args={[postW, setBalRailH, 0.08]} />
+                  <meshStandardMaterial {...baseProps} />
+                </mesh>
+              )
+            })}
+
+            {/* SIDE RAILS */}
+            {[-1, 1].map((s) => {
+              const sx = (setbackW / 2 + 0.15) * s
+              return (
+                <group key={`set-bal-side-${s}`}>
+                  <mesh position={[sx, setBalY + setBalRailH + railTopH / 2 + 0.05, sCenterZ]}>
+                    <boxGeometry args={[0.08, railTopH, sideLen]} />
+                    <meshStandardMaterial {...baseProps} />
+                  </mesh>
+                  <mesh position={[sx, setBalY + railBottomH / 2 + 0.07, sCenterZ]}>
+                    <boxGeometry args={[0.08, railBottomH, sideLen]} />
+                    <meshStandardMaterial {...baseProps} />
+                  </mesh>
+                  <mesh position={[sx, setBalY + setBalRailH / 2 + 0.1, sCenterZ]}>
+                    <boxGeometry args={[0.03, setBalRailH - 0.16, sideLen - postW * 2]} />
+                    <meshStandardMaterial
+                      color="#cce4ff"
+                      transparent
+                      opacity={0.28}
+                      depthWrite={false}
+                      metalness={0.35}
+                      roughness={0.08}
+                    />
+                  </mesh>
+                  {Array.from({ length: sidePostCount }, (_, i) => {
+                    const t = i / (sidePostCount - 1)
+                    const pz = sBackZ + t * (sFrontZ - sBackZ)
+                    return (
+                      <mesh
+                        key={`set-bal-sp-${s}-${i}`}
+                        position={[sx, setBalY + setBalRailH / 2 + 0.1, pz]}
+                      >
+                        <boxGeometry args={[0.08, setBalRailH, postW]} />
+                        <meshStandardMaterial {...baseProps} />
+                      </mesh>
+                    )
+                  })}
+                </group>
+              )
+            })}
+            {/* Bronze trim band under the cantilevered slab */}
+            <mesh position={[0, setbackY0 - 0.13, setbackHalfD + 0.75]}>
+              <boxGeometry args={[setbackW + 0.44, 0.06, 1.66]} />
+              <meshStandardMaterial color="#a98654" metalness={0.6} roughness={0.32} />
+            </mesh>
+          </group>
+        )
+      })()}
 
       {/* Setback roof with overhang */}
       {roof('setback-roof', setbackW, setbackD, setbackY0 + setbackH)}
@@ -1408,6 +1526,411 @@ function MansionBlock({ node }: { node: ItemNode }) {
           if (l) refs.current.entryLight = l
         }}
       />
+
+      {/* ┌─────────────────────────────────────────────────────────────────┐ */}
+      {/* │  INTERIOR PRESENCE — silhouette furniture + room glow cards     │ */}
+      {/* │                                                                 │ */}
+      {/* │  Behind each glass panel we place a "room card" (dim emissive  │ */}
+      {/* │  back wall) plus simplified silhouette furniture. At evening  │ */}
+      {/* │  the cards ramp up via the existing glass refs so the mansion  │ */}
+      {/* │  reads as occupied. None of these meshes cast shadows or use   │ */}
+      {/* │  point lights — they're emissive primitives only.              │ */}
+      {/* └─────────────────────────────────────────────────────────────────┘ */}
+      {(() => {
+        // Helper — emissive back-wall plane that "represents" a lit interior.
+        // Pushes itself onto the glass refs so it picks up time-of-day
+        // emissive ramping along with the actual glass panes.
+        const RoomCard = ({
+          position,
+          width,
+          height,
+          warm = '#ffd285',
+          baseColor = '#7a5a3a',
+        }: {
+          position: [number, number, number]
+          width: number
+          height: number
+          warm?: string
+          baseColor?: string
+        }) => (
+          <mesh
+            position={position}
+            ref={(m) => {
+              if (m) refs.current.glass.push(m)
+            }}
+          >
+            <boxGeometry args={[width, height, 0.06]} />
+            <meshStandardMaterial
+              color={baseColor}
+              emissive={warm}
+              emissiveIntensity={0.04}
+              metalness={0}
+              roughness={0.7}
+            />
+          </mesh>
+        )
+
+        // Helper — simple silhouette material (dark, picks up some warm glow)
+        const sil = {
+          color: '#1a1a1a',
+          metalness: 0.15,
+          roughness: 0.6,
+        }
+        const woodSil = {
+          color: '#3a2818',
+          metalness: 0.1,
+          roughness: 0.7,
+        }
+
+        // Helper — pendant light (small emissive sphere, ramps with glass)
+        const Pendant = ({
+          position,
+          radius = 0.08,
+        }: {
+          position: [number, number, number]
+          radius?: number
+        }) => (
+          <group position={position}>
+            {/* Cord (dark cylinder up to ceiling) */}
+            <mesh position={[0, 0.4, 0]}>
+              <cylinderGeometry args={[0.012, 0.012, 0.8, 6]} />
+              <meshStandardMaterial color="#1a1a1a" metalness={0.3} roughness={0.6} />
+            </mesh>
+            {/* Bulb */}
+            <mesh
+              ref={(m) => {
+                if (m) refs.current.glass.push(m)
+              }}
+            >
+              <sphereGeometry args={[radius, 12, 8]} />
+              <meshStandardMaterial
+                color="#fff5d6"
+                emissive="#ffd285"
+                emissiveIntensity={0.06}
+                metalness={0}
+                roughness={0.4}
+              />
+            </mesh>
+          </group>
+        )
+
+        // ── MAIN MASS GROUND-FLOOR INTERIORS ─────────────────────────────
+        // South glass spans z = halfD - wallThickness/2 to inside.
+        // Interior z anchor (1.4m back from glass = readable through pane):
+        const intZ = halfD - wallThickness - 1.6
+        const floorY = plinthH + 0.05
+        const ceilY = plinthH + h - 0.2
+
+        // LEFT room — Lounge: long couch + coffee table + two pendants + back-wall art
+        const loungeX = -halfW / 2 - 0.6 // matches glass panel center
+        const loungeRoomW = (halfW - 2.4) - recessW / 2 - 0.4
+        // RIGHT room — Kitchen: island + range hood + 3 pendants
+        const kitchenX = halfW / 2 + 0.6
+        const kitchenRoomW = loungeRoomW
+
+        // EAST WING — Dining room (chandelier + table + chairs)
+        const eastIntX = eastOffsetX
+        const eastIntZ = (eastWingD - d) / 2 + eastWingD / 2 - wallThickness - 1.6
+        const eastFloorY = plinthH + 0.05
+        const eastCeilY = plinthH + eastWingH - 0.2
+
+        // WEST WING — Library / Study (desk + bookshelf silhouettes)
+        const westIntX = -westOffsetX
+        const westIntZ = (westWingD - d) / 2 + westWingD / 2 - wallThickness - 1.6
+        const westFloorY = plinthH + 0.05
+        const westCeilY = plinthH + westWingH - 0.2
+
+        // SETBACK (2nd story) — Master suite
+        const setIntZ = setbackHalfD - wallThickness - 1.4
+        const setFloorY = setbackY0 + 0.05
+        const setCeilY = setbackY0 + setbackH - 0.2
+
+        return (
+          <group name="mansion-interiors">
+            {/* ─── LOUNGE (left south room) ─────────────────────────── */}
+            {/* Back-wall room glow */}
+            <RoomCard
+              height={h - 0.6}
+              position={[loungeX, plinthH + h / 2, intZ - 0.5]}
+              width={loungeRoomW - 0.4}
+            />
+            {/* Couch — long low silhouette facing the glass */}
+            <mesh position={[loungeX, floorY + 0.5, intZ + 0.4]}>
+              <boxGeometry args={[Math.min(4.5, loungeRoomW - 1), 0.85, 1.0]} />
+              <meshStandardMaterial {...sil} />
+            </mesh>
+            {/* Couch arm bolsters */}
+            {[-1, 1].map((s) => (
+              <mesh
+                key={`lounge-arm-${s}`}
+                position={[
+                  loungeX + (Math.min(4.5, loungeRoomW - 1) / 2) * s,
+                  floorY + 0.6,
+                  intZ + 0.4,
+                ]}
+              >
+                <boxGeometry args={[0.25, 1.0, 1.0]} />
+                <meshStandardMaterial {...sil} />
+              </mesh>
+            ))}
+            {/* Coffee table — low rectangle in front of the couch */}
+            <mesh position={[loungeX, floorY + 0.25, intZ + 1.4]}>
+              <boxGeometry args={[2.0, 0.45, 0.7]} />
+              <meshStandardMaterial {...woodSil} />
+            </mesh>
+            {/* Lounge pendant cluster (3 pendants over the coffee table) */}
+            <Pendant position={[loungeX - 0.7, ceilY - 0.55, intZ + 1.4]} radius={0.09} />
+            <Pendant position={[loungeX, ceilY - 0.5, intZ + 1.4]} radius={0.1} />
+            <Pendant position={[loungeX + 0.7, ceilY - 0.55, intZ + 1.4]} radius={0.09} />
+            {/* Floor lamp at one end */}
+            <group position={[loungeX - loungeRoomW / 2 + 0.5, floorY, intZ + 0.6]}>
+              <mesh position={[0, 0.85, 0]}>
+                <cylinderGeometry args={[0.025, 0.025, 1.7, 8]} />
+                <meshStandardMaterial color="#1a1a1a" metalness={0.4} roughness={0.5} />
+              </mesh>
+              <mesh
+                position={[0, 1.85, 0]}
+                ref={(m) => {
+                  if (m) refs.current.glass.push(m)
+                }}
+              >
+                <coneGeometry args={[0.22, 0.4, 12, 1, true]} />
+                <meshStandardMaterial
+                  color="#fff5d6"
+                  emissive="#ffd285"
+                  emissiveIntensity={0.05}
+                  side={2}
+                  metalness={0}
+                  roughness={0.5}
+                />
+              </mesh>
+            </group>
+
+            {/* ─── KITCHEN (right south room) ────────────────────────── */}
+            <RoomCard
+              baseColor="#5a4030"
+              height={h - 0.6}
+              position={[kitchenX, plinthH + h / 2, intZ - 0.5]}
+              width={kitchenRoomW - 0.4}
+            />
+            {/* Kitchen island — long counter parallel to the glass */}
+            <mesh position={[kitchenX, floorY + 0.5, intZ + 0.5]}>
+              <boxGeometry args={[Math.min(4.5, kitchenRoomW - 1), 1.0, 0.9]} />
+              <meshStandardMaterial color="#1a1a1a" metalness={0.4} roughness={0.4} />
+            </mesh>
+            {/* Marble island top */}
+            <mesh position={[kitchenX, floorY + 1.05, intZ + 0.5]}>
+              <boxGeometry args={[Math.min(4.7, kitchenRoomW - 0.8), 0.08, 1.0]} />
+              <meshStandardMaterial color="#dcd6c8" metalness={0.1} roughness={0.4} />
+            </mesh>
+            {/* Three bar stools on the island's south side */}
+            {[-1, 0, 1].map((s) => (
+              <mesh
+                key={`stool-${s}`}
+                position={[kitchenX + s * 1.0, floorY + 0.55, intZ + 1.15]}
+              >
+                <cylinderGeometry args={[0.18, 0.16, 1.0, 12]} />
+                <meshStandardMaterial color="#3a2818" metalness={0.2} roughness={0.6} />
+              </mesh>
+            ))}
+            {/* Range hood box up on the back wall */}
+            <mesh position={[kitchenX, ceilY - 1.4, intZ - 0.2]}>
+              <boxGeometry args={[1.2, 0.8, 0.5]} />
+              <meshStandardMaterial color="#1a1a1a" metalness={0.5} roughness={0.4} />
+            </mesh>
+            {/* Three pendants over the island */}
+            <Pendant position={[kitchenX - 1.0, ceilY - 0.65, intZ + 0.5]} radius={0.09} />
+            <Pendant position={[kitchenX, ceilY - 0.6, intZ + 0.5]} radius={0.1} />
+            <Pendant position={[kitchenX + 1.0, ceilY - 0.65, intZ + 0.5]} radius={0.09} />
+
+            {/* ─── EAST WING — Dining room ────────────────────────────── */}
+            <RoomCard
+              baseColor="#5a4030"
+              height={eastWingH - 0.6}
+              position={[eastIntX, plinthH + eastWingH / 2, eastIntZ - 0.6]}
+              width={eastWingW - 0.4}
+            />
+            {/* Long dining table */}
+            <mesh position={[eastIntX, eastFloorY + 0.4, eastIntZ + 0.2]}>
+              <boxGeometry args={[Math.min(3.6, eastWingW - 1.2), 0.05, 1.2]} />
+              <meshStandardMaterial color="#dcd6c8" metalness={0.06} roughness={0.4} />
+            </mesh>
+            {/* Table base / pedestal */}
+            <mesh position={[eastIntX, eastFloorY + 0.2, eastIntZ + 0.2]}>
+              <boxGeometry args={[Math.min(3.4, eastWingW - 1.4), 0.4, 0.4]} />
+              <meshStandardMaterial {...woodSil} />
+            </mesh>
+            {/* 8 dining chairs (4 each side) */}
+            {[-1.5, -0.5, 0.5, 1.5].map((sx) => (
+              <group key={`d-chair-pair-${sx}`}>
+                <mesh position={[eastIntX + sx, eastFloorY + 0.45, eastIntZ + 0.95]}>
+                  <boxGeometry args={[0.6, 0.95, 0.35]} />
+                  <meshStandardMaterial {...sil} />
+                </mesh>
+                <mesh position={[eastIntX + sx, eastFloorY + 0.45, eastIntZ - 0.55]}>
+                  <boxGeometry args={[0.6, 0.95, 0.35]} />
+                  <meshStandardMaterial {...sil} />
+                </mesh>
+              </group>
+            ))}
+            {/* Chandelier — emissive cluster over the dining table */}
+            <group position={[eastIntX, eastCeilY - 0.65, eastIntZ + 0.2]}>
+              <mesh position={[0, 0.45, 0]}>
+                <cylinderGeometry args={[0.018, 0.018, 0.9, 6]} />
+                <meshStandardMaterial color="#1a1a1a" metalness={0.4} roughness={0.5} />
+              </mesh>
+              <mesh
+                ref={(m) => {
+                  if (m) refs.current.glass.push(m)
+                }}
+              >
+                <sphereGeometry args={[0.32, 14, 10]} />
+                <meshStandardMaterial
+                  color="#fff5d6"
+                  emissive="#ffd285"
+                  emissiveIntensity={0.07}
+                  metalness={0.15}
+                  roughness={0.4}
+                />
+              </mesh>
+              {/* Three small accent bulbs around it */}
+              {[0, 2.094, 4.188].map((a, i) => (
+                <mesh
+                  key={`chand-acc-${i}`}
+                  position={[Math.cos(a) * 0.5, -0.1, Math.sin(a) * 0.5]}
+                  ref={(m) => {
+                    if (m) refs.current.glass.push(m)
+                  }}
+                >
+                  <sphereGeometry args={[0.07, 8, 6]} />
+                  <meshStandardMaterial
+                    color="#fff5d6"
+                    emissive="#ffd285"
+                    emissiveIntensity={0.05}
+                    metalness={0}
+                    roughness={0.5}
+                  />
+                </mesh>
+              ))}
+            </group>
+
+            {/* ─── WEST WING — Library / Study ──────────────────────── */}
+            <RoomCard
+              baseColor="#3a2818"
+              height={westWingH - 0.6}
+              position={[westIntX, plinthH + westWingH / 2, westIntZ - 0.7]}
+              width={westWingW - 0.4}
+            />
+            {/* Bookshelf along the back wall — tall vertical strips */}
+            {[-2, -1, 0, 1, 2].map((s) => {
+              const sx = westIntX + s * 0.6
+              if (Math.abs(sx - westIntX) > westWingW / 2 - 0.5) return null
+              return (
+                <mesh
+                  key={`bookshelf-${s}`}
+                  position={[sx, westFloorY + (westCeilY - westFloorY) / 2, westIntZ - 0.5]}
+                >
+                  <boxGeometry args={[0.55, westCeilY - westFloorY - 0.3, 0.35]} />
+                  <meshStandardMaterial color="#3a2818" metalness={0.15} roughness={0.7} />
+                </mesh>
+              )
+            })}
+            {/* Book "spines" — narrow emissive hint at warm reading light from the room */}
+            <mesh
+              position={[westIntX, westFloorY + (westCeilY - westFloorY) / 2, westIntZ - 0.32]}
+              ref={(m) => {
+                if (m) refs.current.glass.push(m)
+              }}
+            >
+              <boxGeometry args={[westWingW - 1.2, westCeilY - westFloorY - 0.5, 0.04]} />
+              <meshStandardMaterial
+                color="#5a3018"
+                emissive="#ffa05a"
+                emissiveIntensity={0.04}
+                metalness={0}
+                roughness={0.7}
+              />
+            </mesh>
+            {/* Reading chair silhouette */}
+            <mesh position={[westIntX - 0.6, westFloorY + 0.55, westIntZ + 0.6]}>
+              <boxGeometry args={[1.0, 1.1, 0.95]} />
+              <meshStandardMaterial {...sil} />
+            </mesh>
+            {/* Side table + lamp */}
+            <mesh position={[westIntX + 0.7, westFloorY + 0.4, westIntZ + 0.6]}>
+              <cylinderGeometry args={[0.3, 0.3, 0.8, 12]} />
+              <meshStandardMaterial {...woodSil} />
+            </mesh>
+            <group position={[westIntX + 0.7, westFloorY + 0.85, westIntZ + 0.6]}>
+              <mesh position={[0, 0.35, 0]}>
+                <cylinderGeometry args={[0.015, 0.015, 0.7, 6]} />
+                <meshStandardMaterial color="#1a1a1a" metalness={0.3} roughness={0.5} />
+              </mesh>
+              <mesh
+                position={[0, 0.85, 0]}
+                ref={(m) => {
+                  if (m) refs.current.glass.push(m)
+                }}
+              >
+                <coneGeometry args={[0.18, 0.32, 10, 1, true]} />
+                <meshStandardMaterial
+                  color="#fff5d6"
+                  emissive="#ffd285"
+                  emissiveIntensity={0.06}
+                  side={2}
+                  metalness={0}
+                  roughness={0.5}
+                />
+              </mesh>
+            </group>
+
+            {/* ─── SETBACK (2nd story) — Master Suite ─────────────────── */}
+            <RoomCard
+              baseColor="#5a4030"
+              height={setbackH - 0.5}
+              position={[0, setbackY0 + setbackH / 2, setIntZ - 0.4]}
+              width={setbackW - 0.6}
+            />
+            {/* King bed silhouette */}
+            <mesh position={[0, setFloorY + 0.45, setIntZ - 0.2]}>
+              <boxGeometry args={[2.4, 0.85, 1.9]} />
+              <meshStandardMaterial color="#dcd6c8" metalness={0.05} roughness={0.5} />
+            </mesh>
+            {/* Headboard */}
+            <mesh position={[0, setFloorY + 1.0, setIntZ - 1.05]}>
+              <boxGeometry args={[2.6, 1.4, 0.18]} />
+              <meshStandardMaterial color="#3a2818" metalness={0.15} roughness={0.6} />
+            </mesh>
+            {/* Two bedside lamps */}
+            {[-1, 1].map((s) => (
+              <group key={`bedside-${s}`} position={[s * 1.55, setFloorY + 0.55, setIntZ - 0.6]}>
+                <mesh>
+                  <boxGeometry args={[0.5, 0.45, 0.45]} />
+                  <meshStandardMaterial {...woodSil} />
+                </mesh>
+                <mesh
+                  position={[0, 0.45, 0]}
+                  ref={(m) => {
+                    if (m) refs.current.glass.push(m)
+                  }}
+                >
+                  <coneGeometry args={[0.16, 0.28, 10, 1, true]} />
+                  <meshStandardMaterial
+                    color="#fff5d6"
+                    emissive="#ffd285"
+                    emissiveIntensity={0.06}
+                    side={2}
+                    metalness={0}
+                    roughness={0.5}
+                  />
+                </mesh>
+              </group>
+            ))}
+            {/* Ceiling pendant over the bed */}
+            <Pendant position={[0, setCeilY - 0.4, setIntZ - 0.2]} radius={0.1} />
+          </group>
+        )
+      })()}
 
       {/* ┌─────────────────────────────────────────────────────────────────┐ */}
       {/* │  ROOFLINE PARAPETS — rim walls around each roof level give the  │ */}
@@ -1673,13 +2196,124 @@ function MansionBlock({ node }: { node: ItemNode }) {
       })()}
 
       {/* ┌─────────────────────────────────────────────────────────────────┐ */}
-      {/* │  WING BALCONIES — small cantilevered juliette balconies on each │ */}
-      {/* │  wing's south face at half-height. Reads as more occupied tiers │ */}
+      {/* │  WING BALCONIES — cantilevered juliette balconies with a       │ */}
+      {/* │  proper architectural rail (top cap + vertical posts + glass   │ */}
+      {/* │  infill + bottom trim) on each wing's south face at half-      │ */}
+      {/* │  height. Reads as more occupied tiers.                          │ */}
       {/* └─────────────────────────────────────────────────────────────────┘ */}
       {(() => {
         const balY = plinthH + Math.min(eastWingH, westWingH) * 0.55
-        const balDepth = 1.0
-        const balRailH = 1.0
+        const balDepth = 1.2
+        const balRailH = 1.05
+        const railTopH = 0.06
+        const railBottomH = 0.05
+        const postW = 0.05
+        // Render a luxury rail: bronze top cap + tall glass infill +
+        // vertical posts every ~1m + bronze bottom trim
+        const buildRail = (
+          key: string,
+          rx: number,
+          rw: number,
+          startZ: number,
+          endZ: number,
+          axis: 'x' | 'z',
+        ) => {
+          const len = Math.abs(endZ - startZ)
+          const cz = (startZ + endZ) / 2
+          // Number of vertical posts along the rail (>=2 — endpoints)
+          const postCount = Math.max(2, Math.round(len / 0.85))
+          const baseProps = { color: '#a98654', metalness: 0.6, roughness: 0.32 }
+          return (
+            <group key={key}>
+              {/* Top cap (bronze) */}
+              <mesh
+                position={
+                  axis === 'x'
+                    ? [rx, balY + balRailH + railTopH / 2, cz]
+                    : [rx, balY + balRailH + railTopH / 2, cz]
+                }
+              >
+                <boxGeometry
+                  args={
+                    axis === 'x' ? [rw, railTopH, 0.07] : [0.07, railTopH, len]
+                  }
+                />
+                <meshStandardMaterial {...baseProps} />
+              </mesh>
+              {/* Bottom trim (bronze) */}
+              <mesh
+                position={
+                  axis === 'x'
+                    ? [rx, balY + railBottomH / 2 + 0.04, cz]
+                    : [rx, balY + railBottomH / 2 + 0.04, cz]
+                }
+              >
+                <boxGeometry
+                  args={
+                    axis === 'x' ? [rw, railBottomH, 0.07] : [0.07, railBottomH, len]
+                  }
+                />
+                <meshStandardMaterial {...baseProps} />
+              </mesh>
+              {/* Glass infill panel */}
+              <mesh
+                position={
+                  axis === 'x'
+                    ? [rx, balY + balRailH / 2 + 0.07, cz]
+                    : [rx, balY + balRailH / 2 + 0.07, cz]
+                }
+              >
+                <boxGeometry
+                  args={
+                    axis === 'x'
+                      ? [rw - postW * 2, balRailH - 0.16, 0.03]
+                      : [0.03, balRailH - 0.16, len - postW * 2]
+                  }
+                />
+                <meshStandardMaterial
+                  color="#cce4ff"
+                  transparent
+                  opacity={0.28}
+                  depthWrite={false}
+                  metalness={0.35}
+                  roughness={0.08}
+                />
+              </mesh>
+              {/* Vertical posts */}
+              {Array.from({ length: postCount }, (_, i) => {
+                const t = i / (postCount - 1)
+                if (axis === 'x') {
+                  const px = rx - rw / 2 + t * rw
+                  return (
+                    <mesh
+                      key={`${key}-p-${i}`}
+                      position={[px, balY + balRailH / 2 + 0.07, cz]}
+                    >
+                      <boxGeometry args={[postW, balRailH, 0.07]} />
+                      <meshStandardMaterial {...baseProps} />
+                    </mesh>
+                  )
+                }
+                const pz = startZ + t * (endZ - startZ)
+                return (
+                  <mesh
+                    key={`${key}-p-${i}`}
+                    position={[rx, balY + balRailH / 2 + 0.07, pz]}
+                  >
+                    <boxGeometry args={[0.07, balRailH, postW]} />
+                    <meshStandardMaterial {...baseProps} />
+                  </mesh>
+                )
+              })}
+            </group>
+          )
+        }
+
+        const eastFrontZ = (eastWingD - d) / 2 + eastWingD / 2 + balDepth - 0.02
+        const eastBackZ = (eastWingD - d) / 2 + eastWingD / 2 + 0.02
+        const westFrontZ = (westWingD - d) / 2 + westWingD / 2 + balDepth - 0.02
+        const westBackZ = (westWingD - d) / 2 + westWingD / 2 + 0.02
+
         return (
           <group>
             {/* East wing balcony slab */}
@@ -1692,52 +2326,38 @@ function MansionBlock({ node }: { node: ItemNode }) {
               ]}
               receiveShadow
             >
-              <boxGeometry args={[eastWingW * 0.7, 0.12, balDepth]} />
+              <boxGeometry args={[eastWingW * 0.85, 0.18, balDepth]} />
               <meshStandardMaterial color={stoneColor} metalness={0.12} roughness={0.55} />
             </mesh>
-            {/* East balcony front glass railing */}
+            {/* East balcony — bronze trim band underneath the slab */}
             <mesh
               position={[
                 eastOffsetX,
-                balY + balRailH / 2 + 0.06,
-                (eastWingD - d) / 2 + eastWingD / 2 + balDepth - 0.02,
+                balY - 0.13,
+                (eastWingD - d) / 2 + eastWingD / 2 + balDepth / 2,
               ]}
             >
-              <boxGeometry args={[eastWingW * 0.7, balRailH, 0.04]} />
-              <meshStandardMaterial
-                color="#a8d4ff"
-                emissive="#a8d4ff"
-                emissiveIntensity={0.04}
-                transparent
-                opacity={0.32}
-                depthWrite={false}
-                metalness={0.3}
-                roughness={0.1}
-              />
+              <boxGeometry args={[eastWingW * 0.85 + 0.04, 0.06, balDepth + 0.04]} />
+              <meshStandardMaterial color="#a98654" metalness={0.6} roughness={0.32} />
             </mesh>
-            {/* East balcony side rails */}
-            {[-1, 1].map((s) => (
-              <mesh
-                key={`bal-east-side-${s}`}
-                position={[
-                  eastOffsetX + ((eastWingW * 0.7) / 2) * s,
-                  balY + balRailH / 2 + 0.06,
-                  (eastWingD - d) / 2 + eastWingD / 2 + balDepth / 2,
-                ]}
-              >
-                <boxGeometry args={[0.04, balRailH, balDepth]} />
-                <meshStandardMaterial
-                  color="#a8d4ff"
-                  emissive="#a8d4ff"
-                  emissiveIntensity={0.04}
-                  transparent
-                  opacity={0.32}
-                  depthWrite={false}
-                  metalness={0.3}
-                  roughness={0.1}
-                />
-              </mesh>
-            ))}
+            {/* East balcony — left side rail */}
+            {buildRail(
+              'bal-east-left',
+              eastOffsetX - (eastWingW * 0.85) / 2,
+              0,
+              eastBackZ,
+              eastFrontZ,
+              'z',
+            )}
+            {/* East balcony — right side rail */}
+            {buildRail(
+              'bal-east-right',
+              eastOffsetX + (eastWingW * 0.85) / 2,
+              0,
+              eastBackZ,
+              eastFrontZ,
+              'z',
+            )}
 
             {/* West wing balcony slab */}
             <mesh
@@ -1749,50 +2369,116 @@ function MansionBlock({ node }: { node: ItemNode }) {
               ]}
               receiveShadow
             >
-              <boxGeometry args={[westWingW * 0.75, 0.12, balDepth]} />
+              <boxGeometry args={[westWingW * 0.9, 0.18, balDepth]} />
               <meshStandardMaterial color={stoneColor} metalness={0.12} roughness={0.55} />
             </mesh>
+            {/* West balcony — bronze trim band */}
             <mesh
               position={[
                 -westOffsetX,
-                balY + balRailH / 2 + 0.06,
-                (westWingD - d) / 2 + westWingD / 2 + balDepth - 0.02,
+                balY - 0.13,
+                (westWingD - d) / 2 + westWingD / 2 + balDepth / 2,
               ]}
             >
-              <boxGeometry args={[westWingW * 0.75, balRailH, 0.04]} />
-              <meshStandardMaterial
-                color="#a8d4ff"
-                emissive="#a8d4ff"
-                emissiveIntensity={0.04}
-                transparent
-                opacity={0.32}
-                depthWrite={false}
-                metalness={0.3}
-                roughness={0.1}
-              />
+              <boxGeometry args={[westWingW * 0.9 + 0.04, 0.06, balDepth + 0.04]} />
+              <meshStandardMaterial color="#a98654" metalness={0.6} roughness={0.32} />
             </mesh>
-            {[-1, 1].map((s) => (
-              <mesh
-                key={`bal-west-side-${s}`}
-                position={[
-                  -westOffsetX + ((westWingW * 0.75) / 2) * s,
-                  balY + balRailH / 2 + 0.06,
-                  (westWingD - d) / 2 + westWingD / 2 + balDepth / 2,
-                ]}
-              >
-                <boxGeometry args={[0.04, balRailH, balDepth]} />
+            {buildRail(
+              'bal-west-left',
+              -westOffsetX - (westWingW * 0.9) / 2,
+              0,
+              westBackZ,
+              westFrontZ,
+              'z',
+            )}
+            {buildRail(
+              'bal-west-right',
+              -westOffsetX + (westWingW * 0.9) / 2,
+              0,
+              westBackZ,
+              westFrontZ,
+              'z',
+            )}
+          </group>
+        )
+      })()}
+
+      {/* ┌─────────────────────────────────────────────────────────────────┐ */}
+      {/* │  WING BALCONY FRONT RAILS — separate group so each gets a       │ */}
+      {/* │  proper world z-position (the buildRail helper above renders    │ */}
+      {/* │  axis='x' rails at their group's local cz=0 — we render the     │ */}
+      {/* │  front rails here directly in world space).                     │ */}
+      {/* └─────────────────────────────────────────────────────────────────┘ */}
+      {(() => {
+        const balY = plinthH + Math.min(eastWingH, westWingH) * 0.55
+        const balDepth = 1.2
+        const balRailH = 1.05
+        const railTopH = 0.06
+        const railBottomH = 0.05
+        const postW = 0.05
+        const baseProps = { color: '#a98654', metalness: 0.6, roughness: 0.32 }
+        const buildFront = (
+          key: string,
+          rx: number,
+          rw: number,
+          rz: number,
+        ) => {
+          const postCount = Math.max(3, Math.round(rw / 0.85))
+          return (
+            <group key={key}>
+              {/* Top cap */}
+              <mesh position={[rx, balY + balRailH + railTopH / 2, rz]}>
+                <boxGeometry args={[rw, railTopH, 0.08]} />
+                <meshStandardMaterial {...baseProps} />
+              </mesh>
+              {/* Bottom trim */}
+              <mesh position={[rx, balY + railBottomH / 2 + 0.04, rz]}>
+                <boxGeometry args={[rw, railBottomH, 0.08]} />
+                <meshStandardMaterial {...baseProps} />
+              </mesh>
+              {/* Glass infill */}
+              <mesh position={[rx, balY + balRailH / 2 + 0.07, rz]}>
+                <boxGeometry args={[rw - postW * 2, balRailH - 0.16, 0.03]} />
                 <meshStandardMaterial
-                  color="#a8d4ff"
-                  emissive="#a8d4ff"
-                  emissiveIntensity={0.04}
+                  color="#cce4ff"
                   transparent
-                  opacity={0.32}
+                  opacity={0.28}
                   depthWrite={false}
-                  metalness={0.3}
-                  roughness={0.1}
+                  metalness={0.35}
+                  roughness={0.08}
                 />
               </mesh>
-            ))}
+              {/* Vertical posts */}
+              {Array.from({ length: postCount }, (_, i) => {
+                const t = i / (postCount - 1)
+                const px = rx - rw / 2 + t * rw
+                return (
+                  <mesh
+                    key={`${key}-p-${i}`}
+                    position={[px, balY + balRailH / 2 + 0.07, rz]}
+                  >
+                    <boxGeometry args={[postW, balRailH, 0.08]} />
+                    <meshStandardMaterial {...baseProps} />
+                  </mesh>
+                )
+              })}
+            </group>
+          )
+        }
+        return (
+          <group>
+            {buildFront(
+              'bal-east-front-real',
+              eastOffsetX,
+              eastWingW * 0.85,
+              (eastWingD - d) / 2 + eastWingD / 2 + balDepth - 0.02,
+            )}
+            {buildFront(
+              'bal-west-front-real',
+              -westOffsetX,
+              westWingW * 0.9,
+              (westWingD - d) / 2 + westWingD / 2 + balDepth - 0.02,
+            )}
           </group>
         )
       })()}
@@ -2062,6 +2748,111 @@ function GardenLantern({ node }: { node: ItemNode }) {
   )
 }
 
+// ─── Pool Towel — folded white towel pile ──────────────────────────────────
+//
+// Two stacked rounded boxes representing a folded towel pile. Tiny decor
+// for poolside dressing — reads as "occupied lounge" without modeling
+// individual towels. Uses asset.dimensions so size scales naturally.
+function PoolTowel({ node }: { node: ItemNode }) {
+  const handlers = useNodeEvents(node, 'item')
+  const [w, h, d] = node.asset.dimensions
+  return (
+    <group {...handlers}>
+      {/* Bottom towel — wider, slightly creased shadow line */}
+      <mesh castShadow position={[0, h * 0.18, 0]} receiveShadow>
+        <boxGeometry args={[w, h * 0.36, d]} />
+        <meshStandardMaterial color="#f5efe3" metalness={0.02} roughness={0.85} />
+      </mesh>
+      <mesh position={[0, h * 0.36, 0]}>
+        <boxGeometry args={[w + 0.005, 0.012, d + 0.005]} />
+        <meshStandardMaterial color="#d4ccbb" metalness={0.02} roughness={0.85} />
+      </mesh>
+      {/* Top towel — slightly inset, different tone */}
+      <mesh castShadow position={[0, h * 0.6, 0]} receiveShadow>
+        <boxGeometry args={[w * 0.94, h * 0.36, d * 0.94]} />
+        <meshStandardMaterial color="#fbf6ec" metalness={0.02} roughness={0.85} />
+      </mesh>
+      {/* Top crease */}
+      <mesh position={[0, h * 0.78, 0]}>
+        <boxGeometry args={[w * 0.94, 0.01, d * 0.94]} />
+        <meshStandardMaterial color="#dad2bf" metalness={0.02} roughness={0.85} />
+      </mesh>
+    </group>
+  )
+}
+
+// ─── Drinks Tray — bottle + 2 glasses on a tray ───────────────────────────
+//
+// Small luxury hospitality moment for coffee tables and bars.
+function DrinksTray({ node }: { node: ItemNode }) {
+  const handlers = useNodeEvents(node, 'item')
+  const [w, h, d] = node.asset.dimensions
+  return (
+    <group {...handlers}>
+      {/* Tray base — dark walnut */}
+      <mesh castShadow position={[0, 0.025, 0]} receiveShadow>
+        <boxGeometry args={[w, 0.05, d]} />
+        <meshStandardMaterial color="#2a1a0e" metalness={0.15} roughness={0.65} />
+      </mesh>
+      {/* Bronze tray rim */}
+      {[-1, 1].map((s) => (
+        <mesh key={`tr-x-${s}`} position={[(w / 2 - 0.02) * s, 0.06, 0]}>
+          <boxGeometry args={[0.04, 0.06, d]} />
+          <meshStandardMaterial color="#a98654" metalness={0.6} roughness={0.32} />
+        </mesh>
+      ))}
+      {[-1, 1].map((s) => (
+        <mesh key={`tr-z-${s}`} position={[0, 0.06, (d / 2 - 0.02) * s]}>
+          <boxGeometry args={[w, 0.06, 0.04]} />
+          <meshStandardMaterial color="#a98654" metalness={0.6} roughness={0.32} />
+        </mesh>
+      ))}
+      {/* Bottle — tall slender cylinder */}
+      <mesh castShadow position={[w * 0.25, 0.05 + h * 0.45, 0]}>
+        <cylinderGeometry args={[h * 0.08, h * 0.1, h * 0.85, 12]} />
+        <meshStandardMaterial
+          color="#1a3a1a"
+          metalness={0.2}
+          roughness={0.45}
+          transparent
+          opacity={0.92}
+        />
+      </mesh>
+      {/* Bottle neck */}
+      <mesh position={[w * 0.25, 0.05 + h * 0.92, 0]}>
+        <cylinderGeometry args={[h * 0.04, h * 0.05, h * 0.18, 10]} />
+        <meshStandardMaterial color="#1a3a1a" metalness={0.2} roughness={0.45} />
+      </mesh>
+      {/* Two stemmed glasses on the other side of the tray */}
+      {[-0.18, 0.18].map((sz) => (
+        <group key={`glass-${sz}`} position={[-w * 0.25, 0, sz]}>
+          {/* Stem */}
+          <mesh position={[0, 0.05 + h * 0.18, 0]}>
+            <cylinderGeometry args={[0.012, 0.012, h * 0.36, 6]} />
+            <meshStandardMaterial color="#dcd6c8" metalness={0.4} roughness={0.15} />
+          </mesh>
+          {/* Bowl */}
+          <mesh position={[0, 0.05 + h * 0.42, 0]}>
+            <cylinderGeometry args={[h * 0.12, h * 0.07, h * 0.22, 12]} />
+            <meshStandardMaterial
+              color="#dcd6c8"
+              metalness={0.45}
+              roughness={0.1}
+              transparent
+              opacity={0.55}
+            />
+          </mesh>
+          {/* Base disk */}
+          <mesh position={[0, 0.05 + 0.005, 0]}>
+            <cylinderGeometry args={[h * 0.1, h * 0.1, 0.01, 12]} />
+            <meshStandardMaterial color="#dcd6c8" metalness={0.45} roughness={0.15} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  )
+}
+
 // ─── Registry ──────────────────────────────────────────────────────────────
 
 const PROCEDURAL_REGISTRY: Record<
@@ -2077,6 +2868,8 @@ const PROCEDURAL_REGISTRY: Record<
   'pool-coping': PoolCoping,
   'pool-shimmer': PoolShimmer,
   'mansion-block': MansionBlock,
+  'pool-towel': PoolTowel,
+  'drinks-tray': DrinksTray,
 }
 
 export const PROCEDURAL_ITEM_IDS = Object.keys(PROCEDURAL_REGISTRY)
