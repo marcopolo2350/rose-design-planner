@@ -557,8 +557,14 @@ function DeleteCursorLayer({
   isVersionPreviewMode: boolean
 }) {
   const mode = useEditor((s) => s.mode)
+  const isFirstPersonMode = useEditor((s) => s.isFirstPersonMode)
+  const showcaseMode = useViewer((s) => s.showcaseMode)
+  const walkthroughMode = useViewer((s) => s.walkthroughMode)
   const [position, setPosition] = useState<{ x: number; y: number } | null>(null)
-  const active = mode === 'delete' && !isVersionPreviewMode
+  // Hide the delete badge while presenting — the user is exploring their
+  // finished design, not editing.
+  const presenting = showcaseMode || walkthroughMode || isFirstPersonMode
+  const active = mode === 'delete' && !isVersionPreviewMode && !presenting
 
   useEffect(() => {
     if (!active) {
@@ -824,6 +830,19 @@ export default function Editor({
       document.body.classList.remove('dark')
     }
   }, [])
+
+  // Auto-exit Delete Mode when the user enters any "presentation" mode —
+  // Showcase, Walkthrough, or First-Person. The user is exploring their
+  // finished design and should never have a destructive cursor active.
+  const _showcaseMode = useViewer((s) => s.showcaseMode)
+  const _walkthroughMode = useViewer((s) => s.walkthroughMode)
+  useEffect(() => {
+    if (_showcaseMode || _walkthroughMode || isFirstPersonMode) {
+      const ed = useEditor.getState()
+      if (ed.mode !== 'select') ed.setMode('select')
+      if (ed.tool !== null) ed.setTool(null)
+    }
+  }, [_showcaseMode, _walkthroughMode, isFirstPersonMode])
 
   const showLoader = isLoading || isSceneLoading
 

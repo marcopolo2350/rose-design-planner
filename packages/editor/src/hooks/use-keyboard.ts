@@ -86,6 +86,16 @@ export const useKeyboard = ({ isVersionPreviewMode = false } = {}) => {
         useEditor.getState().setMode('build')
       } else if (e.key === 'd' && !e.metaKey && !e.ctrlKey) {
         if (isVersionPreviewMode) return
+        // Don't enter delete mode while presenting (Showcase / Walkthrough /
+        // First-Person). The user shouldn't accidentally trigger destructive
+        // mode while exploring their finished design.
+        if (
+          useViewer.getState().showcaseMode ||
+          useViewer.getState().walkthroughMode ||
+          useEditor.getState().isFirstPersonMode
+        ) {
+          return
+        }
         e.preventDefault()
         useEditor.getState().setMode('delete')
       } else if (e.key === 'z' && (e.metaKey || e.ctrlKey)) {

@@ -348,10 +348,23 @@ export const SelectionManager = () => {
   const movingNode = useEditor((s) => s.movingNode)
   const curvingWall = useEditor((s) => s.curvingWall)
 
+  // Force "default" hover (no red delete highlight) while presenting —
+  // Showcase Mode, Walkthrough, or First-Person. The user is exploring
+  // their finished design, not destroying it.
   useEffect(() => {
-    setHoverHighlightMode(mode === 'delete' ? 'delete' : 'default')
-
+    const update = () => {
+      const v = useViewer.getState()
+      const e = useEditor.getState()
+      const presenting = v.showcaseMode || v.walkthroughMode || e.isFirstPersonMode
+      setHoverHighlightMode(mode === 'delete' && !presenting ? 'delete' : 'default')
+    }
+    update()
+    // Subscribe to viewer/editor state so we react if presentation modes change
+    const unsubV = useViewer.subscribe(update)
+    const unsubE = useEditor.subscribe(update)
     return () => {
+      unsubV()
+      unsubE()
       setHoverHighlightMode('default')
     }
   }, [mode, setHoverHighlightMode])

@@ -33,70 +33,117 @@ export type TutorialStep = {
 }
 
 const STEPS: TutorialStep[] = [
+  // 1. WELCOME — set expectations, friendly tone
   {
     icon: 'lucide:sparkles',
     iconTint: 'text-amber-300',
-    title: 'Welcome to Rose\'s Outdoor Designs',
+    title: "Welcome to Rose's Outdoor Designs",
     body:
-      'Plan beautiful outdoor spaces — patios, pools, firepit lounges, pergolas — without ever feeling like CAD software. Here\'s the 30-second tour.',
+      "Design a luxury outdoor space — pool deck, firepit, kitchen, pergola, even a full estate — with no CAD knowledge required. This 30-second tour shows you everything.",
   },
+
+  // 2. STARTERS — explain "Start from Starter" button
   {
-    icon: 'lucide:wand-2',
+    icon: 'lucide:layout-template',
     iconTint: 'text-emerald-300',
-    title: 'Start from a backyard you love',
+    title: 'Step 1 — Start from a designed space',
     body:
-      'Open the Starters menu (top toolbar) and pick a vibe — Garden retreat, Resort poolside, Firepit lounge, Outdoor kitchen, Compact backyard, Luxury nighttime, or Modern evening. Each loads a designed space with the right lighting and a hero camera shot.',
+      'Click the green "Start from Starter" button at the top of the screen. Pick a vibe — Ultimate Estate, Garden retreat, Resort poolside, Firepit lounge — and you start with a fully composed scene as your editable copy. (You can always start from an empty canvas instead.)',
   },
+
+  // 3. PROJECTS — Save Progress / My Projects / New Project / Reset
   {
-    icon: 'ph:mouse-left-click-fill',
-    iconTint: 'text-sky-300',
-    title: 'Move the camera like a real space',
+    icon: 'lucide:save',
+    iconTint: 'text-emerald-300',
+    title: 'Step 2 — Save your design anytime',
     body:
-      'Hold Space + drag to pan. Right-click drag to rotate. Scroll to zoom. The camera respects horizons and gentle ground levels — it won\'t fly underground unless you ask it to.',
-    desktopOnly: true,
+      'The emerald "Save Progress" button (top toolbar) saves your current scene with a name. Open "Projects" right next to it to load earlier saves, start a New Project, or reset the current scene. Everything is stored locally on this device — no accounts, no cloud.',
   },
-  {
-    icon: 'lucide:hand',
-    iconTint: 'text-sky-300',
-    title: 'Move the camera with touch',
-    body:
-      'One finger drag to pan. Two-finger drag to rotate. Pinch to zoom. The bottom-right star button opens the outdoor controls — Mood, Time of day, Cameras, Showcase.',
-    mobileOnly: true,
-  },
+
+  // 4. EDITING — basic placement / catalog (desktop)
   {
     icon: 'lucide:hammer',
     iconTint: 'text-orange-300',
-    title: 'Build, furnish, zone',
+    title: 'Step 3 — Build, furnish, decorate',
     body:
-      'Use the bottom panel to switch between Structure (walls, slabs, fences), Furnish (sunbeds, firepit, pergola, kitchen island, planters, lanterns), and Zones (named outdoor areas). Drop items onto patios — they snap to the surface.',
+      'Open the Plan / Catalog panel on the left. Pick a category — Structure (walls, slabs, fences), Furnish (sunbeds, firepit, pergola, kitchen, planters, lanterns) — then click in the scene to place. Items snap to the floor automatically. Click any placed item to select it; the side panel lets you edit it.',
+    desktopOnly: true,
   },
+
+  // 4b. EDITING — mobile
+  {
+    icon: 'lucide:hand',
+    iconTint: 'text-orange-300',
+    title: 'Step 3 — Build, furnish, decorate',
+    body:
+      'Tap the Plan tab at the bottom-left to open the Catalog. Tap a category, tap an item to pick it up, then tap the scene to place it. Tap any placed item to select it.',
+    mobileOnly: true,
+  },
+
+  // 5. CAMERA — desktop controls
+  {
+    icon: 'ph:mouse-left-click-fill',
+    iconTint: 'text-sky-300',
+    title: 'Step 4 — Move the camera',
+    body:
+      'Hold SPACE + drag to pan. Right-click drag to orbit / rotate. Scroll wheel to zoom. The camera stays above the ground naturally.',
+    desktopOnly: true,
+  },
+
+  // 5b. CAMERA — mobile (touch)
+  {
+    icon: 'lucide:hand',
+    iconTint: 'text-sky-300',
+    title: 'Step 4 — Move the camera',
+    body:
+      'One-finger drag to pan. Two-finger drag to rotate. Pinch to zoom. The floating star button (bottom-right) opens all your outdoor controls — Projects, Mood, Time of day, Cameras.',
+    mobileOnly: true,
+  },
+
+  // 6. FLOORS — explicitly describe how to change a surface
+  {
+    icon: 'lucide:square',
+    iconTint: 'text-amber-300',
+    title: 'Step 5 — Change a floor or surface',
+    body:
+      'Click any patio / pool deck / driveway slab to select it. The right-side Properties panel shows the Material picker — pick Marble, Wood, Granite, Concrete, etc. The change appears instantly. (If you want to add a new patio, switch to Structure → Slab in the Plan panel.)',
+  },
+
+  // 7. MOOD + TIME OF DAY
   {
     icon: 'lucide:sun',
     iconTint: 'text-amber-300',
-    title: 'Set the mood',
+    title: 'Step 6 — Set the mood',
     body:
-      'The Mood dropdown bundles a time of day with a hero camera in one click. Or use Time of day on its own to flip between Day, Golden hour, Dusk, and Evening — the whole world recolors and the firepit and lanterns light up.',
+      'The Mood menu (top toolbar) bundles a time of day with a hero camera. Or open Time of day to flip between Day, Golden hour, Dusk, and Evening — the world recolors, lanterns ramp on, and the mansion glows from inside.',
   },
-  {
-    icon: 'lucide:clapperboard',
-    iconTint: 'text-violet-300',
-    title: 'Cinematic camera views',
-    body:
-      'The Views menu offers Showcase, Backyard reveal, Patio view, Poolside, Evening glow, and Walkthrough — each a hand-tuned camera shot you\'d see in a luxury listing.',
-  },
+
+  // 8. SHOWCASE
   {
     icon: 'lucide:star',
     iconTint: 'text-amber-300',
-    title: 'Present in Showcase Mode',
+    title: 'Step 7 — Present in Showcase Mode',
     body:
-      'Press the sparkle button to enter Showcase. The UI fades, the camera glides into a hero angle, and (with autoplay on) it slowly orbits while time of day cycles — a magazine-cover loop you can leave running.',
+      "Press the sparkle button (Showcase) for the cinematic experience. The UI fades, the camera walks through 6 hand-directed shots — establishing wide, push-in, pool skim, rooftop reveal, aerial pull-back, hero settle — while time of day cycles. Magazine-cover footage you can leave running.",
   },
+
+  // 9. WALKTHROUGH
   {
-    icon: 'lucide:check',
+    icon: 'lucide:footprints',
     iconTint: 'text-emerald-300',
-    title: 'You\'re ready',
+    title: 'Step 8 — Walk through your design',
     body:
-      'Re-open this tour any time from the Help button. Save is automatic — your space persists between visits.',
+      'Click the footprints icon (top toolbar) to enter Walkthrough — a first-person stroll through the space at human eye height. Use WASD to move, mouse to look around, Q/E to rise or descend, Shift to sprint. Press ESC to exit.',
+    desktopOnly: true,
+  },
+
+  // 10. WRAP-UP
+  {
+    icon: 'lucide:check-circle-2',
+    iconTint: 'text-emerald-300',
+    title: "You're ready",
+    body:
+      'Open this tour any time from the question-mark Help button in the toolbar. Reload the page — your work persists. Have fun designing.',
   },
 ]
 

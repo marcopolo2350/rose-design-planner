@@ -841,15 +841,19 @@ function GlassPanel({
         renderOrder={2}
       >
         <boxGeometry args={[width, height, 0.05]} />
+        {/* Glass — far more transparent than before (opacity 0.45 vs 0.74)
+            so interior silhouettes and warm room glow are clearly visible
+            from the outside. emissive ramps with time-of-day via the
+            existing glass-refs animator. */}
         <meshStandardMaterial
-          color="#a8d4ff"
+          color="#cce4ff"
           emissive="#ffe8b8"
           emissiveIntensity={0.05}
           transparent
-          opacity={0.74}
+          opacity={0.45}
           depthWrite={false}
-          metalness={0.45}
-          roughness={0.1}
+          metalness={0.55}
+          roughness={0.06}
         />
       </mesh>
       {/* Vertical mullion bars cutting the glass into panes */}
@@ -943,14 +947,16 @@ function MansionBlock({ node }: { node: ItemNode }) {
 
   useFrame((_, delta) => {
     const dt = MathUtils.clamp(delta * 4, 0, 1)
+    // Boosted evening intensity (was 1.5) so interior silhouettes really
+    // pop through the more-transparent glass.
     const targetGlass =
       timeOfDay === 'evening'
-        ? 1.5
+        ? 2.6
         : timeOfDay === 'dusk'
-          ? 1.0
+          ? 1.7
           : timeOfDay === 'goldenHour'
-            ? 0.35
-            : 0.08
+            ? 0.6
+            : 0.12
     for (const m of refs.current.glass) {
       const mat = m.material as any
       if (typeof mat.emissiveIntensity === 'number') {
